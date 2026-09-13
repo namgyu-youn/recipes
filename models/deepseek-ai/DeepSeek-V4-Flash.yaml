@@ -548,9 +548,14 @@ strategy_overrides:
           - "--gpu-memory-utilization"
           - "0.85"
   single_node_dep:
-    # Force DP=4 on all hardware (fills GB200's 4-GPU tray; on 8-GPU nodes use
-    # half the GPUs per replica). dedupeArgs (last-wins) shadows the default
-    # --data-parallel-size that command-synthesis emits from gpu_count.
+    # Force DP=4 by default (fills GB200/GB300's 4-GPU tray). dedupeArgs
+    # (last-wins) shadows the default --data-parallel-size that
+    # command-synthesis emits from gpu_count. 8-GPU nodes (B200, B300) get
+    # DP8 via the exact-GPU overrides below instead — one DP8 replica uses
+    # the whole node's KV capacity rather than splitting it into two DP4
+    # replicas (see issue #762: DP8 gives 8 independent KV pools instead of
+    # TP8's single replicated pool, 3.2-3.7x TTFT/throughput at concurrency
+    # >=3, break-even at c=3).
     extra_args:
       - "--data-parallel-size"
       - "4"
@@ -568,6 +573,16 @@ strategy_overrides:
         extra_args:
           - "--gpu-memory-utilization"
           - "0.85"
+      # 8-GPU HGX nodes: one DP8 replica uses the whole node instead of two
+      # DP4 replicas each holding half the KV capacity. See issue #762.
+      b200:
+        extra_args:
+          - "--data-parallel-size"
+          - "8"
+      b300:
+        extra_args:
+          - "--data-parallel-size"
+          - "8"
       npu:
         # A per-strategy generation override replaces the recipe-level one, and
         # DEP is the only strategy the A5 pills can select — so hardware_overrides.npu
@@ -804,8 +819,14 @@ guide: |
   ## Recommended deployment
 
   Non-disaggregated serving on multi-GPU supported hardware: single-node DP + EP with
-  `--data-parallel-size 4`. Fills a GB200 NVL4 tray exactly; uses 4 of 8 GPUs per
-  replica on H200/B200/B300 (leaving headroom for throughput-vs-latency tuning).
+  `--data-parallel-size 4`. Fills a GB200/GB300 NVL4 tray exactly; on H200 this uses
+  4 of 8 GPUs per replica (leaving headroom for throughput-vs-latency tuning). On
+  8-GPU B200/B300 nodes the default is `--data-parallel-size 8` instead — one DP8
+  replica across the whole node rather than two DP4 replicas each with half the KV
+  capacity, since MLA's single KV head can't shard under TP and DP8 gives 8
+  independent KV pools. This favors concurrency and long-context serving (c>=3);
+  TP8+EP8 (the `single_node_tep` tab) stays better for single-stream latency at
+  c=1-2 (see issue [#762](https://github.com/vllm-project/recipes/issues/762)).
   On DGX Station, use the single-GPU launch below. For disaggregated prefill/decode
   on GB200, use the PD Cluster tab.
 
