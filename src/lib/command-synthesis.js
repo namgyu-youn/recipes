@@ -745,6 +745,13 @@ export function computeDockerMeta(recipe, variant, hwProfile, hwId = null) {
     pinned,
     cudaMap,
     nightlyRequired,
+    // `model.docker_source.mount_path` — a recipe whose pinned Docker image
+    // predates upstream source it depends on (e.g. MiniMax-H3's image
+    // predates the vLLM-Omni modular pipeline) declares this so the Docker
+    // command mounts a current source checkout over the stale packaged code
+    // and prepends it to PYTHONPATH. Read here so both the site and the
+    // JSON API pick it up through the same `dockerMeta` object.
+    sourceMount: recipe.model?.docker_source?.mount_path || null,
   };
 }
 
@@ -812,14 +819,16 @@ function servedPort(tokens, fallback = 8000) {
 // Wrap a `vllm serve MODEL <args>` command in `docker run`. The vllm/vllm-openai
 // image's entrypoint is `vllm serve`, so we pass MODEL and the trailing args as
 // CMD. Env vars become `-e KEY=VAL` inside the container.
-export function buildDockerRun({ command, env, image, gpuFlags, port = null, isNpu = false }) {
+export function buildDockerRun({ command, env, image, gpuFlags, port = null, isNpu = false, sourceMount = null }) {
   const pubPort = port ?? servedPort(command.split(/\s+/));
-  const envFlags = Object.entries(env || {})
+  const envWithSource = sourceMount ? { ...env, PYTHONPATH: sourceMount } : env;
+  const envFlags = Object.entries(envWithSource || {})
     .map(([k, v]) => `-e ${k}=${v}`)
     .join(" \\\n  ");
   const modelId = command.match(/^vllm serve (\S+)/)?.[1] || "MODEL";
   const localMount = localModelMount(modelId);
-  const mountFlags = [...localMount, ...configPathMounts(env)]
+  const sourceMounts = sourceMount ? [`${sourceMount}:${sourceMount}:ro`] : [];
+  const mountFlags = [...localMount, ...sourceMounts, ...configPathMounts(env)]
     .map((m) => `-v ${m}`)
     .join(" \\\n  ");
   // A missing host path makes the bind mount silently yield an empty directory,
@@ -849,15 +858,17 @@ export function buildDockerRun({ command, env, image, gpuFlags, port = null, isN
 // docker-run argv ready to spawn without a shell.
 export function buildDockerArgv({ argv, env, meta, port = null }) {
   const pubPort = port ?? servedPort(argv);
+  const envWithSource = meta.sourceMount ? { ...env, PYTHONPATH: meta.sourceMount } : env;
   const envFlags = [];
-  for (const [k, v] of Object.entries(env || {})) {
+  for (const [k, v] of Object.entries(envWithSource || {})) {
     envFlags.push("-e", `${k}=${v}`);
   }
   // `vllm serve <model> <...flags>` → CMD becomes `<model> <...flags>` since
   // the image's entrypoint is already `vllm serve`.
   const cmdArgs = argv[0] === "vllm" && argv[1] === "serve" ? argv.slice(2) : argv;
   const mountFlags = [];
-  for (const m of [...localModelMount(cmdArgs[0]), ...configPathMounts(env)]) {
+  const sourceMounts = meta.sourceMount ? [`${meta.sourceMount}:${meta.sourceMount}:ro`] : [];
+  for (const m of [...localModelMount(cmdArgs[0]), ...sourceMounts, ...configPathMounts(env)]) {
     mountFlags.push("-v", m);
   }
   const runtimeFlags = meta.isNpu
