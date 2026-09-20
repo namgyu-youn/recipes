@@ -189,6 +189,29 @@ function effectiveFloor(doc, path) {
   };
 }
 
+/**
+ * Does this block run in the recipe's default command?
+ *
+ * `features.<k>` is only optional when k is listed in `opt_in_features` —
+ * every other feature defaults ON, so a newer flag inside it makes the
+ * recipe's own default command wrong at the pinned floor.
+ */
+function blockConditionality(doc, path) {
+  if (/^model\.(base_args|base_env)/.test(path)) return "unconditional";
+  if (/^variants\.default\./.test(path)) return "unconditional";
+  const variant = path.match(/^variants\.([\w-]+)\./);
+  if (variant) return "variant";
+  const feature = path.match(/^features\.([\w-]+)\b/);
+  if (feature) {
+    const optIn = doc?.opt_in_features || [];
+    return optIn.includes(feature[1]) ? "opt-in" : "unconditional";
+  }
+  if (/^hardware_overrides\./.test(path)) return "hardware";
+  if (/^strategy_overrides\./.test(path)) return "strategy";
+  if (/^guide/.test(path)) return "guide";
+  return "other";
+}
+
 function recipeFamily(doc) {
   const id = String(doc?.model?.model_id || "");
   const title = String(doc?.meta?.title || "");
@@ -272,6 +295,7 @@ function scanFile(file, upstream) {
         tier: structured ? "structured" : "prose",
         floor: floor || null,
         floor_reason: reason || null,
+        conditionality: isYaml && doc ? blockConditionality(doc, path) : "other",
         ...finding,
       });
     }

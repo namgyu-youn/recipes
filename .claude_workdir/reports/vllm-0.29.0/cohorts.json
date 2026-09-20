@@ -1,0 +1,1489 @@
+{
+  "cohorts": [
+    {
+      "id": "model-runner-v2-is-now-the-default-for-all-model",
+      "title": "Model Runner V2 is now the default for all models",
+      "concept": "spec_decoding",
+      "confidence": "medium",
+      "cohort": [],
+      "skipped": "on by default and needs no flag — nothing to edit"
+    },
+    {
+      "id": "new-models",
+      "title": "New models",
+      "concept": "quantization",
+      "effect": "usability",
+      "confidence": "medium",
+      "how_enabled": {
+        "mode": "auto",
+        "flags": [],
+        "envs": [],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [],
+        "model_traits": {
+          "architecture": "moe",
+          "features": [
+            "spec_decoding"
+          ]
+        },
+        "quant": [
+          "nvfp4",
+          "fp8",
+          "bf16"
+        ]
+      },
+      "evidence": {
+        "source": "release-notes",
+        "section": "Highlights",
+        "prs": [
+          "52706",
+          "52929",
+          "53121",
+          "53132",
+          "53896",
+          "54160"
+        ],
+        "text": "**New models**: Hy4-preview, Tencent's 770B/49B-active MoE with Gated DeepSeek Sparse Attention and native MTP (#54160); Qwen3.8-Flash-Next with BF16/FP8/NVFP4 and MTP (#53896); GraniteSWA and GraniteMoeSWA (#52706); NemotronH_Omni_Reasoning_V3 with MTP (#52929, #53121); Kimi K3 NVFP4 checkpoints (#53132)."
+      },
+      "cohort": [],
+      "excluded_already_using": [],
+      "skipped": "cohort of 48 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
+      "cohort_sample": [
+        "models/Google/gemma-4-26B-A4B-it.yaml",
+        "models/JetBrains/Mellum2-12B-A2.5B-Thinking.yaml",
+        "models/MiniMaxAI/MiniMax-M3.yaml",
+        "models/Qwen/Qwen3-Next-80B-A3B-Instruct.yaml",
+        "models/Qwen/Qwen3.5-122B-A10B.yaml"
+      ]
+    },
+    {
+      "id": "kimi-k3-and-deepseek-v4-performance",
+      "title": "Kimi-K3 and DeepSeek V4 performance",
+      "concept": "linear_backend",
+      "effect": "perf",
+      "confidence": "medium",
+      "how_enabled": {
+        "mode": "auto",
+        "flags": [],
+        "envs": [],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [
+          "blackwell",
+          "hopper"
+        ],
+        "model_traits": {
+          "architecture": "moe",
+          "features": [
+            "spec_decoding"
+          ]
+        },
+        "quant": [
+          "mxfp4"
+        ]
+      },
+      "evidence": {
+        "source": "release-notes",
+        "section": "Highlights",
+        "prs": [
+          "49636",
+          "50493",
+          "52188",
+          "52388",
+          "52823",
+          "53040"
+        ],
+        "text": "**Kimi-K3 and DeepSeek V4 performance**: fused MXFP4 top-k finalization in the K3 latent tail (about 5% E2E latency, #53152), K3 Mamba metadata preparation in one Triton launch (6.6-7.6x kernel speedup, #52388), tuned Hopper low-latency GEMM (#54088) now also dispatched on SM100 (#53534) and used for `eh_proj` (12.9-25.2% kernel speedup, #53942), GEMM-RS extended to GEMM-AR (#53053), MLA gate merged into the QKV-A projection (#54015), K3 DCP with DSpark (#52188) and DCP partial prefix cache hits (#50493); DeepSeek V4 shared experts fused into MegaMoE (#53040), adaptive top-k width re-landed (#"
+      },
+      "cohort": [
+        {
+          "file": "models/MiniMaxAI/MiniMax-M3.yaml",
+          "why": "hardware blackwell,hopper; traits match; quant mxfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "mxfp8",
+            "nvfp4",
+            "mxfp4"
+          ],
+          "hardware_keys": [
+            "h200",
+            "b200",
+            "b300",
+            "mi300x",
+            "mi355x",
+            "amd",
+            "blackwell",
+            "h100"
+          ]
+        },
+        {
+          "file": "models/Qwen/Qwen3.5-397B-A17B.yaml",
+          "why": "hardware blackwell,hopper; traits match; quant mxfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "nvfp4",
+            "fp8",
+            "int4",
+            "int8",
+            "mxfp4"
+          ],
+          "hardware_keys": [
+            "h200",
+            "gb200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "ascend_950dt",
+            "nvidia"
+          ]
+        },
+        {
+          "file": "models/Qwen/Qwen3.8-2.4T-A95B.yaml",
+          "why": "hardware blackwell; traits match; quant mxfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "mxfp4",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "b300",
+            "gb300"
+          ]
+        },
+        {
+          "file": "models/moonshotai/Kimi-K2.5.yaml",
+          "why": "hardware blackwell,hopper; traits match; quant mxfp4",
+          "architecture": "moe",
+          "precisions": [
+            "int4",
+            "nvfp4",
+            "mxfp4"
+          ],
+          "hardware_keys": [
+            "h200",
+            "gb200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/moonshotai/Kimi-K3.yaml",
+          "why": "hardware blackwell,hopper; traits match; quant mxfp4",
+          "architecture": "moe",
+          "precisions": [
+            "mxfp4",
+            "nvfp4",
+            "int4"
+          ],
+          "hardware_keys": [
+            "h200",
+            "b200",
+            "b300",
+            "gb200",
+            "gb300",
+            "mi355x",
+            "ascend_910c",
+            "hopper",
+            "blackwell",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/openai/gpt-oss-120b.yaml",
+          "why": "hardware blackwell,hopper; traits match; quant mxfp4",
+          "architecture": "moe",
+          "precisions": [
+            "mxfp4"
+          ],
+          "hardware_keys": [
+            "h100",
+            "h200",
+            "b200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "ironwood",
+            "blackwell",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/thinkingmachines/Inkling.yaml",
+          "why": "hardware blackwell,hopper; traits match; quant mxfp4",
+          "architecture": "moe",
+          "precisions": [
+            "nvfp4",
+            "mxfp4",
+            "bf16"
+          ],
+          "hardware_keys": [
+            "gb200",
+            "b200",
+            "h200",
+            "mi300x",
+            "mi355x",
+            "mi325x"
+          ]
+        },
+        {
+          "file": "models/zai-org/GLM-5.1.yaml",
+          "why": "hardware hopper; traits match; quant mxfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4",
+            "mxfp4"
+          ],
+          "hardware_keys": [
+            "h200",
+            "mi355x",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/zai-org/GLM-5.2.yaml",
+          "why": "hardware blackwell,hopper; traits match; quant mxfp4",
+          "architecture": "moe",
+          "precisions": [
+            "fp8",
+            "mxfp4",
+            "nvfp4",
+            "bf16"
+          ],
+          "hardware_keys": [
+            "b300",
+            "b200",
+            "mi300x",
+            "mi355x",
+            "hopper",
+            "amd"
+          ]
+        }
+      ],
+      "excluded_already_using": []
+    },
+    {
+      "id": "speculative-decoding",
+      "title": "Speculative decoding",
+      "concept": "spec_decoding",
+      "effect": "usability",
+      "confidence": "high",
+      "how_enabled": {
+        "mode": "explicit",
+        "flags": [
+          "--per-request-spec-decode-metrics"
+        ],
+        "envs": [],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [
+          "blackwell",
+          "hopper"
+        ],
+        "model_traits": {
+          "features": [
+            "spec_decoding"
+          ]
+        },
+        "quant": []
+      },
+      "evidence": {
+        "source": "release-notes",
+        "section": "Highlights",
+        "prs": [
+          "48915",
+          "52242",
+          "52560",
+          "52783",
+          "52795",
+          "53797"
+        ],
+        "text": "**Speculative decoding**: per-request acceptance stats in OpenAI API responses via `--per-request-spec-decode-metrics` (#48915), adaptive verification extended to logprobs (#52242), SM100 sparse MLA for GLM-5.2 (#52783) and DeepSeek V4 on SM90 (#52795), Qwen3-Omni DSpark drafts (#52560), PLaMo3 EAGLE-3/DFlash (#54239), and DFlash2 loading from speculators format (#53797)."
+      },
+      "cohort": [],
+      "excluded_already_using": [],
+      "skipped": "cohort of 52 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
+      "cohort_sample": [
+        "models/Google/gemma-4-12B-it.yaml",
+        "models/Google/gemma-4-26B-A4B-it.yaml",
+        "models/Google/gemma-4-31B-it.yaml",
+        "models/Google/gemma-4-E2B-it.yaml",
+        "models/Google/gemma-4-E4B-it.yaml"
+      ]
+    },
+    {
+      "id": "rl-weight-sync",
+      "title": "RL weight sync",
+      "concept": "parallelism",
+      "effect": "usability",
+      "confidence": "medium",
+      "how_enabled": {
+        "mode": "auto",
+        "flags": [],
+        "envs": [],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [],
+        "model_traits": {
+          "architecture": "moe"
+        },
+        "quant": []
+      },
+      "evidence": {
+        "source": "release-notes",
+        "section": "Highlights",
+        "prs": [
+          "43375",
+          "50723",
+          "52209",
+          "52497",
+          "53751"
+        ],
+        "text": "**RL weight sync**: a new `sharded_rdt` P2P backend where each worker pulls only its TP/EP slice over NIXL or Ray Direct Transport (#43375), rank-local IPC weight updates (#52497), sparse checkpoint-coordinate updates through native weight loaders (#50723, #53751), and routed expert loading for gpt-oss (#52209)."
+      },
+      "cohort": [],
+      "excluded_already_using": [],
+      "skipped": "cohort of 91 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
+      "cohort_sample": [
+        "models/Google/diffusiongemma-26B-A4B-it.yaml",
+        "models/Google/gemma-4-26B-A4B-it.yaml",
+        "models/IFM/K2-Horizon-375B-A23B.yaml",
+        "models/IFM/K2-Horizon-MoVA-36B-A4B.yaml",
+        "models/JetBrains/Mellum2-12B-A2.5B-Instruct.yaml"
+      ]
+    },
+    {
+      "id": "mamba-prefix-caching",
+      "title": "Mamba prefix caching",
+      "concept": "spec_decoding",
+      "confidence": "medium",
+      "cohort": [],
+      "skipped": "on by default and needs no flag — nothing to edit"
+    },
+    {
+      "id": "new-defaults",
+      "title": "New defaults",
+      "concept": "attention_backend",
+      "confidence": "medium",
+      "cohort": [],
+      "skipped": "on by default and needs no flag — nothing to edit"
+    },
+    {
+      "id": "new-defaults-2",
+      "title": "New defaults",
+      "concept": "kv_cache",
+      "confidence": "medium",
+      "cohort": [],
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "new-defaults-3",
+      "title": "New defaults",
+      "concept": "scheduling",
+      "confidence": "high",
+      "cohort": [],
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "ten-deprecated-architectures-removed-arctic-cham",
+      "title": "Ten deprecated architectures removed: Arctic, Chameleon, Cheers, Fairseq2Llama, FireRedLID",
+      "concept": "other",
+      "effect": "usability",
+      "confidence": "medium",
+      "how_enabled": {
+        "mode": "auto",
+        "flags": [],
+        "envs": [],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [],
+        "model_traits": {
+          "tasks": [
+            "multimodal"
+          ]
+        },
+        "quant": []
+      },
+      "evidence": {
+        "source": "release-notes",
+        "section": "Breaking Changes & Deprecations",
+        "prs": [
+          "53608"
+        ],
+        "text": "Ten deprecated architectures removed: Arctic, Chameleon, Cheers, Fairseq2Llama, FireRedLID, GritLM, HCXVision, MPT, the `RWForCausalLM` and `StableLMEpochForCausalLM` aliases, and `PrithviGeoSpatialMAE` (superseded by `Terratorch`) (#53608)."
+      },
+      "cohort": [],
+      "excluded_already_using": [],
+      "skipped": "cohort of 71 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
+      "cohort_sample": [
+        "models/Google/diffusiongemma-26B-A4B-it.yaml",
+        "models/Google/gemma-4-12B-it.yaml",
+        "models/Google/gemma-4-26B-A4B-it.yaml",
+        "models/Google/gemma-4-31B-it.yaml",
+        "models/Google/gemma-4-E2B-it.yaml"
+      ]
+    },
+    {
+      "id": "flexolmo-olmo3-hunyuan-v1-and-hunyuan-vl-are-now",
+      "title": "FlexOlmo, Olmo3, Hunyuan V1 and Hunyuan VL are now served through the Transformers modelin",
+      "concept": "other",
+      "effect": "usability",
+      "confidence": "medium",
+      "how_enabled": {
+        "mode": "auto",
+        "flags": [],
+        "envs": [],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [],
+        "model_traits": {
+          "tasks": [
+            "multimodal"
+          ]
+        },
+        "quant": []
+      },
+      "evidence": {
+        "source": "release-notes",
+        "section": "Breaking Changes & Deprecations",
+        "prs": [
+          "53615"
+        ],
+        "text": "FlexOlmo, Olmo3, Hunyuan V1 and Hunyuan VL are now served through the Transformers modeling backend (#53615)."
+      },
+      "cohort": [],
+      "excluded_already_using": [],
+      "skipped": "cohort of 71 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
+      "cohort_sample": [
+        "models/Google/diffusiongemma-26B-A4B-it.yaml",
+        "models/Google/gemma-4-12B-it.yaml",
+        "models/Google/gemma-4-26B-A4B-it.yaml",
+        "models/Google/gemma-4-31B-it.yaml",
+        "models/Google/gemma-4-E2B-it.yaml"
+      ]
+    },
+    {
+      "id": "pyav-video-decoder-backend-removed-use-opencv-or",
+      "title": "PyAV video decoder backend removed; use OpenCV or Torchcodec (#54231)",
+      "concept": "other",
+      "effect": "usability",
+      "confidence": "medium",
+      "how_enabled": {
+        "mode": "auto",
+        "flags": [],
+        "envs": [],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [],
+        "model_traits": {
+          "tasks": [
+            "multimodal"
+          ]
+        },
+        "quant": []
+      },
+      "evidence": {
+        "source": "release-notes",
+        "section": "Breaking Changes & Deprecations",
+        "prs": [
+          "54231"
+        ],
+        "text": "PyAV video decoder backend removed; use OpenCV or Torchcodec (#54231)."
+      },
+      "cohort": [],
+      "excluded_already_using": [],
+      "skipped": "cohort of 71 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
+      "cohort_sample": [
+        "models/Google/diffusiongemma-26B-A4B-it.yaml",
+        "models/Google/gemma-4-12B-it.yaml",
+        "models/Google/gemma-4-26B-A4B-it.yaml",
+        "models/Google/gemma-4-31B-it.yaml",
+        "models/Google/gemma-4-E2B-it.yaml"
+      ]
+    },
+    {
+      "id": "python-m-vllm",
+      "title": "python -m vllm",
+      "concept": "frontend",
+      "confidence": "medium",
+      "cohort": [],
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "model-runner-v2-is-the-default-runner-for-all-mo",
+      "title": "Model Runner V2 is the default runner for all models (#53183)",
+      "concept": "other",
+      "confidence": "medium",
+      "cohort": [],
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "prefix-cache-retention-interval-default-changed-",
+      "title": "prefix_cache_retention_interval default changed from dense to 0 for SWA/SSM models; the en",
+      "concept": "default_change",
+      "effect": "correctness",
+      "confidence": "medium",
+      "how_enabled": {
+        "mode": "auto",
+        "flags": [],
+        "envs": [],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [],
+        "model_traits": {
+          "architecture": "dense"
+        },
+        "quant": []
+      },
+      "evidence": {
+        "source": "release-notes",
+        "section": "Breaking Changes & Deprecations",
+        "prs": [
+          "52216"
+        ],
+        "text": "`prefix_cache_retention_interval` default changed from dense to 0 for SWA/SSM models; the env var is deprecated in favor of the argument (#52216)."
+      },
+      "cohort": [],
+      "excluded_already_using": [],
+      "skipped": "cohort of 100 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
+      "cohort_sample": [
+        "models/ByteDance-Seed/Seed-OSS-36B-Instruct.yaml",
+        "models/Google/gemma-4-12B-it.yaml",
+        "models/Google/gemma-4-31B-it.yaml",
+        "models/Google/gemma-4-E2B-it.yaml",
+        "models/Google/gemma-4-E4B-it.yaml"
+      ]
+    },
+    {
+      "id": "flashinfer-all-reduce-enabled-by-default-52998",
+      "title": "FlashInfer all-reduce enabled by default (#52998)",
+      "concept": "attention_backend",
+      "confidence": "medium",
+      "cohort": [],
+      "skipped": "on by default and needs no flag — nothing to edit"
+    },
+    {
+      "id": "vllm-test-force-fp8-marlin-removed-in-favor-of-l",
+      "title": "VLLM_TEST_FORCE_FP8_MARLIN removed in favor of --linear-backend / --moe-backend (#52182);",
+      "concept": "moe_backend",
+      "effect": "usability",
+      "confidence": "high",
+      "how_enabled": {
+        "mode": "explicit",
+        "flags": [
+          "--attention-config",
+          "--linear-backend",
+          "--moe-backend"
+        ],
+        "envs": [],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [
+          "amd"
+        ],
+        "model_traits": {
+          "architecture": "moe"
+        },
+        "quant": []
+      },
+      "evidence": {
+        "source": "release-notes",
+        "section": "Breaking Changes & Deprecations",
+        "prs": [
+          "52182",
+          "52557",
+          "53141",
+          "53559"
+        ],
+        "text": "`VLLM_TEST_FORCE_FP8_MARLIN` removed in favor of `--linear-backend` / `--moe-backend` (#52182); `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` removed (#53141); dead `--attention-config.use_prefill_decode_attention` removed (#52557); other long-deprecated parameters cleaned up (#53559)."
+      },
+      "cohort": [],
+      "excluded_already_using": [
+        {
+          "file": "models/MiniMaxAI/MiniMax-M2.5.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/MiniMaxAI/MiniMax-M3.yaml",
+          "reason": "already passes --linear-backend"
+        },
+        {
+          "file": "models/Qwen/Qwen3-Next-80B-A3B-Instruct.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/Qwen/Qwen3.5-397B-A17B.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/Qwen/Qwen3.6-35B-A3B.yaml",
+          "reason": "already passes --attention-config"
+        },
+        {
+          "file": "models/Qwen/Qwen3.8-Flash-Next.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
+          "reason": "already passes --linear-backend"
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4-Pro.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4.1-Flash.yaml",
+          "reason": "already passes --attention-config"
+        },
+        {
+          "file": "models/dots-studio/dots3-note-prev.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/mindlab-research/Macaron-V1-Coding-Venti.yaml",
+          "reason": "already passes --linear-backend"
+        },
+        {
+          "file": "models/moonshotai/Kimi-K2.6.yaml",
+          "reason": "already passes --attention-config"
+        },
+        {
+          "file": "models/moonshotai/Kimi-K3.yaml",
+          "reason": "already passes --attention-config"
+        },
+        {
+          "file": "models/poolside/Laguna-S-2.1.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/thinkingmachines/Inkling-Small.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/thinkingmachines/Inkling.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/zai-org/GLM-5.1.yaml",
+          "reason": "already passes --linear-backend"
+        },
+        {
+          "file": "models/zai-org/GLM-5.2.yaml",
+          "reason": "already passes --linear-backend"
+        },
+        {
+          "file": "models/zai-org/GLM-5.3.yaml",
+          "reason": "already passes --linear-backend"
+        }
+      ],
+      "skipped": "cohort of 47 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
+      "cohort_sample": [
+        "models/Google/gemma-4-26B-A4B-it.yaml",
+        "models/IFM/K2-Horizon-375B-A23B.yaml",
+        "models/JetBrains/Mellum2-12B-A2.5B-Instruct.yaml",
+        "models/MiniMaxAI/MiniMax-M2.1.yaml",
+        "models/MiniMaxAI/MiniMax-M2.7.yaml"
+      ]
+    },
+    {
+      "id": "docs-features-per-request-metrics-md",
+      "title": "docs: features/per_request_metrics.md",
+      "concept": "spec_decoding",
+      "effect": "usability",
+      "confidence": "high",
+      "how_enabled": {
+        "mode": "explicit",
+        "flags": [
+          "--per-request-spec-decode-metrics"
+        ],
+        "envs": [],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [],
+        "model_traits": {
+          "features": [
+            "spec_decoding"
+          ]
+        },
+        "quant": []
+      },
+      "evidence": {
+        "source": "docs-diff",
+        "section": "docs/features/per_request_metrics.md",
+        "prs": [],
+        "text": "\n## Speculative Decoding Acceptance\n\nWhen speculative decoding is enabled, per-request acceptance metrics\n(mean acceptance length and the accepted-draft-length distribution) can be\nreturned via `--per-request-spec-decode-metrics`. They share this `metrics`\nobject as `metrics.speculative_decoding`, and — like the timing fields — are\nreported only for single-sequence (`n == 1`) requests. See\n[Per-Request Acceptance Metrics](speculative_decoding/acceptance_metrics.md)."
+      },
+      "cohort": [],
+      "excluded_already_using": [],
+      "skipped": "cohort of 64 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
+      "cohort_sample": [
+        "models/Google/gemma-4-12B-it.yaml",
+        "models/Google/gemma-4-26B-A4B-it.yaml",
+        "models/Google/gemma-4-31B-it.yaml",
+        "models/Google/gemma-4-E2B-it.yaml",
+        "models/Google/gemma-4-E4B-it.yaml"
+      ]
+    },
+    {
+      "id": "docs-features-quantization-b12x-md",
+      "title": "docs: features/quantization/b12x.md",
+      "concept": "moe_backend",
+      "effect": "perf",
+      "confidence": "high",
+      "how_enabled": {
+        "mode": "explicit",
+        "flags": [
+          "--linear-backend",
+          "--moe-backend"
+        ],
+        "envs": [
+          "VLLM_B12X_MOE_FP4_FORCE_A16"
+        ],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [
+          "nvidia"
+        ],
+        "model_traits": {
+          "architecture": "moe"
+        },
+        "quant": [
+          "nvfp4",
+          "mxfp4",
+          "mxfp8"
+        ]
+      },
+      "evidence": {
+        "source": "docs-diff",
+        "section": "docs/features/quantization/b12x.md",
+        "prs": [],
+        "text": "# b12x Linear and MoE Backends\n[b12x](https://pypi.org/project/b12x/) provides optional CUDA kernels for\nb12x linear kernels participate in automatic selection after established\noptimized backends and before emulation. Select the linear and MoE backends\nexplicitly with:\nvllm serve <model> \\\n    --linear-backend b12x \\\n    --moe-backend b12x\nOnly pass `--moe-backend b12x` for a compatible NVFP4 or MXFP4 MoE model. The\nlinear and MoE backends can be selected independently.\n\nb12x uses MXFP8 activations by default for MXFP4 MoE and the checkpoint's\nactivation format for NVFP4 MoE. MXFP4 falls back"
+      },
+      "cohort": [
+        {
+          "file": "models/Google/diffusiongemma-26B-A4B-it.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h100",
+            "h200",
+            "dgx_spark_gb10",
+            "xeon6",
+            "cpu"
+          ]
+        },
+        {
+          "file": "models/Google/gemma-4-26B-A4B-it.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h100",
+            "h200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "trillium",
+            "ironwood",
+            "xeon6",
+            "dgx_spark_gb10",
+            "dgx_station_gb300",
+            "rtx_pro_6000",
+            "rtx_5090"
+          ]
+        },
+        {
+          "file": "models/JetBrains/Mellum2-12B-A2.5B-Thinking.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h200"
+          ]
+        },
+        {
+          "file": "models/MiniMaxAI/MiniMax-M2.7.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h100",
+            "h200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "dgx_station_gb300",
+            "rtx_pro_6000_2x",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/MiniMaxAI/MiniMax-M2.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h100",
+            "h200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/Qwen/Qwen3-235B-A22B-Instruct-2507.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h200",
+            "mi300x",
+            "mi325x",
+            "mi355x"
+          ]
+        },
+        {
+          "file": "models/Qwen/Qwen3-Coder-480B-A35B-Instruct.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "ironwood",
+            "hopper",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/Qwen/Qwen3-VL-235B-A22B-Instruct.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h100",
+            "h200",
+            "b200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "hopper",
+            "blackwell",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-R1.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h200",
+            "b200",
+            "gb200",
+            "mi300x",
+            "mi325x",
+            "mi350x",
+            "mi355x",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V3.1.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V3.2.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h100",
+            "h200"
+          ]
+        },
+        {
+          "file": "models/meta-llama/Llama-4-Scout-17B-16E-Instruct.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h100",
+            "b200",
+            "gb200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "xeon6",
+            "cpu",
+            "hopper",
+            "blackwell",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/mistralai/Mistral-Large-3-675B-Instruct-2512.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h100",
+            "b200",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/moonshotai/Kimi-K2-Thinking.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "int4",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/moonshotai/Kimi-K2.5.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4,mxfp4",
+          "architecture": "moe",
+          "precisions": [
+            "int4",
+            "nvfp4",
+            "mxfp4"
+          ],
+          "hardware_keys": [
+            "h200",
+            "gb200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/moonshotai/Kimi-K2.6.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "int4",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h200",
+            "b300",
+            "gb200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "blackwell",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h100",
+            "h200",
+            "b200",
+            "dgx_station_gb300",
+            "dgx_spark_gb10",
+            "rtx_pro_6000"
+          ]
+        },
+        {
+          "file": "models/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "b200"
+          ]
+        },
+        {
+          "file": "models/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h100",
+            "h200",
+            "b200"
+          ]
+        },
+        {
+          "file": "models/openai/gpt-oss-120b.yaml",
+          "why": "hardware nvidia; traits match; quant mxfp4",
+          "architecture": "moe",
+          "precisions": [
+            "mxfp4"
+          ],
+          "hardware_keys": [
+            "h100",
+            "h200",
+            "b200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "ironwood",
+            "blackwell",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/openai/gpt-oss-20b.yaml",
+          "why": "hardware nvidia; traits match; quant mxfp4",
+          "architecture": "moe",
+          "precisions": [
+            "mxfp4"
+          ],
+          "hardware_keys": [
+            "h100",
+            "h200",
+            "b200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "arc_pro_b60",
+            "arc_pro_b70",
+            "xeon6",
+            "cpu",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/poolside/Laguna-XS.2.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4",
+            "int4"
+          ],
+          "hardware_keys": [
+            "h200",
+            "mi300x",
+            "mi325x",
+            "mi355x"
+          ]
+        },
+        {
+          "file": "models/stepfun-ai/Step-3.7-Flash.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h200",
+            "b200",
+            "dgx_station_gb300"
+          ]
+        },
+        {
+          "file": "models/tencent/Hy3.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "gb300",
+            "mi300x",
+            "mi355x",
+            "hopper",
+            "blackwell",
+            "amd"
+          ]
+        },
+        {
+          "file": "models/tencent/Hy4-preview.yaml",
+          "why": "hardware nvidia; traits match; quant mxfp8",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "mxfp8"
+          ],
+          "hardware_keys": [
+            "b200",
+            "b300",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "blackwell"
+          ]
+        },
+        {
+          "file": "models/zai-org/GLM-4.7.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h200",
+            "mi300x",
+            "mi325x",
+            "mi355x"
+          ]
+        },
+        {
+          "file": "models/zai-org/GLM-5.3-Flash.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "fp8",
+            "nvfp4",
+            "bf16"
+          ],
+          "hardware_keys": [
+            "h100",
+            "b200",
+            "gb200",
+            "mi355x",
+            "ascend_950pr_8x",
+            "hopper",
+            "blackwell",
+            "amd",
+            "npu"
+          ]
+        },
+        {
+          "file": "models/zai-org/GLM-5.yaml",
+          "why": "hardware nvidia; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "hardware_keys": [
+            "h200"
+          ]
+        }
+      ],
+      "excluded_already_using": [
+        {
+          "file": "models/MiniMaxAI/MiniMax-M2.5.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/MiniMaxAI/MiniMax-M3.yaml",
+          "reason": "already passes --linear-backend"
+        },
+        {
+          "file": "models/Qwen/Qwen3-Next-80B-A3B-Instruct.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/Qwen/Qwen3.5-397B-A17B.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/Qwen/Qwen3.6-35B-A3B.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/Qwen/Qwen3.8-2.4T-A95B.yaml",
+          "reason": "already passes --linear-backend"
+        },
+        {
+          "file": "models/Qwen/Qwen3.8-Flash-Next.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
+          "reason": "already passes --linear-backend"
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4-Pro.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/moonshotai/Kimi-K3.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16.yaml",
+          "reason": "already passes --linear-backend"
+        },
+        {
+          "file": "models/poolside/Laguna-S-2.1.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/poolside/Laguna-XS-2.1.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/thinkingmachines/Inkling-Small.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/thinkingmachines/Inkling.yaml",
+          "reason": "already passes --moe-backend"
+        },
+        {
+          "file": "models/zai-org/GLM-5.1.yaml",
+          "reason": "already passes --linear-backend"
+        },
+        {
+          "file": "models/zai-org/GLM-5.2.yaml",
+          "reason": "already passes --linear-backend"
+        },
+        {
+          "file": "models/zai-org/GLM-5.3.yaml",
+          "reason": "already passes --linear-backend"
+        }
+      ]
+    },
+    {
+      "id": "docs-features-speculative-decoding-acceptance-me",
+      "title": "docs: features/speculative_decoding/acceptance_metrics.md",
+      "concept": "spec_decoding",
+      "effect": "correctness",
+      "confidence": "high",
+      "how_enabled": {
+        "mode": "explicit",
+        "flags": [
+          "--per-request-spec-decode-metrics"
+        ],
+        "envs": [],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [],
+        "model_traits": {
+          "features": [
+            "spec_decoding"
+          ]
+        },
+        "quant": []
+      },
+      "evidence": {
+        "source": "docs-diff",
+        "section": "docs/features/speculative_decoding/acceptance_metrics.md",
+        "prs": [],
+        "text": "# Per-Request Acceptance Metrics\n\nWhen speculative decoding is enabled, vLLM can report per-request acceptance\nmetrics in the response, under `metrics.speculative_decoding`. This lets a\nclient compute the mean acceptance length and the accepted-draft-length\ndistribution for an individual request, as a complement to the server-aggregated\nspec-decode metrics exposed at `/metrics`.\n\n!!! warning \"Experimental\"\n    `metrics.speculative_decoding` is experimental and its shape may change in a\n    future release. Pin to a vLLM version if you depend on it.\n\n## Enabling\n\nStart the server with `--per-req"
+      },
+      "cohort": [],
+      "excluded_already_using": [],
+      "skipped": "cohort of 64 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
+      "cohort_sample": [
+        "models/Google/gemma-4-12B-it.yaml",
+        "models/Google/gemma-4-26B-A4B-it.yaml",
+        "models/Google/gemma-4-31B-it.yaml",
+        "models/Google/gemma-4-E2B-it.yaml",
+        "models/Google/gemma-4-E4B-it.yaml"
+      ]
+    },
+    {
+      "id": "docs-serving-online-serving-trace-replay-md",
+      "title": "docs: serving/online_serving/trace_replay.md",
+      "concept": "attention_backend",
+      "confidence": "high",
+      "cohort": [],
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "docs-training-weight-transfer-sharded-rdt-md",
+      "title": "docs: training/weight_transfer/sharded_rdt.md",
+      "concept": "moe_backend",
+      "effect": "usability",
+      "confidence": "high",
+      "how_enabled": {
+        "mode": "explicit",
+        "flags": [
+          "--distributed-executor-backend",
+          "--weight-transfer-config"
+        ],
+        "envs": [],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [],
+        "model_traits": {
+          "architecture": "moe"
+        },
+        "quant": []
+      },
+      "evidence": {
+        "source": "docs-diff",
+        "section": "docs/training/weight_transfer/sharded_rdt.md",
+        "prs": [],
+        "text": "# Sharded RDT Engine\n\nThe sharded RDT weight transfer engine moves weights point-to-point over [NIXL](https://github.com/ai-dynamo/nixl) using Ray Direct Transport (RDT), Ray's zero-copy tensor transport between actors. It is **pull-based**: the inference workers initiate every transfer and each one asks only for the *slice* it consumes under tensor and expert parallelism. A large MoE model therefore moves roughly `total_bytes / num_workers` per worker instead of the `total_bytes` a broadcast costs.\n\n## When to Use Sharded RDT\n\n- Very large models where broadcasting whole parameters is the bot"
+      },
+      "cohort": [],
+      "excluded_already_using": [
+        {
+          "file": "models/Qwen/Qwen3.5-397B-A17B.yaml",
+          "reason": "already passes --distributed-executor-backend"
+        },
+        {
+          "file": "models/Qwen/Qwen3.8-Flash-Next.yaml",
+          "reason": "already passes --distributed-executor-backend"
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
+          "reason": "already passes --distributed-executor-backend"
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4-Pro.yaml",
+          "reason": "already passes --distributed-executor-backend"
+        }
+      ],
+      "skipped": "cohort of 87 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
+      "cohort_sample": [
+        "models/Google/diffusiongemma-26B-A4B-it.yaml",
+        "models/Google/gemma-4-26B-A4B-it.yaml",
+        "models/IFM/K2-Horizon-375B-A23B.yaml",
+        "models/IFM/K2-Horizon-MoVA-36B-A4B.yaml",
+        "models/JetBrains/Mellum2-12B-A2.5B-Instruct.yaml"
+      ]
+    },
+    {
+      "id": "docs-usage-security-md",
+      "title": "docs: usage/security.md",
+      "concept": "frontend",
+      "effect": "memory",
+      "confidence": "high",
+      "how_enabled": {
+        "mode": "explicit",
+        "flags": [],
+        "envs": [
+          "VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB"
+        ],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [],
+        "model_traits": {
+          "tasks": [
+            "multimodal"
+          ]
+        },
+        "quant": []
+      },
+      "evidence": {
+        "source": "docs-diff",
+        "section": "docs/usage/security.md",
+        "prs": [],
+        "text": "### 5. **Restrict Media Download and Decode Sizes:**\nRemote media responses and compressed media files can expand into gigabytes of\nmemory. vLLM enforces download and decode-size limits to prevent out-of-memory\ndenial of service:\n| `VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB` | `256` | Maximum size in MB for a single remote media response. Oversized responses are rejected while streaming before the full body is materialized in memory. |\n| `VLLM_MAX_AUDIO_CLIP_FILESIZE_MB` | `25` | Maximum compressed filesize in MB for a single audio file. Enforced on all audio inputs (multimodal chat URLs, speech-to-text"
+      },
+      "cohort": [],
+      "excluded_already_using": [],
+      "skipped": "cohort of 71 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
+      "cohort_sample": [
+        "models/Google/diffusiongemma-26B-A4B-it.yaml",
+        "models/Google/gemma-4-12B-it.yaml",
+        "models/Google/gemma-4-26B-A4B-it.yaml",
+        "models/Google/gemma-4-31B-it.yaml",
+        "models/Google/gemma-4-E2B-it.yaml"
+      ]
+    }
+  ]
+}

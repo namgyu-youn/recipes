@@ -8,16 +8,24 @@ tracked and ships to `vllm-project/recipes`.
 Python parses upstream (`ast` is exact where a grep is not); Node handles YAML,
 the JSON API and git, matching the repo's own tooling.
 
+The unit is a **capability** — a concept users care about (a kernel/backend, a
+quantization format, a parallelism mode, a spec-decoding method, a KV-cache or
+scheduling feature, a compilation change, a changed default) — not a PR and not
+a flag diff. 20-30 per release. The stale-usage scan runs alongside it and
+reports by **root cause**: one entry per flag/env with its recipe count.
+
 | File | Role |
 |---|---|
 | `flagset.py` | vLLM's flag set and env set at one tag |
 | `index_flags.py` | cached flag/env → introduced/removed tag index over the stable tags |
-| `inventory.py` | prev→target source pass: removals, additions, new enum values, changed defaults, deprecations |
-| `parse_notes.py` | release-notes pass: bullets → items with PRs, resolved to local commits; merges into `inventory.json` |
+| `capabilities.py` | discovery (`--draft`) from highlights + breaking/deprecations + docs diff; mechanical `--verify`; `--self-test`; `--resolve-pr` |
+| `parse_notes.py` | fetches and caches the release notes |
+| `inventory.py` | source pass for the stale scan: removals, new enum values, changed defaults, deprecations |
+| `profiles.mjs` | recipe profiles + capability cohorts |
 | `scan.mjs` | inventory × recipes → `candidates.json` with `file:line` |
-| `verify.mjs` | re-checks every candidate independently → `findings.json` |
+| `verify.mjs` | re-checks candidates independently, groups by root cause → `findings.json` |
 | `commit.mjs` | snapshot / check / commit gate around `build-recipes-api.mjs` |
-| `report.mjs` | `findings.json` → `report.md` + `summary.md` |
+| `report.mjs` | capabilities + cohorts + findings → a two-screen `report.md` |
 | `check_images.mjs` | opt-in `--check-images`: are pinned `docker_image` tags still pullable |
 
 Artifacts: `.claude_workdir/reports/vllm-<target>/`.
@@ -61,13 +69,30 @@ lines (the parsed copy only answers "which block is this line in") and
 generates `public/Qwen/Qwen2.5-VL-7B-Instruct-AWQ.json` too, so the commit gate
 counts variant `model_id`s as the same recipe when it checks blast radius.
 
+**A cohort is bounded or it is nothing.** `applies_to` that matches more than 30
+recipes is not evidence that a capability applies — it means the capability has
+not been narrowed. `profiles.mjs` refuses those rather than listing them, which
+is the guard against the substring-join that produced 642 meaningless rows.
+
+**Optional blocks do not move the model floor.** A newer flag inside
+`features.*`, `hardware_overrides.*` or `strategy_overrides.*` only runs on
+opt-in, so it is a per-block floor question, not a reason to raise
+`model.min_vllm_version` for everyone. Only the unconditional command does that.
+
+**A flag vLLM never shipped is not stale.** vllm-omni, vllm-ascend and vendor
+images register their own; they go to one bucket and are never edited.
+
 ## Quick run
 
 ```bash
 REPORT=.claude_workdir/reports/vllm-0.29.0
-python3 .claude/sync-vllm/inventory.py   --target v0.29.0 --out $REPORT/inventory.json
-python3 .claude/sync-vllm/parse_notes.py --target v0.29.0 --report-dir $REPORT --merge
-node     .claude/sync-vllm/scan.mjs      --target v0.29.0 --report-dir $REPORT
-node     .claude/sync-vllm/verify.mjs    --target v0.29.0 --report-dir $REPORT
-node     .claude/sync-vllm/report.mjs    --report-dir $REPORT --report-only
+python3 .claude/sync-vllm/parse_notes.py  --target v0.29.0 --report-dir $REPORT
+python3 .claude/sync-vllm/capabilities.py --target v0.29.0 --report-dir $REPORT --draft
+# curate capabilities.draft.yaml -> capabilities.yaml, then:
+python3 .claude/sync-vllm/capabilities.py --target v0.29.0 --report-dir $REPORT --verify
+node     .claude/sync-vllm/profiles.mjs   --report-dir $REPORT
+python3 .claude/sync-vllm/inventory.py    --target v0.29.0 --out $REPORT/inventory.json
+node     .claude/sync-vllm/scan.mjs       --target v0.29.0 --report-dir $REPORT
+node     .claude/sync-vllm/verify.mjs     --target v0.29.0 --report-dir $REPORT
+node     .claude/sync-vllm/report.mjs     --report-dir $REPORT --report-only
 ```

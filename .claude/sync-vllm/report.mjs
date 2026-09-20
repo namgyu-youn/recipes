@@ -1,35 +1,43 @@
 #!/usr/bin/env node
 /**
- * findings.json -> report.md + summary.md.
+ * capabilities + cohorts + findings -> report.md (about two screens).
  *
- * Rendering is mechanical, so it is a script: the report's field set is fixed
- * and re-deriving it by hand each run would cost a lot and drift. Judgment —
- * which missed improvements are real, what a `needs decision` item should
- * become — stays with the orchestrator, which appends its sections and rewrites
- * `Status` lines after applying.
+ * Four sections, in the order a reader needs them: what shipped, what we could
+ * adopt, what is broken or stale by root cause, and the flags this tool cannot
+ * speak to. Per-recipe detail lives in findings.json and cohorts.json — the
+ * report names counts and files, never 122 individual entries.
  */
 
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import yaml from "js-yaml";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPORTS = join(HERE, "..", "..", ".claude_workdir", "reports");
 
-const CATEGORY_LABEL = {
-  "below-introducing-version": "flag used below the version that introduced it",
+const CATEGORY_WORD = {
   removed: "removed upstream",
   renamed: "renamed upstream",
-  deprecated: "deprecated upstream",
+  "below-introducing-version": "used below its introducing release",
   "default-changed": "upstream default changed",
-  "unknown-upstream": "not shipped by vLLM at any indexed tag",
-  "invalid-value": "value not accepted at the target tag",
-  "never-existed": "flag never existed upstream",
-  "wrong-dash": "two dashes on a one-dash alias — argparse rejects it",
+  "wrong-dash": "wrong dash — argparse rejects it",
 };
 
-/** Previous run's findings, for carry-over marking. */
-function previousFindings(target) {
+const ACTION_WORD = {
+  "raise-floor": "raise model floor",
+  "raise-variant-floor": "raise variant pin",
+  "per-block-floor-question": "per-block floor question",
+  replace: "replace",
+  resolve: "decide: drop or re-spell",
+  report: "report only",
+};
+
+function short(file) {
+  return file.replace(/^models\//, "").replace(/\.yaml$/, "");
+}
+
+function previousRun(target) {
   if (!existsSync(REPORTS)) return null;
   const key = (d) => d.replace("vllm-", "").split(".").map((p) => parseInt(p, 10) || 0);
   const cmp = (a, b) => {
@@ -37,74 +45,21 @@ function previousFindings(target) {
     for (let i = 0; i < 3; i += 1) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0);
     return 0;
   };
+  const self = `vllm-${target.replace(/^v/, "")}`;
   const dirs = readdirSync(REPORTS)
-    .filter((d) => /^vllm-\d/.test(d) && d !== `vllm-${target.replace(/^v/, "")}`)
-    .filter((d) => existsSync(join(REPORTS, d, "findings.json")))
-    .sort(cmp);
-  const prev = dirs.filter((d) => cmp(d, `vllm-${target.replace(/^v/, "")}`) < 0).pop();
-  if (!prev) return null;
-  return { dir: prev, data: JSON.parse(readFileSync(join(REPORTS, prev, "findings.json"), "utf8")) };
+    .filter((d) => /^vllm-\d/.test(d) && d !== self && existsSync(join(REPORTS, d, "findings.json")))
+    .sort(cmp)
+    .filter((d) => cmp(d, self) < 0);
+  const prev = dirs.pop();
+  return prev ? { dir: prev, data: JSON.parse(readFileSync(join(REPORTS, prev, "findings.json"), "utf8")) } : null;
 }
 
-function fingerprint(f) {
-  return `${f.file}::${f.category}::${f.token}`;
-}
-
-function locationList(f) {
-  return f.locations
-    .map((l) => `\`${f.file}:${l.line}\`${l.path ? ` (\`${l.path}\`)` : ""}${l.tier === "prose" ? " — guide text" : ""}`)
-    .join(", ");
-}
-
-function proposed(f) {
-  if (f.action === "raise-floor") {
-    return `raise \`${f.scope === "model" ? "model" : f.scope}.min_vllm_version\` from \`${f.floor}\` to \`${f.target_floor}\` (own commit)`;
-  }
-  if (f.action === "replace") return `replace \`${f.token}\` with \`${f.replacement}\``;
-  if (f.action === "resolve") return `decide whether to drop \`${f.token}\` or re-spell it; upstream documents no replacement`;
-  if (f.needed_floor) return `update the guide text (it shows flags needing ${f.needed_floor}, the recipe pins ${f.floor})`;
-  return "report only — no mechanical edit";
-}
-
-function upstreamEvidence(f) {
-  const bits = [];
-  if (f.upstream.introduced) bits.push(`introduced ${f.upstream.introduced}`);
-  if (f.upstream.removed) bits.push(`removed ${f.upstream.removed}`);
-  if (f.upstream.cite?.file) {
-    bits.push(
-      `\`${f.upstream.cite.file}:${f.upstream.cite.line}\` @ ${f.upstream.cite.tag}` +
-        (f.upstream.cite.ok ? "" : " (did not verify)")
-    );
-  }
-  if (f.upstream.prs?.length) {
-    bits.push(`PRs ${[...new Set(f.upstream.prs)].slice(0, 6).map((p) => `#${p}`).join(", ")}`);
-  }
-  bits.push(f.upstream.recheck);
-  return bits.join("; ");
-}
-
-function renderFinding(f) {
-  const tokens =
-    f.tokens?.length > 1
-      ? `\n| Tokens | ${f.tokens.map((t) => `\`${t.token}\` (needs ${t.introduced})`).join(", ")} |`
-      : "";
-  return `
-### ${f.id} — \`${f.token}\` in \`${f.file.replace(/^models\//, "")}\`
-
-| Field | Value |
-|---|---|
-| Type | ${f.type} |
-| Category | ${f.category} — ${CATEGORY_LABEL[f.category] || ""} |
-| Source | ${f.source} |
-| Downstream location | ${locationList(f)} |
-| Upstream evidence | ${upstreamEvidence(f)} |
-| Current usage | \`${f.locations[0].snippet.replace(/\|/g, "\\|")}\` |
-| Proposed change | ${proposed(f)} |
-| Version floor | ${f.floor || "none"} — ${f.floor_reason} |${tokens}
-| Confidence | ${f.confidence} — ${f.why.replace(/\|/g, "\\|")} |
-| Risk | ${f.risk} |
-| Status | ${f.status_final || f.status} |
-`;
+function enablement(how) {
+  if (!how) return "—";
+  const bits = [...(how.flags || []), ...(how.envs || [])];
+  for (const e of how.enum_values || []) bits.push(`${e.flag} ${e.value}`);
+  if (!bits.length) return how.mode === "auto" ? "no flag — automatic" : "—";
+  return bits.map((b) => `\`${b}\``).join(" ");
 }
 
 function main() {
@@ -119,129 +74,146 @@ function main() {
   );
   const reportDir = args["report-dir"];
   if (!reportDir) {
-    console.error("usage: report.mjs --report-dir D [--prev-tag v0.28.0] [--branch sync/vllm-0.29.0] [--report-only]");
+    console.error("usage: report.mjs --report-dir D [--branch B] [--report-only]");
     process.exit(2);
   }
-  const data = JSON.parse(readFileSync(join(reportDir, "findings.json"), "utf8"));
-  const inventory = JSON.parse(readFileSync(join(reportDir, "inventory.json"), "utf8"));
-  const { target } = data;
-  const prev = previousFindings(target);
-  const prevSeen = new Map((prev?.data.findings || []).map((f) => [fingerprint(f), f]));
 
-  for (const f of data.findings) {
-    const before = prevSeen.get(fingerprint(f));
-    if (before && before.status === f.status) f.carried_over = before.id;
+  const findingsDoc = JSON.parse(readFileSync(join(reportDir, "findings.json"), "utf8"));
+  const caps =
+    yaml.load(readFileSync(join(reportDir, "capabilities.verified.yaml"), "utf8")).capabilities || [];
+  const cohorts = JSON.parse(readFileSync(join(reportDir, "cohorts.json"), "utf8")).cohorts || [];
+  const inventory = JSON.parse(readFileSync(join(reportDir, "inventory.json"), "utf8"));
+  const { target, findings, plugin_flags: pluginFlags } = findingsDoc;
+
+  const prev = previousRun(target);
+  const prevKeys = new Set((prev?.data.findings || []).map((f) => `${f.category}::${f.token}`));
+  for (const f of findings) f.carried_over = prevKeys.has(`${f.category}::${f.token}`);
+
+  const actionable = cohorts.filter((c) => c.cohort?.length);
+  const needNarrowing = cohorts.filter((c) => c.skipped?.startsWith("cohort of"));
+  const noEdit = cohorts.filter((c) => c.skipped && !c.skipped.startsWith("cohort of"));
+
+  const byConcept = new Map();
+  for (const cap of caps) {
+    if (!byConcept.has(cap.concept)) byConcept.set(cap.concept, []);
+    byConcept.get(cap.concept).push(cap);
   }
 
-  const counts = (key) =>
-    data.findings.reduce((acc, f) => {
-      // `status` is what verification proposed; `status_final` is what the
-      // apply step actually did. Report the latter once it exists.
-      const value = key === "status" ? f.status_final || f.status : f[key];
-      acc[value] = (acc[value] || 0) + 1;
-      return acc;
-    }, {});
-  const table = (obj) =>
-    Object.entries(obj)
-      .sort((a, b) => b[1] - a[1])
-      .map(([k, v]) => `| ${k} | ${v} |`)
-      .join("\n");
-
-  const status = (f) => f.status_final || f.status;
-  const applied = data.findings.filter((f) => status(f).startsWith("applied"));
-  const eligible = data.findings.filter((f) => status(f) === "auto-apply-eligible");
-  const decisions = data.findings.filter((f) => status(f) === "needs decision");
-  const skipped = data.findings.filter((f) => status(f).startsWith("skipped"));
-  const carried = data.findings.filter((f) => f.carried_over);
-
-  const header = `# vLLM sync report — ${inventory.prev} → ${target}
-
-Generated ${new Date().toISOString()}${args.branch ? ` on branch \`${args.branch}\`` : ""}${
-    args["report-only"] ? " (report-only: nothing was edited or committed)" : ""
-  }.
-
-Upstream inventory: ${inventory.items.length} items from the release-notes pass and the source pass
-(${Object.entries(inventory.counts).map(([k, v]) => `${k} ${v}`).join(", ")}).
-Downstream: ${data.findings.length} verified findings, ${data.dropped.length} candidates dropped in verification.
-
-| Status | Count |
-|---|---|
-${table(counts("status"))}
-
-| Category | Count |
-|---|---|
-${table(counts("category"))}
-
-| Confidence | Count |
-|---|---|
-${table(counts("confidence"))}
-`;
-
-  const sections = [
-    ["Applied", applied],
-    ["Auto-apply eligible", eligible],
-    ["Needs decision", decisions],
-    ["Skipped", skipped],
-  ]
-    .filter(([, list]) => list.length)
-    .map(([title, list]) => `\n## ${title} (${list.length})\n${list.map(renderFinding).join("")}`)
+  const capRows = [...byConcept.entries()]
+    .sort((a, b) => b[1].length - a[1].length)
+    .map(([concept, list]) =>
+      list
+        .map(
+          (cap) =>
+            `| ${concept} | ${cap.title.slice(0, 62)} | ${enablement(cap.how_enabled)} | ${cap.effect} | ${cap.confidence} |`
+        )
+        .join("\n")
+    )
     .join("\n");
 
-  const missedNote = data.missed?.length
-    ? `\n## Missed improvements — prefiltered candidates (${data.missed.length})\n\n` +
-      "These are deterministic model/hardware joins between the release notes and the recipes.\n" +
-      "They are NOT findings until the orchestrator confirms each one against upstream and\n" +
-      "proposes a concrete edit; unconfirmed rows must not be applied.\n\n" +
-      "| Recipe | Item | Models | Hardware | PRs |\n|---|---|---|---|---|\n" +
-      data.missed
-        .slice(0, 60)
-        .map(
-          (m) =>
-            `| \`${m.file.replace(/^models\//, "")}\` | ${m.inventory_id} | ${m.matched_models.join(", ")} | ${
-              m.matched_hardware.join(", ") || "—"
-            } | ${m.prs.slice(0, 3).map((p) => `#${p}`).join(", ")} |`
-        )
-        .join("\n") +
-      (data.missed.length > 60 ? `\n\n…and ${data.missed.length - 60} more in \`findings.json\`.\n` : "\n")
-    : "";
+  const adoption = actionable.length
+    ? actionable
+        .map((c) => {
+          const files = c.cohort.map((r) => short(r.file));
+          const shown = files.slice(0, 8).join(", ");
+          const more = files.length > 8 ? `, +${files.length - 8} more` : "";
+          const already = c.excluded_already_using?.length
+            ? ` (${c.excluded_already_using.length} recipes already use it)`
+            : "";
+          return `**${c.title}** — ${c.concept}, ${c.effect}, confidence ${c.confidence}
+Enable with ${enablement(c.how_enabled)}. Cohort: ${c.cohort.length} recipes${already} — ${shown}${more}.
+Evidence: ${(c.evidence?.section || "—")}${c.evidence?.prs?.length ? `, PRs ${c.evidence.prs.map((p) => `#${p}`).join(", ")}` : ""}.
+Tier: **report-only until an edit template is written and reviewed.**`;
+        })
+        .join("\n\n")
+    : "_None with a bounded cohort this release._";
 
-  writeFileSync(join(reportDir, "report.md"), `${header}${sections}\n${missedNote}`);
+  const staleRows = findings
+    .map(
+      (f) =>
+        `| ${f.id} | \`${f.token}\` | ${CATEGORY_WORD[f.category] || f.category}${
+          // "needs X" is the introducing tag, which only means something while
+          // the flag still exists; for a removed flag the removal tag is the fact.
+          f.upstream.removed
+            ? ` (gone in ${f.upstream.removed})`
+            : f.upstream.introduced
+              ? ` (needs ${f.upstream.introduced})`
+              : ""
+        } | ${f.recipe_count} | ${[
+          ...new Set(f.recipes.map((r) => ACTION_WORD[r.action] || r.action)),
+        ].join(", ")} | ${f.confidence}${f.carried_over ? " · carried over" : ""} |`
+    )
+    .join("\n");
+
+  const pluginTokens = pluginFlags.map((p) => p.token);
+  const pluginRecipes = new Set(pluginFlags.flatMap((p) => p.recipes));
+
+  const autoEligible = findings.filter((f) => f.status === "auto-apply-eligible");
+  const perBlock = findings.filter((f) => f.recipes.some((r) => r.action === "per-block-floor-question"));
+
+  const md = `# vLLM sync — ${inventory.prev} → ${target}
+
+${args.branch ? `Branch \`${args.branch}\`. ` : ""}${
+    args["report-only"] ? "Report-only: nothing was edited or committed. " : ""
+  }${caps.length} capabilities shipped; ${findings.length} stale-usage root causes across the recipes;
+${actionable.length} adoption opportunit${actionable.length === 1 ? "y" : "ies"} with a bounded cohort.
+
+## What shipped
+
+| Concept | Capability | How enabled | Effect | Confidence |
+|---|---|---|---|---|
+${capRows}
+
+${noEdit.length ? `${noEdit.length} of these need no recipe edit (on by default, or no hardware/model evidence to bound them).` : ""}
+
+## Adoption opportunities
+
+${adoption}
+
+${
+  needNarrowing.length
+    ? `\n${needNarrowing.length} further capabilities matched more than 30 recipes, which means \`applies_to\` is not narrow enough to be evidence: ${needNarrowing
+        .map((c) => c.id)
+        .slice(0, 6)
+        .join(", ")}${needNarrowing.length > 6 ? ", …" : ""}. Narrow hardware/quant/traits in \`capabilities.yaml\` and re-run before judging these.`
+    : ""
+}
+
+## Breaking & stale, by root cause
+
+${findings.length} root causes. ${autoEligible.length} have at least one recipe where the edit is mechanical; ${perBlock.length} are per-block floor questions (a newer flag inside \`features.*\` or \`hardware_overrides.*\` does not make the recipe's baseline wrong).
+
+| ID | Flag / env | What | Recipes | Action | Confidence |
+|---|---|---|---|---|---|
+${staleRows}
+
+Per-recipe lines, blocks and floors: \`findings.json\`.
+
+## Unverifiable plugin flags
+
+${pluginTokens.length} flags/envs across ${pluginRecipes.size} recipes are not shipped by vLLM at any indexed tag and are almost certainly registered by a plugin or vendor image (vllm-omni, vllm-ascend, vendor builds). They are **not** stale usage and this tool cannot verify them: ${pluginTokens
+    .slice(0, 12)
+    .map((t) => `\`${t}\``)
+    .join(", ")}${pluginTokens.length > 12 ? `, +${pluginTokens.length - 12} more` : ""}.
+`;
+
+  writeFileSync(join(reportDir, "report.md"), md);
 
   const summary = `# vLLM sync summary — ${inventory.prev} → ${target}
 
 ${args.branch ? `Branch: \`${args.branch}\`` : "Report-only run — no branch, no commits."}
-${prev ? `Previous run compared: \`${prev.dir}\` (${carried.length} findings carried over unchanged).` : "No earlier run to compare against."}
+${prev ? `Compared against \`${prev.dir}\`: ${findings.filter((f) => f.carried_over).length} root causes carried over.` : "No earlier run to compare against."}
 
-| Status | Count |
-|---|---|
-${table(counts("status"))}
-
-## Commits
-${applied.length ? applied.map((f) => `- \`${f.commit || "?"}\` ${f.id} — ${f.subject || proposed(f)}`).join("\n") : "_none_"}
-
-## Auto-apply eligible (${eligible.length})
-${
-  eligible
-    .slice(0, 40)
-    .map((f) => `- ${f.id} \`${f.file.replace(/^models\//, "")}\` — ${proposed(f)}`)
-    .join("\n") || "_none_"
-}${eligible.length > 40 ? `\n- …and ${eligible.length - 40} more in report.md` : ""}
-
-## Needs human judgment (${decisions.length})
-${
-  decisions
-    .slice(0, 40)
-    .map((f) => `- ${f.id} \`${f.file.replace(/^models\//, "")}\` \`${f.token}\` — ${f.risk}`)
-    .join("\n") || "_none_"
-}${decisions.length > 40 ? `\n- …and ${decisions.length - 40} more in report.md` : ""}
-
-## Skipped (${skipped.length})
-${skipped.map((f) => `- ${f.id} — ${f.status_final}`).join("\n") || "_none_"}
+- capabilities shipped: ${caps.length} (${actionable.length} with a bounded cohort, ${needNarrowing.length} need narrowing, ${noEdit.length} need no edit)
+- stale-usage root causes: ${findings.length} across ${new Set(findings.flatMap((f) => f.recipes.map((r) => r.file))).size} recipes
+- per-block floor questions: ${perBlock.length}
+- unverifiable plugin flags: ${pluginTokens.length} across ${pluginRecipes.size} recipes
+- commits: ${args.branch && !args["report-only"] ? "see report.md" : "none (report-only)"}
 `;
   writeFileSync(join(reportDir, "summary.md"), summary);
 
-  console.log(`report.md + summary.md written to ${reportDir}`);
-  console.log(`  findings ${data.findings.length}, carried over ${carried.length}, missed-improvement candidates ${data.missed?.length || 0}`);
+  const lines = md.split("\n").length;
+  console.log(`report.md (${lines} lines) + summary.md written to ${reportDir}`);
 }
 
 main();
