@@ -30,7 +30,9 @@ import yaml from "js-yaml";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, "..", "..");
 const PUBLIC = join(REPO, "public");
-const BRANCH_PREFIX = "sync/vllm-";
+// Refuse the base branches rather than demand one naming scheme: PR branches
+// are named for the change, not for the tool that found it.
+const BASE_BRANCHES = new Set(["main", "master"]);
 
 function git(args, { check = true } = {}) {
   const r = spawnSync("git", ["-C", REPO, ...args], { encoding: "utf8" });
@@ -252,8 +254,8 @@ function restore(files) {
 
 function commit(reportDir, files, subject, finding, expectPaths) {
   const branch = git(["rev-parse", "--abbrev-ref", "HEAD"]);
-  if (!branch.startsWith(BRANCH_PREFIX)) {
-    console.error(`refusing to commit on "${branch}" — expected a ${BRANCH_PREFIX}* branch`);
+  if (BASE_BRANCHES.has(branch) || branch === "HEAD") {
+    console.error(`refusing to commit on "${branch}" — check out a working branch first`);
     process.exit(2);
   }
   const staged = git(["diff", "--cached", "--name-only"]);
