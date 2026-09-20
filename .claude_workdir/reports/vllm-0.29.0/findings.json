@@ -1,12 +1,14 @@
 {
   "target": "v0.29.0",
-  "generated": "2026-09-20T12:00:58.184Z",
+  "generated": "2026-09-20T12:01:20.895Z",
   "findings": [
     {
       "id": "R-01",
       "category": "below-introducing-version",
       "token": "--language-model-only",
       "kind": "flag",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.17.0",
@@ -358,6 +360,8 @@
       "category": "below-introducing-version",
       "token": "--attention-backend",
       "kind": "flag",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.13.0",
@@ -454,6 +458,8 @@
       "category": "below-introducing-version",
       "token": "--mm-encoder-tp-mode",
       "kind": "flag",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.10.2",
@@ -574,6 +580,8 @@
       "category": "below-introducing-version",
       "token": "--moe-backend",
       "kind": "flag",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.17.0",
@@ -661,6 +669,8 @@
       "category": "below-introducing-version",
       "token": "VLLM_ROCM_SHUFFLE_KV_CACHE_LAYOUT",
       "kind": "env",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.15.0",
@@ -733,6 +743,8 @@
       "category": "below-introducing-version",
       "token": "VLLM_ROCM_USE_AITER",
       "kind": "env",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.8.2",
@@ -799,6 +811,8 @@
       "category": "below-introducing-version",
       "token": "VLLM_SSM_CONV_STATE_LAYOUT",
       "kind": "env",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.20.0",
@@ -862,6 +876,8 @@
       "category": "below-introducing-version",
       "token": "VLLM_ENGINE_READY_TIMEOUT_S",
       "kind": "env",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.14.0",
@@ -913,6 +929,8 @@
       "category": "removed",
       "token": "--task",
       "kind": "flag",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.6.4",
@@ -973,6 +991,8 @@
       "category": "below-introducing-version",
       "token": "--disable-chunked-mm-input",
       "kind": "flag",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.8.4",
@@ -1009,6 +1029,8 @@
       "category": "removed",
       "token": "--rope-scaling",
       "kind": "flag",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.4.3",
@@ -1045,6 +1067,15 @@
       "category": "invalid-value",
       "token": "--attention-backend",
       "kind": "flag",
+      "invalid_value": "B12X_MLA_SPARSE",
+      "accepted_sample": [
+        "AMX_MLA",
+        "CPU_ATTN",
+        "CPU_MLA",
+        "CUSTOM",
+        "CUTLASS_MLA",
+        "CUTLASS_MSA"
+      ],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.13.0",
@@ -1105,6 +1136,8 @@
       "category": "below-introducing-version",
       "token": "--linear-backend",
       "kind": "flag",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.22.0",
@@ -1153,6 +1186,8 @@
       "category": "below-introducing-version",
       "token": "VLLM_USE_BREAKABLE_CUDAGRAPH",
       "kind": "env",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.22.0",
@@ -1195,6 +1230,8 @@
       "category": "below-introducing-version",
       "token": "--prefill-schedule-interval",
       "kind": "flag",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.24.0",
@@ -1231,6 +1268,8 @@
       "category": "below-introducing-version",
       "token": "--speculative-config",
       "kind": "flag",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.8.2",
@@ -1273,6 +1312,8 @@
       "category": "removed",
       "token": "--disable-log-requests",
       "kind": "flag",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.4.2",
@@ -1309,6 +1350,8 @@
       "category": "default-changed",
       "token": "--dcp-comm-backend",
       "kind": "flag",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.18.0",
@@ -1357,6 +1400,8 @@
       "category": "below-introducing-version",
       "token": "--quantization-config.moe.activation",
       "kind": "flag",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": "v0.20.0",
@@ -1393,6 +1438,8 @@
       "category": "wrong-dash",
       "token": "--cc.pass_config.fuse_allreduce_rms",
       "kind": "flag",
+      "invalid_value": null,
+      "accepted_sample": [],
       "source": "source-only",
       "upstream": {
         "introduced": null,

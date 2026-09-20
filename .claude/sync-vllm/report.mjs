@@ -230,7 +230,9 @@ function main() {
   const detailFor = (f) => {
     if (f.category === "invalid-value") {
       const r = f.recipes[0];
-      return `${short(r.file)} sets \`${f.invalid_value || "?"}\`, not an accepted value`;
+      return `${short(r.file)} sets \`${f.invalid_value || "?"}\`, not accepted at ${f.upstream.introduced ? "" : ""}the target tag${
+        f.accepted_sample?.length ? ` (accepted: ${f.accepted_sample.slice(0, 4).join(", ")}, …)` : ""
+      }`;
     }
     if (f.category === "default-changed") return f.upstream.recheck;
     return "";
