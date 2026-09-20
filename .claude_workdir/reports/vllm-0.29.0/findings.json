@@ -1,6 +1,6 @@
 {
   "target": "v0.29.0",
-  "generated": "2026-09-20T11:10:07.047Z",
+  "generated": "2026-09-20T11:28:18.675Z",
   "findings": [
     {
       "id": "R-01",
@@ -382,7 +382,7 @@
           ],
           "needed": "v0.4.2",
           "action": "resolve",
-          "why": "no documented replacement"
+          "why": "pin 0.11.0 predates the removal in v0.17.0"
         },
         {
           "file": "models/meta-llama/Llama-3.1-8B-Instruct.yaml",
@@ -397,7 +397,7 @@
           ],
           "needed": "v0.4.2",
           "action": "resolve",
-          "why": "no documented replacement"
+          "why": "pin 0.6.0 predates the removal in v0.17.0"
         },
         {
           "file": "models/meta-llama/Llama-3.3-70B-Instruct.yaml",
@@ -412,7 +412,7 @@
           ],
           "needed": "v0.4.2",
           "action": "resolve",
-          "why": "no documented replacement"
+          "why": "pin 0.12.0 predates the removal in v0.17.0"
         },
         {
           "file": "models/meta-llama/Llama-4-Scout-17B-16E-Instruct.yaml",
@@ -427,7 +427,7 @@
           ],
           "needed": "v0.4.2",
           "action": "resolve",
-          "why": "no documented replacement"
+          "why": "pin 0.12.0 predates the removal in v0.17.0"
         },
         {
           "file": "models/moonshotai/Kimi-K2-Instruct.yaml",
@@ -448,7 +448,7 @@
           ],
           "needed": "v0.4.2",
           "action": "resolve",
-          "why": "no documented replacement"
+          "why": "pin 0.12.0 predates the removal in v0.17.0"
         },
         {
           "file": "models/Qwen/Qwen3-235B-A22B-Instruct-2507.yaml",
@@ -469,7 +469,7 @@
           ],
           "needed": "v0.4.2",
           "action": "resolve",
-          "why": "no documented replacement"
+          "why": "pin 0.10.0 predates the removal in v0.17.0"
         },
         {
           "file": "models/Qwen/Qwen3-32B.yaml",
@@ -484,7 +484,7 @@
           ],
           "needed": "v0.4.2",
           "action": "resolve",
-          "why": "no documented replacement"
+          "why": "pin 0.8.5 predates the removal in v0.17.0"
         },
         {
           "file": "models/Qwen/Qwen3-4B.yaml",
@@ -499,7 +499,7 @@
           ],
           "needed": "v0.4.2",
           "action": "resolve",
-          "why": "no documented replacement"
+          "why": "pin 0.8.5 predates the removal in v0.17.0"
         },
         {
           "file": "models/zai-org/GLM-4.7.yaml",
@@ -513,13 +513,13 @@
             }
           ],
           "needed": "v0.4.2",
-          "action": "resolve",
-          "why": "no documented replacement"
+          "action": "replace",
+          "why": "replace with --enable-log-requests — its default was the negation of enable_log_requests at v0.16.0 (vllm/engine/arg_utils.py:2087), and --enable-log-requests exists at the target tag"
         }
       ],
-      "auto_apply_candidates": 0,
+      "auto_apply_candidates": 1,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "auto-apply-eligible"
     },
     {
       "id": "R-03",
@@ -1327,7 +1327,7 @@
           ],
           "needed": "v0.6.4",
           "action": "resolve",
-          "why": "no documented replacement"
+          "why": "read the argparse help, the config field docstring and every deprecation line mentioning it at v0.12.0; none names a replacement"
         }
       ],
       "auto_apply_candidates": 0,
@@ -1363,7 +1363,7 @@
           ],
           "needed": "v0.6.4",
           "action": "resolve",
-          "why": "no documented replacement"
+          "why": "read the argparse help, the config field docstring and every deprecation line mentioning it at v0.11.0; none names a replacement"
         }
       ],
       "auto_apply_candidates": 0,
@@ -1399,7 +1399,7 @@
           ],
           "needed": "v0.4.2",
           "action": "resolve",
-          "why": "no documented replacement"
+          "why": "upstream says to drop it, documented at v0.11.2 in vllm/entrypoints/openai/protocol.py:699"
         }
       ],
       "auto_apply_candidates": 0,
@@ -1483,7 +1483,7 @@
           ],
           "needed": "v0.4.2",
           "action": "resolve",
-          "why": "no documented replacement"
+          "why": "read the argparse help, the config field docstring and every deprecation line mentioning it at v0.17.1; none names a replacement"
         }
       ],
       "auto_apply_candidates": 0,
@@ -1555,7 +1555,7 @@
           ],
           "needed": "v0.4.3",
           "action": "resolve",
-          "why": "no documented replacement"
+          "why": "read the argparse help, the config field docstring and every deprecation line mentioning it at v0.11.0; none names a replacement"
         }
       ],
       "auto_apply_candidates": 0,
@@ -1917,7 +1917,8 @@
         "models/openbmb/VoxCPM2.yaml",
         "models/zai-org/GLM-TTS.yaml"
       ],
-      "lines": 12
+      "lines": 12,
+      "namespace": "plugin"
     },
     {
       "token": "--init-timeout",
@@ -1929,7 +1930,8 @@
         "models/nvidia/Cosmos3-Super-Text2Image.yaml",
         "models/nvidia/Cosmos3-Super.yaml"
       ],
-      "lines": 6
+      "lines": 6,
+      "namespace": "vendor-or-out-of-tree"
     },
     {
       "token": "--deploy-config",
@@ -1940,7 +1942,8 @@
         "models/OpenMOSS-Team/MOSS-TTSD-v1.0.yaml",
         "models/OpenMOSS-Team/MOSS-VoiceGenerator.yaml"
       ],
-      "lines": 4
+      "lines": 4,
+      "namespace": "plugin"
     },
     {
       "token": "--cfg-parallel-size",
@@ -1950,7 +1953,8 @@
         "models/nvidia/Cosmos3-Super-Text2Image.yaml",
         "models/nvidia/Cosmos3-Super.yaml"
       ],
-      "lines": 3
+      "lines": 3,
+      "namespace": "vendor-or-out-of-tree"
     },
     {
       "token": "--ulysses-degree",
@@ -1960,7 +1964,8 @@
         "models/nvidia/Cosmos3-Super-Text2Image.yaml",
         "models/nvidia/Cosmos3-Super.yaml"
       ],
-      "lines": 3
+      "lines": 3,
+      "namespace": "plugin"
     },
     {
       "token": "--use-hsdp",
@@ -1970,7 +1975,8 @@
         "models/nvidia/Cosmos3-Super-Text2Image.yaml",
         "models/nvidia/Cosmos3-Super.yaml"
       ],
-      "lines": 3
+      "lines": 3,
+      "namespace": "plugin"
     },
     {
       "token": "--hsdp-shard-size",
@@ -1980,7 +1986,8 @@
         "models/nvidia/Cosmos3-Super-Text2Image.yaml",
         "models/nvidia/Cosmos3-Super.yaml"
       ],
-      "lines": 3
+      "lines": 3,
+      "namespace": "plugin"
     },
     {
       "token": "--diffusion-attention-backend",
@@ -1989,7 +1996,8 @@
         "models/Lightricks/LTX-2.5-Diffusers.yaml",
         "models/MiniMaxAI/MiniMax-H3.yaml"
       ],
-      "lines": 12
+      "lines": 12,
+      "namespace": "plugin"
     },
     {
       "token": "--model-class-name",
@@ -1997,7 +2005,8 @@
       "recipes": [
         "models/Lightricks/LTX-2.5-Diffusers.yaml"
       ],
-      "lines": 8
+      "lines": 8,
+      "namespace": "plugin"
     },
     {
       "token": "--num-gpus",
@@ -2005,7 +2014,8 @@
       "recipes": [
         "models/MiniMaxAI/MiniMax-H3.yaml"
       ],
-      "lines": 7
+      "lines": 7,
+      "namespace": "plugin"
     },
     {
       "token": "--usp",
@@ -2013,7 +2023,8 @@
       "recipes": [
         "models/MiniMaxAI/MiniMax-H3.yaml"
       ],
-      "lines": 7
+      "lines": 7,
+      "namespace": "plugin"
     },
     {
       "token": "--ring",
@@ -2021,7 +2032,8 @@
       "recipes": [
         "models/MiniMaxAI/MiniMax-H3.yaml"
       ],
-      "lines": 7
+      "lines": 7,
+      "namespace": "plugin"
     },
     {
       "token": "--vae-patch-parallel-size",
@@ -2029,7 +2041,8 @@
       "recipes": [
         "models/MiniMaxAI/MiniMax-H3.yaml"
       ],
-      "lines": 7
+      "lines": 7,
+      "namespace": "plugin"
     },
     {
       "token": "--vae-parallel-mode",
@@ -2037,7 +2050,8 @@
       "recipes": [
         "models/MiniMaxAI/MiniMax-H3.yaml"
       ],
-      "lines": 1
+      "lines": 1,
+      "namespace": "plugin"
     },
     {
       "token": "--vae-use-tiling",
@@ -2045,7 +2059,8 @@
       "recipes": [
         "models/MiniMaxAI/MiniMax-H3.yaml"
       ],
-      "lines": 1
+      "lines": 1,
+      "namespace": "plugin"
     },
     {
       "token": "VLLM_OMNI_VIDEO_SYNC_TIMEOUT",
@@ -2053,7 +2068,8 @@
       "recipes": [
         "models/MiniMaxAI/MiniMax-H3.yaml"
       ],
-      "lines": 5
+      "lines": 5,
+      "namespace": "plugin"
     },
     {
       "token": "--task-type",
@@ -2061,7 +2077,8 @@
       "recipes": [
         "models/MiniMaxAI/MiniMax-H3.yaml"
       ],
-      "lines": 31
+      "lines": 31,
+      "namespace": "plugin"
     },
     {
       "token": "--text-encoder-tp-size",
@@ -2069,7 +2086,8 @@
       "recipes": [
         "models/MiniMaxAI/MiniMax-H3.yaml"
       ],
-      "lines": 6
+      "lines": 6,
+      "namespace": "plugin"
     },
     {
       "token": "--stage-init-timeout",
@@ -2077,7 +2095,8 @@
       "recipes": [
         "models/MiniMaxAI/MiniMax-H3.yaml"
       ],
-      "lines": 1
+      "lines": 1,
+      "namespace": "vendor-or-out-of-tree"
     },
     {
       "token": "--enable-distributed-layerwise-offload",
@@ -2085,7 +2104,8 @@
       "recipes": [
         "models/MiniMaxAI/MiniMax-H3.yaml"
       ],
-      "lines": 2
+      "lines": 2,
+      "namespace": "vendor-or-out-of-tree"
     },
     {
       "token": "--dlo-no-use-allgather",
@@ -2093,7 +2113,8 @@
       "recipes": [
         "models/MiniMaxAI/MiniMax-H3.yaml"
       ],
-      "lines": 2
+      "lines": 2,
+      "namespace": "plugin"
     },
     {
       "token": "--dlo-resident-layers",
@@ -2101,7 +2122,8 @@
       "recipes": [
         "models/MiniMaxAI/MiniMax-H3.yaml"
       ],
-      "lines": 2
+      "lines": 2,
+      "namespace": "plugin"
     },
     {
       "token": "--ignored-layers",
@@ -2109,7 +2131,8 @@
       "recipes": [
         "models/Qwen/Qwen-Image.yaml"
       ],
-      "lines": 1
+      "lines": 1,
+      "namespace": "vendor-or-out-of-tree"
     },
     {
       "token": "VLLM_ASCEND_ENABLE_PREFETCH_MLP",
@@ -2117,15 +2140,8 @@
       "recipes": [
         "models/Qwen/Qwen3.5-397B-A17B.yaml"
       ],
-      "lines": 2
-    },
-    {
-      "token": "VLLM_PLE_CPU_OFFLOAD",
-      "kind": "env",
-      "recipes": [
-        "models/Qwen/Qwen3.8-Flash-Next.yaml"
-      ],
-      "lines": 2
+      "lines": 2,
+      "namespace": "plugin"
     },
     {
       "token": "VLLM_MEMORY_PROFILE_INCLUDE_ATTN",
@@ -2133,7 +2149,8 @@
       "recipes": [
         "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
       ],
-      "lines": 4
+      "lines": 4,
+      "namespace": "vendor-or-out-of-tree"
     },
     {
       "token": "VLLM_USE_B12X_WO_PROJECTION",
@@ -2141,7 +2158,8 @@
       "recipes": [
         "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
       ],
-      "lines": 4
+      "lines": 4,
+      "namespace": "vendor-or-out-of-tree"
     },
     {
       "token": "VLLM_USE_B12X_MHC",
@@ -2149,7 +2167,8 @@
       "recipes": [
         "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
       ],
-      "lines": 4
+      "lines": 4,
+      "namespace": "vendor-or-out-of-tree"
     },
     {
       "token": "VLLM_USE_B12X_FP8_GEMM",
@@ -2157,7 +2176,8 @@
       "recipes": [
         "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
       ],
-      "lines": 4
+      "lines": 4,
+      "namespace": "vendor-or-out-of-tree"
     },
     {
       "token": "VLLM_USE_B12X_MOE",
@@ -2165,7 +2185,8 @@
       "recipes": [
         "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
       ],
-      "lines": 4
+      "lines": 4,
+      "namespace": "vendor-or-out-of-tree"
     },
     {
       "token": "VLLM_USE_B12X_SPARSE_INDEXER",
@@ -2173,15 +2194,8 @@
       "recipes": [
         "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
       ],
-      "lines": 4
-    },
-    {
-      "token": "VLLM_ROCM_USE_AITER_MOE_SITUV2",
-      "kind": "env",
-      "recipes": [
-        "models/moonshotai/Kimi-K3.yaml"
-      ],
-      "lines": 1
+      "lines": 4,
+      "namespace": "vendor-or-out-of-tree"
     },
     {
       "token": "VLLM_OMNI_TARGET_DEVICE",
@@ -2189,8 +2203,75 @@
       "recipes": [
         "models/stabilityai/stable-diffusion-3.5-medium.yaml"
       ],
-      "lines": 1
+      "lines": 1,
+      "namespace": "plugin"
     }
   ],
+  "not_yet_released": [
+    {
+      "token": "VLLM_PLE_CPU_OFFLOAD",
+      "kind": "env",
+      "recipes": [
+        "models/Qwen/Qwen3.8-Flash-Next.yaml"
+      ],
+      "lines": 2,
+      "where": "present at v0.30.0rc2",
+      "note": "the recipe uses a flag newer than v0.29.0 — not yet in a stable release"
+    },
+    {
+      "token": "VLLM_ROCM_USE_AITER_MOE_SITUV2",
+      "kind": "env",
+      "recipes": [
+        "models/moonshotai/Kimi-K3.yaml"
+      ],
+      "lines": 1,
+      "where": "present at main (HEAD of the clone)",
+      "note": "the recipe uses a flag newer than v0.29.0 — not yet in a stable release"
+    }
+  ],
+  "resolutions": {
+    "--disable-log-requests": {
+      "last_present": "v0.16.0",
+      "quote": "parser.add_argument('--disable-log-requests', action=argparse.BooleanOptionalAction, default=not AsyncEngineArgs.enable_log_requests, help='[DEPRECATED] Disable logging requests.', deprecated=True)",
+      "replacement": "--enable-log-requests",
+      "resolution": "replace",
+      "why": "its default was the negation of enable_log_requests at v0.16.0 (vllm/engine/arg_utils.py:2087), and --enable-log-requests exists at the target tag"
+    },
+    "--guided-decoding-backend": {
+      "last_present": "v0.11.2",
+      "quote": "description=( \"`guided_decoding_backend` is deprecated. \" \"This will be removed in v0.12.0 or v1.0.0, whichever is soonest. \" \"Please remove it from your request.\" ), )",
+      "replacement": null,
+      "resolution": "remove",
+      "why": "upstream says to drop it, documented at v0.11.2 in vllm/entrypoints/openai/protocol.py:699"
+    },
+    "--rope-scaling": {
+      "last_present": "v0.11.0",
+      "quote": "model_group.add_argument('--rope-scaling', **model_kwargs['rope_scaling'])",
+      "replacement": null,
+      "resolution": "unknown",
+      "why": "read the argparse help, the config field docstring and every deprecation line mentioning it at v0.11.0; none names a replacement"
+    },
+    "--swap-space": {
+      "last_present": "v0.17.1",
+      "quote": "cache_group.add_argument('--swap-space', **cache_kwargs['swap_space'])",
+      "replacement": null,
+      "resolution": "unknown",
+      "why": "read the argparse help, the config field docstring and every deprecation line mentioning it at v0.17.1; none names a replacement"
+    },
+    "--task": {
+      "last_present": "v0.12.0",
+      "quote": "model_group.add_argument('--task', **model_kwargs['task'], deprecated=True)",
+      "replacement": null,
+      "resolution": "unknown",
+      "why": "read the argparse help, the config field docstring and every deprecation line mentioning it at v0.12.0; none names a replacement"
+    },
+    "VLLM_USE_V1": {
+      "last_present": "v0.11.0",
+      "quote": null,
+      "replacement": null,
+      "resolution": "unknown",
+      "why": "read the argparse help, the config field docstring and every deprecation line mentioning it at v0.11.0; none names a replacement"
+    }
+  },
   "dropped": []
 }

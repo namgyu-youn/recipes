@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import re
 import subprocess
 import sys
 from functools import lru_cache
@@ -233,10 +234,27 @@ def envs_at(tag: str) -> dict[str, dict]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--tag", required=True)
+    ap.add_argument("--tag")
+    ap.add_argument(
+        "--newest-rc",
+        action="store_true",
+        help="print the newest release-candidate tag and exit",
+    )
     ap.add_argument("--what", choices=["flags", "envs", "both"], default="both")
     ap.add_argument("--json", action="store_true", help="full JSON instead of a summary")
     args = ap.parse_args()
+
+    if args.newest_rc:
+        tags = _git("tag", "--list", "v[0-9]*rc*").stdout.split()
+        def rc_key(tag: str) -> tuple:
+            m = re.match(r"v(\d+)\.(\d+)\.(\d+)rc(\d+)", tag)
+            return tuple(int(g) for g in m.groups()) if m else (0, 0, 0, 0)
+        ranked = sorted((t for t in tags if rc_key(t) != (0, 0, 0, 0)), key=rc_key)
+        print(ranked[-1] if ranked else "")
+        return 0
+
+    if not args.tag:
+        ap.error("--tag is required unless --newest-rc is given")
 
     if not VLLM_CLONE.is_dir():
         print(f"reference clone missing: {VLLM_CLONE}", file=sys.stderr)

@@ -54,12 +54,21 @@ function previousRun(target) {
   return prev ? { dir: prev, data: JSON.parse(readFileSync(join(REPORTS, prev, "findings.json"), "utf8")) } : null;
 }
 
+/**
+ * How to turn it on, without repeating a flag twice. A flag that has a
+ * documented value is shown as the pair; only a flag with no value is shown
+ * bare.
+ */
 function enablement(how) {
   if (!how) return "—";
-  const bits = [...(how.flags || []), ...(how.envs || [])];
-  for (const e of how.enum_values || []) bits.push(`${e.flag} ${e.value}`);
+  const valued = new Set((how.enum_values || []).map((e) => e.flag));
+  const bits = [
+    ...(how.enum_values || []).map((e) => `${e.flag} ${e.value}`),
+    ...(how.flags || []).filter((f) => !valued.has(f)),
+    ...(how.envs || []),
+  ];
   if (!bits.length) return how.mode === "auto" ? "no flag — automatic" : "—";
-  return bits.map((b) => `\`${b}\``).join(" ");
+  return bits.map((b) => `\`${b}\``).join(", ");
 }
 
 function main() {
@@ -89,23 +98,32 @@ function main() {
   const prevKeys = new Set((prev?.data.findings || []).map((f) => `${f.category}::${f.token}`));
   for (const f of findings) f.carried_over = prevKeys.has(`${f.category}::${f.token}`);
 
-  const actionable = cohorts.filter((c) => c.cohort?.length);
+  // A capability with no cohort but with reverse hits is still actionable —
+  // the edit is subtractive (drop a now-default env, fix stale guide text).
+  const actionable = cohorts.filter((c) => !c.skipped && (c.cohort?.length || c.reverse_hits?.length));
   const needNarrowing = cohorts.filter((c) => c.skipped?.startsWith("cohort of"));
   const noEdit = cohorts.filter((c) => c.skipped && !c.skipped.startsWith("cohort of"));
 
+  // Removals and deprecations are breaking news, not shipped capabilities.
+  const shipped = caps.filter((c) => (c.kind || "capability") === "capability");
+  const breakingCaps = caps.filter((c) => c.kind === "breaking");
+  const outOfScope = caps.filter((c) => c.kind === "out_of_scope");
+
   const byConcept = new Map();
-  for (const cap of caps) {
+  for (const cap of shipped) {
     if (!byConcept.has(cap.concept)) byConcept.set(cap.concept, []);
     byConcept.get(cap.concept).push(cap);
   }
 
+  // Titles are never truncated: a cut title is the one thing a reader cannot
+  // recover from the table.
   const capRows = [...byConcept.entries()]
     .sort((a, b) => b[1].length - a[1].length)
     .map(([concept, list]) =>
       list
         .map(
           (cap) =>
-            `| ${concept} | ${cap.title.slice(0, 62)} | ${enablement(cap.how_enabled)} | ${cap.effect} | ${cap.confidence} |`
+            `| ${concept} | ${cap.title} | ${enablement(cap.how_enabled)} | ${cap.effect} | ${cap.confidence} |`
         )
         .join("\n")
     )
@@ -114,21 +132,53 @@ function main() {
   const adoption = actionable.length
     ? actionable
         .map((c) => {
-          const files = c.cohort.map((r) => short(r.file));
-          const shown = files.slice(0, 8).join(", ");
-          const more = files.length > 8 ? `, +${files.length - 8} more` : "";
-          const already = c.excluded_already_using?.length
-            ? ` (${c.excluded_already_using.length} recipes already use it)`
-            : "";
-          return `**${c.title}** — ${c.concept}, ${c.effect}, confidence ${c.confidence}
-Enable with ${enablement(c.how_enabled)}. Cohort: ${c.cohort.length} recipes${already} — ${shown}${more}.
-Evidence: ${(c.evidence?.section || "—")}${c.evidence?.prs?.length ? `, PRs ${c.evidence.prs.map((p) => `#${p}`).join(", ")}` : ""}.
-Tier: **report-only until an edit template is written and reviewed.**`;
+          const lines = [`**${c.title}** — ${c.concept}, confidence ${c.confidence}`];
+          if (c.cohort.length) {
+            const files = c.cohort.map((r) => short(r.file));
+            const shown = files.slice(0, 8).join(", ");
+            const more = files.length > 8 ? `, +${files.length - 8} more` : "";
+            const already = c.excluded_already_using?.length
+              ? ` (${c.excluded_already_using.length} already using it, excluded)`
+              : "";
+            lines.push(
+              `Add ${enablement(c.how_enabled)} to ${c.cohort.length} recipes${already}: ${shown}${more}.`
+            );
+          }
+          if (c.reverse_hits?.length) {
+            const kinds = {};
+            for (const h of c.reverse_hits) kinds[h.kind] = (kinds[h.kind] || 0) + 1;
+            const summary = Object.entries(kinds)
+              .map(([k, n]) => `${n} ${k.replace(/-/g, " ")}`)
+              .join(", ");
+            const sample = c.reverse_hits
+              .slice(0, 4)
+              .map((h) => `${short(h.file)} [${h.kind.replace(/-/g, " ")}: ${h.name}]`)
+              .join(", ");
+            lines.push(`Subtractive edits: ${summary} — ${sample}${c.reverse_hits.length > 4 ? ", …" : ""}.`);
+          }
+          if (c.supporting_sentence) {
+            lines.push(
+              `Why it applies (${c.supporting_sentence.dimension}): "${c.supporting_sentence.sentence
+                .replace(/\s+/g, " ")
+                .trim()}"`
+            );
+          }
+          lines.push(`Tier: **report-only — needs an edit template and review before applying.**`);
+          return lines.join("\n");
         })
         .join("\n\n")
     : "_None with a bounded cohort this release._";
 
+  // One policy entry, not one row per flag: every per-block floor question has
+  // the same answer, and the list belongs in findings.json.
+  const floorQuestions = findings.filter(
+    (f) =>
+      f.category === "below-introducing-version" &&
+      f.recipes.every((r) => r.action === "per-block-floor-question")
+  );
+  const floorIds = new Set(floorQuestions.map((f) => f.id));
   const staleRows = findings
+    .filter((f) => !floorIds.has(f.id))
     .map(
       (f) =>
         `| ${f.id} | \`${f.token}\` | ${CATEGORY_WORD[f.category] || f.category}${
@@ -145,6 +195,9 @@ Tier: **report-only until an edit template is written and reviewed.**`;
     )
     .join("\n");
 
+  const knownPlugin = pluginFlags.filter((p) => p.namespace !== "vendor-or-out-of-tree");
+  const vendor = pluginFlags.filter((p) => p.namespace === "vendor-or-out-of-tree");
+  const notYetReleased = findingsDoc.not_yet_released || [];
   const pluginTokens = pluginFlags.map((p) => p.token);
   const pluginRecipes = new Set(pluginFlags.flatMap((p) => p.recipes));
 
@@ -155,8 +208,10 @@ Tier: **report-only until an edit template is written and reviewed.**`;
 
 ${args.branch ? `Branch \`${args.branch}\`. ` : ""}${
     args["report-only"] ? "Report-only: nothing was edited or committed. " : ""
-  }${caps.length} capabilities shipped; ${findings.length} stale-usage root causes across the recipes;
-${actionable.length} adoption opportunit${actionable.length === 1 ? "y" : "ies"} with a bounded cohort.
+  }${shipped.length} capabilities shipped (${breakingCaps.length} breaking changes are in section 3);
+${findings.length} stale-usage root causes; ${actionable.length} adoption opportunit${
+    actionable.length === 1 ? "y" : "ies"
+  } with a bounded cohort.
 
 ## What shipped
 
@@ -164,7 +219,11 @@ ${actionable.length} adoption opportunit${actionable.length === 1 ? "y" : "ies"}
 |---|---|---|---|---|
 ${capRows}
 
-${noEdit.length ? `${noEdit.length} of these need no recipe edit (on by default, or no hardware/model evidence to bound them).` : ""}
+${
+    shipped.length - actionable.length > 0
+      ? `${shipped.length - actionable.length} of these need no recipe edit: on by default with nothing to remove, or with no hardware/model dimension to bound a cohort.`
+      : ""
+  }
 
 ## Adoption opportunities
 
@@ -187,14 +246,42 @@ ${findings.length} root causes. ${autoEligible.length} have at least one recipe 
 |---|---|---|---|---|---|
 ${staleRows}
 
+${
+  breakingCaps.length
+    ? `Also announced as breaking: ${breakingCaps.map((c) => c.title).join("; ")}.\n`
+    : ""
+}
+**Per-block floor policy (${floorQuestions.length} flags, ${
+    new Set(floorQuestions.flatMap((f) => f.recipes.map((r) => r.file))).size
+  } recipes).** Each of these is a flag used below its introducing release, but only inside
+\`features.*\` (opt-in), \`hardware_overrides.*\` or \`strategy_overrides.*\`. The recipe's
+unconditional command is unaffected, so the model floor is not wrong — the question is whether the
+block should carry its own floor. One decision covers all of them: ${floorQuestions
+    .map((f) => `\`${f.token}\` (${f.recipe_count})`)
+    .join(", ")}. Full list in \`findings.json\`.
+
 Per-recipe lines, blocks and floors: \`findings.json\`.
 
-## Unverifiable plugin flags
+## Unverifiable flags
 
-${pluginTokens.length} flags/envs across ${pluginRecipes.size} recipes are not shipped by vLLM at any indexed tag and are almost certainly registered by a plugin or vendor image (vllm-omni, vllm-ascend, vendor builds). They are **not** stale usage and this tool cannot verify them: ${pluginTokens
-    .slice(0, 12)
-    .map((t) => `\`${t}\``)
-    .join(", ")}${pluginTokens.length > 12 ? `, +${pluginTokens.length - 12} more` : ""}.
+Not stale usage — vLLM never shipped these, so this tool has nothing to check them against.
+
+- **Known plugin namespaces** (${knownPlugin.length} across ${
+    new Set(knownPlugin.flatMap((p) => p.recipes)).size
+  } recipes): ${knownPlugin.map((p) => `\`${p.token}\``).join(", ") || "_none_"}.
+- **Vendor or out-of-tree** (${vendor.length} across ${
+    new Set(vendor.flatMap((p) => p.recipes)).size
+  } recipes) — plain \`VLLM_*\`/core-looking names absent from every stable tag, the newest rc and main, so they come from a pinned vendor image: ${
+    vendor.slice(0, 10).map((p) => `\`${p.token}\``).join(", ") || "_none_"
+  }${vendor.length > 10 ? `, +${vendor.length - 10} more` : ""}.
+${
+  notYetReleased.length
+    ? `- **Newer than ${target}** (${notYetReleased.length}) — present in the clone but not in a stable release yet, so the recipe is ahead of its pin: ${notYetReleased
+        .map((n) => `\`${n.token}\` (${n.where}, ${n.recipes.length} recipe${n.recipes.length === 1 ? "" : "s"})`)
+        .join(", ")}.`
+    : ""
+}
+${outOfScope.length ? `\n${outOfScope.length} release items were out of the capability vocabulary (new model support, packaging) and are recorded in \`capabilities.yaml\` rather than shown above.` : ""}
 `;
 
   writeFileSync(join(reportDir, "report.md"), md);
@@ -204,10 +291,11 @@ ${pluginTokens.length} flags/envs across ${pluginRecipes.size} recipes are not s
 ${args.branch ? `Branch: \`${args.branch}\`` : "Report-only run — no branch, no commits."}
 ${prev ? `Compared against \`${prev.dir}\`: ${findings.filter((f) => f.carried_over).length} root causes carried over.` : "No earlier run to compare against."}
 
-- capabilities shipped: ${caps.length} (${actionable.length} with a bounded cohort, ${needNarrowing.length} need narrowing, ${noEdit.length} need no edit)
+- capabilities shipped: ${shipped.length} — ${actionable.length} actionable, ${needNarrowing.length} need a narrower \`applies_to\`, ${Math.max(0, shipped.length - actionable.length - needNarrowing.length)} need no recipe edit
+- breaking changes announced: ${breakingCaps.length}
 - stale-usage root causes: ${findings.length} across ${new Set(findings.flatMap((f) => f.recipes.map((r) => r.file))).size} recipes
 - per-block floor questions: ${perBlock.length}
-- unverifiable plugin flags: ${pluginTokens.length} across ${pluginRecipes.size} recipes
+- unverifiable flags: ${knownPlugin.length} plugin-namespace, ${vendor.length} vendor/out-of-tree, ${notYetReleased.length} newer than ${target}
 - commits: ${args.branch && !args["report-only"] ? "see report.md" : "none (report-only)"}
 `;
   writeFileSync(join(reportDir, "summary.md"), summary);

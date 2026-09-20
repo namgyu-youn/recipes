@@ -35,13 +35,21 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, "..", "..");
 const CLONE = join(REPO, ".claude_workdir", "vllm");
 
-/** Flags/envs that belong to a plugin or vendor build, not to vLLM itself. */
+/**
+ * Known plugin and vendor namespaces. A flag matching one of these is
+ * registered by something other than vLLM — vllm-omni, vllm-ascend, a vendor
+ * image — and this tool has no way to verify it.
+ */
 const PLUGIN_PATTERNS = [
   /^--omni$/, /^--deploy-config$/, /^--task-type$/, /^--model-class-name$/,
   /^--diffusion-/, /^--vae-/, /^--text-encoder-/, /^--ulysses-/, /^--usp$/, /^--ring$/,
   /^--hsdp-/, /^--use-hsdp$/, /^--dlo-/, /^--engram-config$/, /^--num-gpus$/,
   /^VLLM_OMNI_/, /^VLLM_ASCEND_/, /^VLLM_MINDIE/, /^VLLM_NPU_/,
 ];
+
+function pythonRaw(script, args) {
+  return execFileSync("python3", [join(HERE, script), ...args], { encoding: "utf8" }).trim();
+}
 
 function git(...args) {
   try {
@@ -141,6 +149,19 @@ function main() {
   const envs = python("flagset.py", ["--tag", target, "--what", "envs", "--json"]).envs;
 
   // 1. group by root cause
+  // What upstream said to do instead, read at the last tag where each removed
+  // flag still existed — so "no documented replacement" is a checked statement.
+  const removedTokens = [
+    ...new Set(
+      candidates.stale
+        .filter((c) => c.category === "removed" || c.category === "renamed")
+        .map((c) => c.token)
+    ),
+  ];
+  const resolutions = removedTokens.length
+    ? python("inventory.py", ["--target", target, `--replacements=${removedTokens.join(",")}`])
+    : {};
+
   const groups = new Map();
   for (const c of candidates.stale) {
     if (!downstreamLineHolds(c.file, c.line, c.snippet)) continue;
@@ -149,17 +170,64 @@ function main() {
     groups.get(key).push(c);
   }
 
+  // Unknown tokens split two ways, and the second way is answerable: a plain
+  // VLLM_* or core-looking flag might simply be newer than any stable release.
+  const newestRc = pythonRaw("flagset.py", ["--newest-rc"]);
+  const ahead = {
+    rc: newestRc
+      ? {
+          flags: python("flagset.py", ["--tag", newestRc, "--what", "flags", "--json"]).flags,
+          envs: python("flagset.py", ["--tag", newestRc, "--what", "envs", "--json"]).envs,
+        }
+      : null,
+    head: (() => {
+      try {
+        return {
+          flags: python("flagset.py", ["--tag", "main", "--what", "flags", "--json"]).flags,
+          envs: python("flagset.py", ["--tag", "main", "--what", "envs", "--json"]).envs,
+        };
+      } catch {
+        return null;
+      }
+    })(),
+  };
+
   const findings = [];
   const dropped = [];
   const plugin = new Map();
+  const notYetReleased = new Map();
 
   for (const [key, members] of groups) {
     const first = members[0];
     const { category, token, kind } = first;
 
     if (category === "unknown-upstream" || isPlugin(token)) {
-      const files = new Set(members.map((m) => m.file));
-      plugin.set(token, { token, kind, recipes: [...files], lines: members.length });
+      const files = [...new Set(members.map((m) => m.file))];
+      if (isPlugin(token)) {
+        plugin.set(token, { token, kind, recipes: files, lines: members.length, namespace: "plugin" });
+        continue;
+      }
+      // Core-looking: is it simply newer than the target's stable release?
+      const inRc = ahead.rc && (kind === "flag" ? token in ahead.rc.flags : token in ahead.rc.envs);
+      const inHead = ahead.head && (kind === "flag" ? token in ahead.head.flags : token in ahead.head.envs);
+      if (inRc || inHead) {
+        notYetReleased.set(token, {
+          token,
+          kind,
+          recipes: files,
+          lines: members.length,
+          where: inRc ? `present at ${newestRc}` : "present at main (HEAD of the clone)",
+          note: `the recipe uses a flag newer than ${target} — not yet in a stable release`,
+        });
+      } else {
+        plugin.set(token, {
+          token,
+          kind,
+          recipes: files,
+          lines: members.length,
+          namespace: "vendor-or-out-of-tree",
+        });
+      }
       continue;
     }
 
@@ -225,14 +293,22 @@ function main() {
           why = `used only in ${[...new Set(blocks.map((b) => b.scope))].join(", ")} — opt-in or hardware-conditional, so the model floor may be right as it is`;
         }
       } else if (category === "removed" || category === "renamed") {
-        const replacement = inv?.replacement || null;
+        const replacement = resolutions[token]?.replacement || inv?.replacement || null;
         const belowRemoval = floor && history?.removed && cmpVersion(floor, history.removed) < 0;
-        action = replacement && !belowRemoval ? "replace" : "resolve";
+        const resolution = resolutions[token] || {};
+        action =
+          replacement && !belowRemoval
+            ? "replace"
+            : resolution.resolution === "remove" && !belowRemoval
+              ? "remove"
+              : "resolve";
         why = replacement
           ? belowRemoval
             ? `pin ${floor} predates the removal in ${history.removed}`
-            : `replacement ${replacement} documented`
-          : "no documented replacement";
+            : `replace with ${replacement} — ${resolution.why || "documented upstream"}`
+          : resolution.resolution === "remove"
+            ? resolution.why
+            : resolution.why || "no documented replacement";
       } else if (category === "wrong-dash") {
         action = "replace";
         why = first.why;
@@ -247,7 +323,13 @@ function main() {
       });
     }
 
-    const eligible = recipes.filter((r) => r.action === "raise-floor" || r.action === "raise-variant-floor" || (r.action === "replace" && category !== "wrong-dash"));
+    const eligible = recipes.filter(
+      (r) =>
+        r.action === "raise-floor" ||
+        r.action === "raise-variant-floor" ||
+        r.action === "remove" ||
+        (r.action === "replace" && category !== "wrong-dash")
+    );
     const confidence = category === "default-changed" ? "medium" : cite && !cite.ok ? "low" : "high";
 
     findings.push({
@@ -287,6 +369,8 @@ function main() {
         generated: new Date().toISOString(),
         findings,
         plugin_flags: pluginBucket,
+        not_yet_released: [...notYetReleased.values()].sort((a, b) => b.recipes.length - a.recipes.length),
+        resolutions,
         dropped,
       },
       null,
@@ -300,8 +384,12 @@ function main() {
     console.log(`  ${f.id} ${f.category.padEnd(26)} ${f.token.padEnd(34)} ${String(f.recipe_count).padStart(3)} recipes  ${actions}`);
   }
   console.log(
-    `plugin/unverifiable flags: ${pluginBucket.length} distinct across ${new Set(pluginBucket.flatMap((p) => p.recipes)).size} recipes`
+    `plugin/vendor flags: ${pluginBucket.length} distinct across ${new Set(pluginBucket.flatMap((p) => p.recipes)).size} recipes`
   );
+  console.log(`newer than ${target} (in ${newestRc} or main): ${notYetReleased.size}`);
+  for (const n of notYetReleased.values()) {
+    console.log(`    ${n.token.padEnd(36)} ${n.where} — ${n.recipes.length} recipes`);
+  }
   console.log(`dropped in verification: ${dropped.length}`);
   console.log(`  -> ${join(reportDir, "findings.json")}`);
 }
