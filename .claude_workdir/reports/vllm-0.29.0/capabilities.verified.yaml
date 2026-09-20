@@ -1,0 +1,766 @@
+prev: v0.28.0
+target: v0.29.0
+capabilities:
+- id: model-runner-v2-is-now-the-default-for-all-model
+  concept: spec_decoding
+  title: Model Runner V2 is now the default for all models
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: true
+  applies_to:
+    hardware:
+    - amd
+    - nvidia
+    model_traits:
+      features:
+      - spec_decoding
+    quant: []
+  effect: memory
+  evidence:
+    source: release-notes
+    section: Highlights
+    prs:
+    - '42963'
+    - '48290'
+    - '49811'
+    - '50465'
+    - '53183'
+    - '53306'
+    text: '**Model Runner V2 is now the default for all models** (#53183), completing the rollout that
+      began with pooling models (#48290). MRV2 also gained CUDA graph memory profiling for KV cache auto-sizing
+      (#53306), batch-sharded sampling that cuts per-step logits memory by 1/TP (#50465), prompt embeds
+      (#42963), `extract_hidden_states` speculation (#49811), padded FULL cudagraph dispatch for uniform
+      decode under spec decode (#53407), and DP-sync skipping before EAGLE/MTP draft prefill (#53694).
+      MRV1 remains in use for a few ROCm models and features MRV2 does not yet support.'
+  verified: []
+  confidence: medium
+- id: new-models
+  concept: quantization
+  title: New models
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware: []
+    model_traits:
+      architecture: moe
+      features:
+      - spec_decoding
+    quant:
+    - nvfp4
+    - fp8
+    - bf16
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Highlights
+    prs:
+    - '52706'
+    - '52929'
+    - '53121'
+    - '53132'
+    - '53896'
+    - '54160'
+    text: '**New models**: Hy4-preview, Tencent''s 770B/49B-active MoE with Gated DeepSeek Sparse Attention
+      and native MTP (#54160); Qwen3.8-Flash-Next with BF16/FP8/NVFP4 and MTP (#53896); GraniteSWA and
+      GraniteMoeSWA (#52706); NemotronH_Omni_Reasoning_V3 with MTP (#52929, #53121); Kimi K3 NVFP4 checkpoints
+      (#53132).'
+  verified: []
+  confidence: medium
+- id: kimi-k3-and-deepseek-v4-performance
+  concept: linear_backend
+  title: Kimi-K3 and DeepSeek V4 performance
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware:
+    - blackwell
+    - hopper
+    model_traits:
+      architecture: moe
+      features:
+      - spec_decoding
+    quant:
+    - mxfp4
+  effect: perf
+  evidence:
+    source: release-notes
+    section: Highlights
+    prs:
+    - '49636'
+    - '50493'
+    - '52188'
+    - '52388'
+    - '52823'
+    - '53040'
+    text: '**Kimi-K3 and DeepSeek V4 performance**: fused MXFP4 top-k finalization in the K3 latent tail
+      (about 5% E2E latency, #53152), K3 Mamba metadata preparation in one Triton launch (6.6-7.6x kernel
+      speedup, #52388), tuned Hopper low-latency GEMM (#54088) now also dispatched on SM100 (#53534) and
+      used for `eh_proj` (12.9-25.2% kernel speedup, #53942), GEMM-RS extended to GEMM-AR (#53053), MLA
+      gate merged into the QKV-A projection (#54015), K3 DCP with DSpark (#52188) and DCP partial prefix
+      cache hits (#50493); DeepSeek V4 shared experts fused into MegaMoE (#53040), adaptive top-k width
+      re-landed (#'
+  verified: []
+  confidence: medium
+- id: speculative-decoding
+  concept: spec_decoding
+  title: Speculative decoding
+  since: v0.29.0
+  how_enabled:
+    mode: explicit
+    flags:
+    - --per-request-spec-decode-metrics
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware:
+    - blackwell
+    - hopper
+    model_traits:
+      features:
+      - spec_decoding
+    quant: []
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Highlights
+    prs:
+    - '48915'
+    - '52242'
+    - '52560'
+    - '52783'
+    - '52795'
+    - '53797'
+    text: '**Speculative decoding**: per-request acceptance stats in OpenAI API responses via `--per-request-spec-decode-metrics`
+      (#48915), adaptive verification extended to logprobs (#52242), SM100 sparse MLA for GLM-5.2 (#52783)
+      and DeepSeek V4 on SM90 (#52795), Qwen3-Omni DSpark drafts (#52560), PLaMo3 EAGLE-3/DFlash (#54239),
+      and DFlash2 loading from speculators format (#53797).'
+  verified:
+  - --per-request-spec-decode-metrics exists at v0.29.0
+  confidence: high
+- id: rl-weight-sync
+  concept: parallelism
+  title: RL weight sync
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware: []
+    model_traits:
+      architecture: moe
+    quant: []
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Highlights
+    prs:
+    - '43375'
+    - '50723'
+    - '52209'
+    - '52497'
+    - '53751'
+    text: '**RL weight sync**: a new `sharded_rdt` P2P backend where each worker pulls only its TP/EP
+      slice over NIXL or Ray Direct Transport (#43375), rank-local IPC weight updates (#52497), sparse
+      checkpoint-coordinate updates through native weight loaders (#50723, #53751), and routed expert
+      loading for gpt-oss (#52209).'
+  verified: []
+  confidence: medium
+- id: mamba-prefix-caching
+  concept: spec_decoding
+  title: Mamba prefix caching
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: true
+  applies_to:
+    hardware: []
+    model_traits:
+      architecture: dense
+      features:
+      - spec_decoding
+    quant: []
+  effect: perf
+  evidence:
+    source: release-notes
+    section: Highlights
+    prs:
+    - '52216'
+    - '52789'
+    - '55760'
+    - '55861'
+    text: '**Mamba prefix caching**: internal prefill checkpoints deliver a 9%-25% TTFT improvement (#52789);
+      `prefix_cache_retention_interval` is now a CLI argument defaulting to 0 (#52216), with dense retention
+      automatically restored for hybrid models using EAGLE/MTP (#55760, #55861).'
+  verified: []
+  confidence: medium
+- id: new-defaults
+  concept: attention_backend
+  title: New defaults
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs:
+    - VLLM_ALLREDUCE_USE_FLASHINFER
+    enum_values: []
+  default_on: true
+  applies_to:
+    hardware:
+    - nvidia
+    model_traits: {}
+    quant: []
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Highlights
+    prs:
+    - '52998'
+    text: '**New defaults**: FlashInfer all-reduce enabled by default for TP CUDA groups, opt out with
+      `VLLM_ALLREDUCE_USE_FLASHINFER=0` (#52998)'
+  verified:
+  - VLLM_ALLREDUCE_USE_FLASHINFER exists at v0.29.0
+  confidence: medium
+- id: new-defaults-2
+  concept: kv_cache
+  title: New defaults
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: true
+  applies_to:
+    hardware: []
+    model_traits: {}
+    quant: []
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Highlights
+    prs:
+    - '51875'
+    text: prefix-cache `NONE_HASH` is deterministic by default so distributed KV cache users no longer
+      need to pin `PYTHONHASHSEED` (#51875)
+  verified: []
+  confidence: medium
+- id: new-defaults-3
+  concept: scheduling
+  title: New defaults
+  since: v0.29.0
+  how_enabled:
+    mode: explicit
+    flags:
+    - --max-num-queued-reqs
+    - --max-num-queued-tokens
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware: []
+    model_traits: {}
+    quant: []
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Highlights
+    prs:
+    - '49445'
+    text: new `--max-num-queued-reqs` / `--max-num-queued-tokens` admission-control flags (#49445).
+  verified:
+  - --max-num-queued-reqs exists at v0.29.0
+  - --max-num-queued-tokens exists at v0.29.0
+  confidence: high
+- id: ten-deprecated-architectures-removed-arctic-cham
+  concept: other
+  title: 'Ten deprecated architectures removed: Arctic, Chameleon, Cheers, Fairseq2Llama, FireRedLID'
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware: []
+    model_traits:
+      tasks:
+      - multimodal
+    quant: []
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Breaking Changes & Deprecations
+    prs:
+    - '53608'
+    text: 'Ten deprecated architectures removed: Arctic, Chameleon, Cheers, Fairseq2Llama, FireRedLID,
+      GritLM, HCXVision, MPT, the `RWForCausalLM` and `StableLMEpochForCausalLM` aliases, and `PrithviGeoSpatialMAE`
+      (superseded by `Terratorch`) (#53608).'
+  verified: []
+  confidence: medium
+- id: flexolmo-olmo3-hunyuan-v1-and-hunyuan-vl-are-now
+  concept: other
+  title: FlexOlmo, Olmo3, Hunyuan V1 and Hunyuan VL are now served through the Transformers modelin
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware: []
+    model_traits:
+      tasks:
+      - multimodal
+    quant: []
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Breaking Changes & Deprecations
+    prs:
+    - '53615'
+    text: FlexOlmo, Olmo3, Hunyuan V1 and Hunyuan VL are now served through the Transformers modeling
+      backend (#53615).
+  verified: []
+  confidence: medium
+- id: pyav-video-decoder-backend-removed-use-opencv-or
+  concept: other
+  title: PyAV video decoder backend removed; use OpenCV or Torchcodec (#54231)
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware: []
+    model_traits:
+      tasks:
+      - multimodal
+    quant: []
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Breaking Changes & Deprecations
+    prs:
+    - '54231'
+    text: PyAV video decoder backend removed; use OpenCV or Torchcodec (#54231).
+  verified: []
+  confidence: medium
+- id: python-m-vllm
+  concept: frontend
+  title: python -m vllm
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware: []
+    model_traits: {}
+    quant: []
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Breaking Changes & Deprecations
+    prs:
+    - '52131'
+    text: '`python -m vllm.entrypoints.openai.api_server` is deprecated; use `vllm serve` (#52131).'
+  verified: []
+  confidence: medium
+- id: model-runner-v2-is-the-default-runner-for-all-mo
+  concept: other
+  title: Model Runner V2 is the default runner for all models (#53183)
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware: []
+    model_traits: {}
+    quant: []
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Breaking Changes & Deprecations
+    prs:
+    - '53183'
+    text: Model Runner V2 is the default runner for all models (#53183).
+  verified: []
+  confidence: medium
+- id: prefix-cache-retention-interval-default-changed-
+  concept: default_change
+  title: prefix_cache_retention_interval default changed from dense to 0 for SWA/SSM models; the en
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware: []
+    model_traits:
+      architecture: dense
+    quant: []
+  effect: correctness
+  evidence:
+    source: release-notes
+    section: Breaking Changes & Deprecations
+    prs:
+    - '52216'
+    text: '`prefix_cache_retention_interval` default changed from dense to 0 for SWA/SSM models; the env
+      var is deprecated in favor of the argument (#52216).'
+  verified: []
+  confidence: medium
+- id: flashinfer-all-reduce-enabled-by-default-52998
+  concept: attention_backend
+  title: FlashInfer all-reduce enabled by default (#52998)
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: true
+  applies_to:
+    hardware:
+    - nvidia
+    model_traits: {}
+    quant: []
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Breaking Changes & Deprecations
+    prs:
+    - '52998'
+    text: FlashInfer all-reduce enabled by default (#52998).
+  verified: []
+  confidence: medium
+- id: vllm-test-force-fp8-marlin-removed-in-favor-of-l
+  concept: moe_backend
+  title: VLLM_TEST_FORCE_FP8_MARLIN removed in favor of --linear-backend / --moe-backend (#52182);
+  since: v0.29.0
+  how_enabled:
+    mode: explicit
+    flags:
+    - --attention-config
+    - --linear-backend
+    - --moe-backend
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware:
+    - amd
+    model_traits:
+      architecture: moe
+    quant: []
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Breaking Changes & Deprecations
+    prs:
+    - '52182'
+    - '52557'
+    - '53141'
+    - '53559'
+    text: '`VLLM_TEST_FORCE_FP8_MARLIN` removed in favor of `--linear-backend` / `--moe-backend` (#52182);
+      `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` removed (#53141); dead `--attention-config.use_prefill_decode_attention`
+      removed (#52557); other long-deprecated parameters cleaned up (#53559).'
+  verified:
+  - --attention-config exists at v0.29.0
+  - --linear-backend exists at v0.29.0
+  - --moe-backend exists at v0.29.0
+  confidence: high
+- id: docs-features-per-request-metrics-md
+  concept: spec_decoding
+  title: 'docs: features/per_request_metrics.md'
+  since: v0.29.0
+  how_enabled:
+    mode: explicit
+    flags:
+    - --per-request-spec-decode-metrics
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware: []
+    model_traits:
+      features:
+      - spec_decoding
+    quant: []
+  effect: usability
+  evidence:
+    source: docs-diff
+    section: docs/features/per_request_metrics.md
+    prs: []
+    text: '
+
+      ## Speculative Decoding Acceptance
+
+
+      When speculative decoding is enabled, per-request acceptance metrics
+
+      (mean acceptance length and the accepted-draft-length distribution) can be
+
+      returned via `--per-request-spec-decode-metrics`. They share this `metrics`
+
+      object as `metrics.speculative_decoding`, and — like the timing fields — are
+
+      reported only for single-sequence (`n == 1`) requests. See
+
+      [Per-Request Acceptance Metrics](speculative_decoding/acceptance_metrics.md).'
+  verified:
+  - --per-request-spec-decode-metrics exists at v0.29.0
+  confidence: high
+- id: docs-features-quantization-b12x-md
+  concept: moe_backend
+  title: 'docs: features/quantization/b12x.md'
+  since: v0.29.0
+  how_enabled:
+    mode: explicit
+    flags:
+    - --linear-backend
+    - --moe-backend
+    envs:
+    - VLLM_B12X_MOE_FP4_FORCE_A16
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware:
+    - nvidia
+    model_traits:
+      architecture: moe
+    quant:
+    - nvfp4
+    - mxfp4
+    - mxfp8
+  effect: perf
+  evidence:
+    source: docs-diff
+    section: docs/features/quantization/b12x.md
+    prs: []
+    text: "# b12x Linear and MoE Backends\n[b12x](https://pypi.org/project/b12x/) provides optional CUDA\
+      \ kernels for\nb12x linear kernels participate in automatic selection after established\noptimized\
+      \ backends and before emulation. Select the linear and MoE backends\nexplicitly with:\nvllm serve\
+      \ <model> \\\n    --linear-backend b12x \\\n    --moe-backend b12x\nOnly pass `--moe-backend b12x`\
+      \ for a compatible NVFP4 or MXFP4 MoE model. The\nlinear and MoE backends can be selected independently.\n\
+      \nb12x uses MXFP8 activations by default for MXFP4 MoE and the checkpoint's\nactivation format for\
+      \ NVFP4 MoE. MXFP4 falls back"
+  verified:
+  - --linear-backend exists at v0.29.0
+  - --moe-backend exists at v0.29.0
+  - VLLM_B12X_MOE_FP4_FORCE_A16 exists at v0.29.0
+  confidence: high
+- id: docs-features-speculative-decoding-acceptance-me
+  concept: spec_decoding
+  title: 'docs: features/speculative_decoding/acceptance_metrics.md'
+  since: v0.29.0
+  how_enabled:
+    mode: explicit
+    flags:
+    - --per-request-spec-decode-metrics
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware: []
+    model_traits:
+      features:
+      - spec_decoding
+    quant: []
+  effect: correctness
+  evidence:
+    source: docs-diff
+    section: docs/features/speculative_decoding/acceptance_metrics.md
+    prs: []
+    text: "# Per-Request Acceptance Metrics\n\nWhen speculative decoding is enabled, vLLM can report per-request\
+      \ acceptance\nmetrics in the response, under `metrics.speculative_decoding`. This lets a\nclient\
+      \ compute the mean acceptance length and the accepted-draft-length\ndistribution for an individual\
+      \ request, as a complement to the server-aggregated\nspec-decode metrics exposed at `/metrics`.\n\
+      \n!!! warning \"Experimental\"\n    `metrics.speculative_decoding` is experimental and its shape\
+      \ may change in a\n    future release. Pin to a vLLM version if you depend on it.\n\n## Enabling\n\
+      \nStart the server with `--per-req"
+  verified:
+  - --per-request-spec-decode-metrics exists at v0.29.0
+  confidence: high
+- id: docs-serving-online-serving-trace-replay-md
+  concept: attention_backend
+  title: 'docs: serving/online_serving/trace_replay.md'
+  since: v0.29.0
+  how_enabled:
+    mode: explicit
+    flags:
+    - --enable-trace-replay
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware: []
+    model_traits: {}
+    quant: []
+  effect: correctness
+  evidence:
+    source: docs-diff
+    section: docs/serving/online_serving/trace_replay.md
+    prs: []
+    text: '# Trace Replay
+
+
+      Trace replay forces the engine to emit a predetermined token sequence during decoding while computing
+      real logprobs from the model''s unmodified logit distribution. The primary use case is comparing
+      logprob distributions across different configurations:
+
+
+      - **Inference config diff**: compare logprobs between different quantization schemes, tensor parallelism
+      layouts, or attention backends for the same model.
+
+      - **Train vs inference diff**: replay a training-time token sequence through the inference engine
+      to detect logprob divergence caused by numerical differences between trainin'
+  verified:
+  - --enable-trace-replay exists at v0.29.0
+  confidence: high
+- id: docs-training-weight-transfer-sharded-rdt-md
+  concept: moe_backend
+  title: 'docs: training/weight_transfer/sharded_rdt.md'
+  since: v0.29.0
+  how_enabled:
+    mode: explicit
+    flags:
+    - --distributed-executor-backend
+    - --weight-transfer-config
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware: []
+    model_traits:
+      architecture: moe
+    quant: []
+  effect: usability
+  evidence:
+    source: docs-diff
+    section: docs/training/weight_transfer/sharded_rdt.md
+    prs: []
+    text: '# Sharded RDT Engine
+
+
+      The sharded RDT weight transfer engine moves weights point-to-point over [NIXL](https://github.com/ai-dynamo/nixl)
+      using Ray Direct Transport (RDT), Ray''s zero-copy tensor transport between actors. It is **pull-based**:
+      the inference workers initiate every transfer and each one asks only for the *slice* it consumes
+      under tensor and expert parallelism. A large MoE model therefore moves roughly `total_bytes / num_workers`
+      per worker instead of the `total_bytes` a broadcast costs.
+
+
+      ## When to Use Sharded RDT
+
+
+      - Very large models where broadcasting whole parameters is the bot'
+  verified:
+  - --distributed-executor-backend exists at v0.29.0
+  - --weight-transfer-config exists at v0.29.0
+  confidence: high
+- id: docs-usage-security-md
+  concept: frontend
+  title: 'docs: usage/security.md'
+  since: v0.29.0
+  how_enabled:
+    mode: explicit
+    flags: []
+    envs:
+    - VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware: []
+    model_traits:
+      tasks:
+      - multimodal
+    quant: []
+  effect: memory
+  evidence:
+    source: docs-diff
+    section: docs/usage/security.md
+    prs: []
+    text: '### 5. **Restrict Media Download and Decode Sizes:**
+
+      Remote media responses and compressed media files can expand into gigabytes of
+
+      memory. vLLM enforces download and decode-size limits to prevent out-of-memory
+
+      denial of service:
+
+      | `VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB` | `256` | Maximum size in MB for a single remote media response.
+      Oversized responses are rejected while streaming before the full body is materialized in memory.
+      |
+
+      | `VLLM_MAX_AUDIO_CLIP_FILESIZE_MB` | `25` | Maximum compressed filesize in MB for a single audio
+      file. Enforced on all audio inputs (multimodal chat URLs, speech-to-text'
+  verified:
+  - VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB exists at v0.29.0
+  confidence: high
+dropped:
+- id: breaking-changes
+  concept: moe_backend
+  title: Breaking changes
+  since: v0.29.0
+  how_enabled:
+    mode: explicit
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: false
+  applies_to:
+    hardware:
+    - amd
+    model_traits:
+      tasks:
+      - multimodal
+    quant: []
+  effect: correctness
+  evidence:
+    source: release-notes
+    section: Highlights
+    prs:
+    - '52131'
+    - '52182'
+    - '53141'
+    - '53608'
+    - '53615'
+    - '54231'
+    text: '**Breaking changes**: ten deprecated model architectures removed (#53608); FlexOlmo, Olmo3
+      and Hunyuan V1/VL migrated to the Transformers modeling backend (#53615); PyAV video decoder backend
+      removed (#54231); `python -m vllm.entrypoints.openai.api_server` deprecated in favor of `vllm serve`
+      (#52131); `VLLM_TEST_FORCE_FP8_MARLIN` (#52182) and `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` (#53141)
+      removed.'
+  dropped_because:
+  - claims an explicit enabling flag/env but names none that exists
