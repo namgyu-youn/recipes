@@ -1,6 +1,1255 @@
 {
   "cohorts": [
     {
+      "id": "flash-attn-mla-sparse-hopper-sparse-mla-backend-",
+      "title": "FLASH_ATTN_MLA_SPARSE: Hopper sparse-MLA attention backend",
+      "concept": "attention_backend",
+      "effect": "usability",
+      "confidence": "high",
+      "how_enabled": {
+        "mode": "explicit",
+        "flags": [],
+        "envs": [],
+        "enum_values": [
+          {
+            "flag": "--attention-backend",
+            "value": "FLASH_ATTN_MLA_SPARSE"
+          }
+        ]
+      },
+      "applies_to": {
+        "hardware": [
+          "h100",
+          "h200",
+          "hopper"
+        ],
+        "model_traits": {
+          "attention": "mla"
+        },
+        "quant": []
+      },
+      "evidence": {
+        "source": "release-notes-area",
+        "section": "Engine Core",
+        "prs": [
+          "43232",
+          "44044",
+          "46189"
+        ],
+        "text": "`FLASH_ATTN_MLA_SPARSE` Hopper sparse-MLA backend (#46189), DCP + FP8 KV cache in MLA decode (#44044), XQA decode kernels (#43232).",
+        "also": []
+      },
+      "since": "v0.25.0",
+      "caveat": null,
+      "required_floor": null,
+      "floor_note": null,
+      "evidence_sentence": null,
+      "install": null,
+      "note": null,
+      "supporting_sentence": {
+        "dimension": "hopper",
+        "sentence": "`FLASH_ATTN_MLA_SPARSE` Hopper sparse-MLA backend (#46189), DCP + FP8 KV cache in MLA decode (#44044), XQA decode kernels (#43232)."
+      },
+      "reverse_hits": [],
+      "cohort": [
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
+          "why": "hardware h200,hopper; traits match; capability names no quantization",
+          "architecture": "moe",
+          "precisions": [
+            "fp8",
+            "nvfp4"
+          ],
+          "matched_hardware": [
+            "h200"
+          ],
+          "matched_quant": [],
+          "conflicts": [
+            {
+              "flag": "--attention-backend",
+              "current": "B12X_MLA_SPARSE",
+              "proposed": "FLASH_ATTN_MLA_SPARSE",
+              "path": "variants.default.hardware_overrides.dgx_spark_gb10.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "B12X_MLA_SPARSE",
+              "proposed": "FLASH_ATTN_MLA_SPARSE",
+              "path": "variants.fp8.hardware_overrides.dgx_spark_gb10.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "B12X_MLA_SPARSE",
+              "proposed": "FLASH_ATTN_MLA_SPARSE",
+              "path": "variants.nvfp4.hardware_overrides.dgx_spark_gb10.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "B12X_MLA_SPARSE",
+              "proposed": "FLASH_ATTN_MLA_SPARSE",
+              "path": "variants.dspark.hardware_overrides.dgx_spark_gb10.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "B12X_MLA_SPARSE",
+              "proposed": "FLASH_ATTN_MLA_SPARSE",
+              "path": "strategy_overrides.multi_node_tp.hardware_overrides.blackwell.extra_args"
+            }
+          ],
+          "hardware_keys": [
+            "h200",
+            "b200",
+            "gb200",
+            "b300",
+            "gb300",
+            "dgx_station_gb300",
+            "dgx_spark_gb10",
+            "rtx_pro_6000_8x",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "ascend_950dt_8x",
+            "ascend_950pr_8x",
+            "blackwell",
+            "amd",
+            "npu"
+          ],
+          "floor": "0.20.0"
+        },
+        {
+          "file": "models/inclusionAI/Ling-3.0-flash.yaml",
+          "why": "hardware h200,hopper; traits match; capability names no quantization",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "fp4",
+            "int4"
+          ],
+          "matched_hardware": [
+            "h200"
+          ],
+          "matched_quant": [],
+          "conflicts": [
+            {
+              "flag": "--attention-backend",
+              "current": "TRITON_MLA",
+              "proposed": "FLASH_ATTN_MLA_SPARSE",
+              "path": "features.spec_decoding.modes.mtp.hardware_overrides.mi355x.args"
+            }
+          ],
+          "hardware_keys": [
+            "h200",
+            "dgx_spark_gb10",
+            "mi300x",
+            "mi355x",
+            "amd"
+          ],
+          "floor": "0.28.0"
+        },
+        {
+          "file": "models/moonshotai/Kimi-K3.yaml",
+          "why": "hardware h200,hopper; traits match; capability names no quantization",
+          "architecture": "moe",
+          "precisions": [
+            "mxfp4",
+            "nvfp4",
+            "int4"
+          ],
+          "matched_hardware": [
+            "h200",
+            "hopper"
+          ],
+          "matched_quant": [],
+          "conflicts": [
+            {
+              "flag": "--attention-backend",
+              "current": "TOKENSPEED_MLA",
+              "proposed": "FLASH_ATTN_MLA_SPARSE",
+              "path": "features.decode_context_parallelism.args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "FLASHMLA",
+              "proposed": "FLASH_ATTN_MLA_SPARSE",
+              "path": "hardware_overrides.hopper.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "TOKENSPEED_MLA",
+              "proposed": "FLASH_ATTN_MLA_SPARSE",
+              "path": "hardware_overrides.blackwell.extra_args"
+            }
+          ],
+          "hardware_keys": [
+            "h200",
+            "b200",
+            "b300",
+            "gb200",
+            "gb300",
+            "mi355x",
+            "ascend_910c",
+            "hopper",
+            "blackwell",
+            "amd"
+          ],
+          "floor": "0.29.0"
+        },
+        {
+          "file": "models/zai-org/GLM-5.3-Flash.yaml",
+          "why": "hardware h100,hopper; traits match; capability names no quantization",
+          "architecture": "moe",
+          "precisions": [
+            "fp8",
+            "nvfp4",
+            "bf16"
+          ],
+          "matched_hardware": [
+            "h100",
+            "hopper"
+          ],
+          "matched_quant": [],
+          "conflicts": [
+            {
+              "flag": "--attention-backend",
+              "current": "ROCM_AITER_MLA_SPARSE",
+              "proposed": "FLASH_ATTN_MLA_SPARSE",
+              "path": "hardware_overrides.amd.extra_args"
+            }
+          ],
+          "hardware_keys": [
+            "h100",
+            "b200",
+            "gb200",
+            "mi355x",
+            "ascend_950pr_8x",
+            "hopper",
+            "blackwell",
+            "amd",
+            "npu"
+          ],
+          "floor": "0.29.0"
+        }
+      ],
+      "excluded_already_using": []
+    },
+    {
+      "id": "misc-vllm-gpu-sync-check-env-var-vram-semaphore-",
+      "title": "Misc: VLLM_GPU_SYNC_CHECK env var, VRAM semaphore infrastructure",
+      "concept": "other",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "out of scope"
+    },
+    {
+      "id": "aiter-flashattention-mla-prefill-backend-rocm-ai",
+      "title": "ROCM_AITER_FA: AITER FlashAttention MLA prefill backend on ROCm",
+      "concept": "attention_backend",
+      "effect": "usability",
+      "confidence": "high",
+      "how_enabled": {
+        "mode": "explicit",
+        "flags": [],
+        "envs": [],
+        "enum_values": [
+          {
+            "flag": "--attention-backend",
+            "value": "ROCM_AITER_FA"
+          }
+        ]
+      },
+      "applies_to": {
+        "hardware": [
+          "amd",
+          "mi300x",
+          "mi325x",
+          "mi355x"
+        ],
+        "model_traits": {
+          "attention": "mla"
+        },
+        "quant": []
+      },
+      "evidence": {
+        "source": "release-notes-area",
+        "section": "Hardware & Performance",
+        "prs": [
+          "45033"
+        ],
+        "text": "AITER FlashAttention MLA prefill backend `ROCM_AITER_FA` (#45033)",
+        "also": []
+      },
+      "since": "v0.25.0",
+      "caveat": null,
+      "required_floor": null,
+      "floor_note": null,
+      "evidence_sentence": null,
+      "install": null,
+      "note": null,
+      "supporting_sentence": {
+        "dimension": "mla",
+        "sentence": "AITER FlashAttention MLA prefill backend `ROCM_AITER_FA` (#45033)"
+      },
+      "reverse_hits": [
+        {
+          "file": "models/MiniMaxAI/MiniMax-M3.yaml",
+          "kind": "stale-guide-text",
+          "actionable": false,
+          "name": "ROCM_AITER_FA",
+          "value": null,
+          "floor": "0.24.0",
+          "line": 382,
+          "snippet": "--mm-encoder-attn-backend ROCM_AITER_FA \\",
+          "detail": "guide shows ROCM_AITER_FA at line 382"
+        },
+        {
+          "file": "models/Qwen/Qwen3-VL-235B-A22B-Instruct.yaml",
+          "kind": "stale-guide-text",
+          "actionable": false,
+          "name": "ROCM_AITER_FA",
+          "value": null,
+          "floor": "0.11.0",
+          "line": 199,
+          "snippet": "--attention-backend ROCM_AITER_FA",
+          "detail": "guide shows ROCM_AITER_FA at line 199"
+        },
+        {
+          "file": "models/meta-models/Muse-Glimmer-30B.yaml",
+          "kind": "stale-guide-text",
+          "actionable": true,
+          "name": "ROCM_AITER_FA",
+          "value": null,
+          "floor": "0.28.0",
+          "line": 235,
+          "snippet": "--attention-backend ROCM_AITER_FA",
+          "detail": "guide shows ROCM_AITER_FA at line 235"
+        }
+      ],
+      "cohort": [
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
+          "why": "hardware amd,mi300x,mi325x,mi355x; traits match; capability names no quantization",
+          "architecture": "moe",
+          "precisions": [
+            "fp8",
+            "nvfp4"
+          ],
+          "matched_hardware": [
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "amd"
+          ],
+          "matched_quant": [],
+          "conflicts": [
+            {
+              "flag": "--attention-backend",
+              "current": "B12X_MLA_SPARSE",
+              "proposed": "ROCM_AITER_FA",
+              "path": "variants.default.hardware_overrides.dgx_spark_gb10.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "B12X_MLA_SPARSE",
+              "proposed": "ROCM_AITER_FA",
+              "path": "variants.fp8.hardware_overrides.dgx_spark_gb10.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "B12X_MLA_SPARSE",
+              "proposed": "ROCM_AITER_FA",
+              "path": "variants.nvfp4.hardware_overrides.dgx_spark_gb10.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "B12X_MLA_SPARSE",
+              "proposed": "ROCM_AITER_FA",
+              "path": "variants.dspark.hardware_overrides.dgx_spark_gb10.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "B12X_MLA_SPARSE",
+              "proposed": "ROCM_AITER_FA",
+              "path": "strategy_overrides.multi_node_tp.hardware_overrides.blackwell.extra_args"
+            }
+          ],
+          "hardware_keys": [
+            "h200",
+            "b200",
+            "gb200",
+            "b300",
+            "gb300",
+            "dgx_station_gb300",
+            "dgx_spark_gb10",
+            "rtx_pro_6000_8x",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "ascend_950dt_8x",
+            "ascend_950pr_8x",
+            "blackwell",
+            "amd",
+            "npu"
+          ],
+          "floor": "0.20.0"
+        },
+        {
+          "file": "models/inclusionAI/Ling-3.0-flash.yaml",
+          "why": "hardware amd,mi300x,mi355x; traits match; capability names no quantization",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "fp4",
+            "int4"
+          ],
+          "matched_hardware": [
+            "mi300x",
+            "mi355x",
+            "amd"
+          ],
+          "matched_quant": [],
+          "conflicts": [
+            {
+              "flag": "--attention-backend",
+              "current": "TRITON_MLA",
+              "proposed": "ROCM_AITER_FA",
+              "path": "features.spec_decoding.modes.mtp.hardware_overrides.mi355x.args"
+            }
+          ],
+          "hardware_keys": [
+            "h200",
+            "dgx_spark_gb10",
+            "mi300x",
+            "mi355x",
+            "amd"
+          ],
+          "floor": "0.28.0"
+        },
+        {
+          "file": "models/moonshotai/Kimi-K3.yaml",
+          "why": "hardware amd,mi355x; traits match; capability names no quantization",
+          "architecture": "moe",
+          "precisions": [
+            "mxfp4",
+            "nvfp4",
+            "int4"
+          ],
+          "matched_hardware": [
+            "mi355x",
+            "amd"
+          ],
+          "matched_quant": [],
+          "conflicts": [
+            {
+              "flag": "--attention-backend",
+              "current": "TOKENSPEED_MLA",
+              "proposed": "ROCM_AITER_FA",
+              "path": "features.decode_context_parallelism.args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "FLASHMLA",
+              "proposed": "ROCM_AITER_FA",
+              "path": "hardware_overrides.hopper.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "TOKENSPEED_MLA",
+              "proposed": "ROCM_AITER_FA",
+              "path": "hardware_overrides.blackwell.extra_args"
+            }
+          ],
+          "hardware_keys": [
+            "h200",
+            "b200",
+            "b300",
+            "gb200",
+            "gb300",
+            "mi355x",
+            "ascend_910c",
+            "hopper",
+            "blackwell",
+            "amd"
+          ],
+          "floor": "0.29.0"
+        },
+        {
+          "file": "models/tencent/Hy4-preview.yaml",
+          "why": "hardware amd,mi300x,mi325x,mi355x; traits match; capability names no quantization",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "mxfp8"
+          ],
+          "matched_hardware": [
+            "mi300x",
+            "mi325x",
+            "mi355x"
+          ],
+          "matched_quant": [],
+          "conflicts": [
+            {
+              "flag": "--attention-backend",
+              "current": "FLASHMLA_SPARSE",
+              "proposed": "ROCM_AITER_FA",
+              "path": "hardware_overrides.blackwell.extra_args"
+            }
+          ],
+          "hardware_keys": [
+            "b200",
+            "b300",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "blackwell"
+          ],
+          "floor": "0.29.0"
+        },
+        {
+          "file": "models/zai-org/GLM-5.3-Flash.yaml",
+          "why": "hardware amd,mi355x; traits match; capability names no quantization",
+          "architecture": "moe",
+          "precisions": [
+            "fp8",
+            "nvfp4",
+            "bf16"
+          ],
+          "matched_hardware": [
+            "mi355x",
+            "amd"
+          ],
+          "matched_quant": [],
+          "conflicts": [
+            {
+              "flag": "--attention-backend",
+              "current": "ROCM_AITER_MLA_SPARSE",
+              "proposed": "ROCM_AITER_FA",
+              "path": "hardware_overrides.amd.extra_args"
+            }
+          ],
+          "hardware_keys": [
+            "h100",
+            "b200",
+            "gb200",
+            "mi355x",
+            "ascend_950pr_8x",
+            "hopper",
+            "blackwell",
+            "amd",
+            "npu"
+          ],
+          "floor": "0.29.0"
+        }
+      ],
+      "excluded_already_using": []
+    },
+    {
+      "id": "model-runner-v2-is-now-the-default-for-all-dense",
+      "title": "Model Runner V2 is now the default for all dense models: Building on quantized-model support from the previous release, MRv2 is now the standard execution path, with new support for EVS, realtime embeddings",
+      "concept": "compilation",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "dense",
+        "sentence": "**Model Runner V2 is now the default for all dense models** (#44443)."
+      },
+      "cohort": [],
+      "since": "v0.25.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "pagedattention-has-been-removed-the-legacy-atten",
+      "title": "PagedAttention has been removed: The legacy attention implementation is deleted now that V1/MRv2 backends are the standard path",
+      "concept": "kv_cache",
+      "kind": "breaking",
+      "cohort": [],
+      "skipped": "breaking change — belongs in the stale section"
+    },
+    {
+      "id": "the-transformers-modeling-backend-is-now-as-fast",
+      "title": "The Transformers modeling backend is now as fast as native vLLM: and gained FP8 MoE support, CUDA graph + embed scaling fixes, and migration of GPTBigCode/Starcoder2 and RoBERTa",
+      "concept": "moe_backend",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "fp8",
+        "sentence": "**The Transformers modeling backend is now as fast as native vLLM** (#47187), and gained FP8 MoE support (#46820), CUDA graph + embed scaling fixes (#48010), and migration of GPTBigCode/Starcoder2 (#30966) and RoBERTa (#47452)."
+      },
+      "cohort": [],
+      "since": "v0.25.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "llava-onevision-2-unlimited-ocr-moss-transcribe-",
+      "title": "LLaVA-OneVision-2, Unlimited OCR, MOSS-Transcribe-Diarize, openai/privacy-filter, and Hy3",
+      "concept": "quantization",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "new model support — not a serving capability"
+    },
+    {
+      "id": "new-streaming-parser-engine-a-unified-tool-call-",
+      "title": "New Streaming Parser Engine: — a unified tool-call/reasoning parsing framework, with a new Kimi k2.5/k2.6/k2.7 parser and ports of seed_oss and DeepSeek V4",
+      "concept": "parallelism",
+      "confidence": "medium",
+      "cohort": [],
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "universal-speculative-decoding-for-heterogeneous",
+      "title": "Universal speculative decoding for heterogeneous vocabularies (TLI): plus new DSpark and DFlash drafters",
+      "concept": "spec_decoding",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "spec_decoding",
+        "sentence": "**Universal speculative decoding for heterogeneous vocabularies (TLI)** (#38174), plus new DSpark (#46995) and DFlash (#46770, #46853) drafters."
+      },
+      "cohort": [],
+      "since": "v0.25.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "models-removed-baichuan-aquila-grok-tarsier-tars",
+      "title": "Models removed: Baichuan, Aquila, Grok, Tarsier / Tarsier2, AyaVision / MusicFlamingo, Mantis",
+      "concept": "other",
+      "kind": "breaking",
+      "cohort": [],
+      "skipped": "breaking change — belongs in the stale section"
+    },
+    {
+      "id": "deprecated-the-old-fp8-online-moe-quantization-c",
+      "title": "Deprecated the old FP8 online MoE quantization class",
+      "concept": "quantization",
+      "kind": "breaking",
+      "cohort": [],
+      "skipped": "breaking change — belongs in the stale section"
+    },
+    {
+      "id": "new-inkling-model-family-with-a-full-support-sta",
+      "title": "New Inkling model family: with a full support stack: base modeling, piecewise CUDA graph support, Hopper FA4 relative attention, MTP=1 speculative decoding, LoRA",
+      "concept": "spec_decoding",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "hopper",
+        "sentence": "**New Inkling model family** with a full support stack: base modeling (#48799), piecewise CUDA graph support (#48822), Hopper FA4 relative attention (#48858), MTP=1 speculative decoding (#48869), LoRA (#48884), and standard ModelOpt NVFP4 q"
+      },
+      "cohort": [],
+      "since": "v0.26.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "deepseek-v4-performance-push-across-vendors-a-sp",
+      "title": "DeepSeek-V4 performance push: across vendors: a specialized routing kernel (2.94% E2E TPOT, #48660), fused_topk_bias (1.5–2x kernel, #47463)",
+      "concept": "spec_decoding",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "xpu",
+        "sentence": "**DeepSeek-V4 performance push** across vendors: a specialized routing kernel (2.94% E2E TPOT, #48660), `fused_topk_bias` (1.5–2x kernel, #47463), and redundant repeat/copy removal (1.8% E2E TPOT, #48137), plus ROCm two-stage compressor for"
+      },
+      "cohort": [],
+      "since": "v0.26.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "fp32-lm-head-for-generation-models-via-head-dtyp",
+      "title": "fp32 `lm_head` for generation models via `head_dtype`: extended to the LoRA path and given a ROCm torch.mm fast path, improving accuracy for generation heads",
+      "concept": "other",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "out of scope"
+    },
+    {
+      "id": "flexible-attention-backends-the-attention-backen",
+      "title": "Flexible attention backends: the attention backend can now be selected per KV-cache group",
+      "concept": "attention_backend",
+      "confidence": "medium",
+      "cohort": [],
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "kv-offloading-tiered-secondary-storage-matured-s",
+      "title": "KV offloading & tiered secondary storage: matured substantially: offloading metrics, tier-owned event handling, object-store secondary tier with workload identity, DP-replica-aware tiering",
+      "concept": "parallelism",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "cpu",
+        "sentence": "**KV offloading & tiered secondary storage** matured substantially: offloading metrics (#45958, #47666, #47679), tier-owned event handling (#46544, #47923), object-store secondary tier with workload identity (#47063, #47274, #48150), DP-rep"
+      },
+      "cohort": [],
+      "since": "v0.26.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "rust-frontend-gained-multimodal-video-and-audio-",
+      "title": "Rust frontend: gained multimodal video and audio, a Seed-OSS tool parser, and a native vllm-bench port",
+      "concept": "other",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "out of scope"
+    },
+    {
+      "id": "transformers-5-13-0-with-more-models-migrated-to",
+      "title": "Transformers 5.13.0: with more models migrated to the Transformers modeling backend: Olmo/Olmo2, MistralLarge3, and HunyuanVL",
+      "concept": "other",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "out of scope"
+    },
+    {
+      "id": "models-removed-telechat-persimmon-and-fuyu",
+      "title": "Models removed: TeleChat, Persimmon and Fuyu",
+      "concept": "other",
+      "kind": "breaking",
+      "cohort": [],
+      "skipped": "breaking change — belongs in the stale section"
+    },
+    {
+      "id": "tuned-ll-bf16-router-gemm-with-warmup-skipped-fo",
+      "title": "tuned LL BF16 router GEMM with warmup skipped for non-MoE models, Triton tensor-descriptor path for fused MoE via VLLM_TRITON_USE_TD",
+      "concept": "moe_backend",
+      "effect": "usability",
+      "confidence": "high",
+      "how_enabled": {
+        "mode": "explicit",
+        "flags": [],
+        "envs": [
+          "VLLM_TRITON_USE_TD"
+        ],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [],
+        "model_traits": {
+          "architecture": "moe"
+        },
+        "quant": [
+          "bf16"
+        ]
+      },
+      "evidence": {
+        "source": "release-notes-area",
+        "section": "Hardware & Performance",
+        "prs": [
+          "42436",
+          "48774",
+          "49659"
+        ],
+        "text": "tuned LL BF16 router GEMM (#48774) with warmup skipped for non-MoE models (#49659), Triton tensor-descriptor path for fused MoE via `VLLM_TRITON_USE_TD` (#42436)",
+        "also": []
+      },
+      "since": "v0.27.0",
+      "caveat": null,
+      "required_floor": null,
+      "floor_note": null,
+      "evidence_sentence": null,
+      "install": null,
+      "note": null,
+      "supporting_sentence": {
+        "dimension": "bf16",
+        "sentence": "tuned LL BF16 router GEMM (#48774) with warmup skipped for non-MoE models (#49659), Triton tensor-descriptor path for fused MoE via `VLLM_TRITON_USE_TD` (#42436)"
+      },
+      "reverse_hits": [],
+      "cohort": [],
+      "excluded_already_using": [],
+      "skipped": "cohort of 61 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
+      "cohort_sample": [
+        "models/Google/diffusiongemma-26B-A4B-it.yaml",
+        "models/Google/gemma-4-26B-A4B-it.yaml",
+        "models/IFM/K2-Horizon-375B-A23B.yaml",
+        "models/IFM/K2-Horizon-MoVA-36B-A4B.yaml",
+        "models/JetBrains/Mellum2-12B-A2.5B-Instruct.yaml"
+      ]
+    },
+    {
+      "id": "linear-backend-honored-for-modelopt-w4a16",
+      "title": "--linear-backend honored for ModelOpt W4A16",
+      "concept": "kernel",
+      "confidence": "high",
+      "cohort": [],
+      "skipped": "no non-wildcard hardware/model dimension backed by a sentence in the evidence — brand alone is not a dimension"
+    },
+    {
+      "id": "moe-refactor-fusedmoe-renamed-to-fusedmoefactory",
+      "title": "MoE refactor: FusedMoE renamed to FusedMoEFactory, MoeWNA16 migrated to the MK oracle scheme",
+      "concept": "moe_backend",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "mxfp4",
+        "sentence": "MoE refactor: FusedMoE renamed to FusedMoEFactory (#44941), MoeWNA16 migrated to the MK oracle scheme (#44120), Quark w8a8-int8 (#46765) and MXFP4 `aiter`/`emulation` backends (#49348, #48949) moved to kernel abstractions, CT WNA16 Marlin/M"
+      },
+      "cohort": [],
+      "since": "v0.27.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "limit-mm-per-prompt",
+      "title": "--limit-mm-per-prompt",
+      "concept": "other",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "out of scope"
+    },
+    {
+      "id": "kimi-k3-support-with-a-full-stack-landing-in-one",
+      "title": "Kimi K3 support: with a full stack landing in one release: core model files and kernels, Python and Rust frontends, AttnRes kernels, DeepGEMM support",
+      "concept": "moe_backend",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "moe",
+        "sentence": "**Kimi K3 support** with a full stack landing in one release: core model files and kernels (#50089, #50000), Python (#50093) and Rust (#50104) frontends, AttnRes kernels (#50090), DeepGEMM support (#50458), compressed-tensors quantized chec"
+      },
+      "cohort": [],
+      "since": "v0.27.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "more-new-models-qwen3-5-text-only-dense-and-moe-",
+      "title": "More new models: Qwen3.5 text-only dense and MoE models with EVS video token pruning, K-EXAONE-2.0-750B-A37B, VaultGemma via the Transformers modeling backend",
+      "concept": "moe_backend",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "moe",
+        "sentence": "**More new models**: Qwen3.5 text-only dense and MoE models (#50210) with EVS video token pruning (#48912), K-EXAONE-2.0-750B-A37B (#50524), VaultGemma via the Transformers modeling backend (#49803), and jina-embeddings-v5-text-nano (#50688"
+      },
+      "cohort": [],
+      "since": "v0.27.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "pytorch-2-13-0-upgrade-along-with-torchvision-0-",
+      "title": "PyTorch 2.13.0 upgrade: along with torchvision 0.28.0 and Triton 3.7.1 — this is a breaking environment change",
+      "concept": "other",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "out of scope"
+    },
+    {
+      "id": "flashattention-4-integration-deepens-on-sm100-fp",
+      "title": "FlashAttention 4 integration deepens on SM100: FP8 KV cache support and headdim-256 support",
+      "concept": "attention_backend",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "fp8",
+        "sentence": "**FlashAttention 4 integration deepens on SM100**: FP8 KV cache support (#42569) and headdim-256 support (#42669), backed by a new JIT warmup infrastructure (#47451) and runner-owned Triton kernel warmup (#49903) that remove first-request c"
+      },
+      "cohort": [],
+      "since": "v0.27.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "deepseek-v4-performance-push-sequence-parallelis",
+      "title": "DeepSeek-V4 performance push: sequence parallelism, ~2x kernel improvement by skipping empty c128 launches, 3.4% E2E TTFT from skipping unneeded topk/router",
+      "concept": "attention_backend",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "mxfp4",
+        "sentence": "**DeepSeek-V4 performance push**: sequence parallelism (#46789), ~2x kernel improvement by skipping empty c128 launches (#48957), 3.4% E2E TTFT from skipping unneeded topk/router (#49486), 3.9% E2E TTFT from workspace reuse (#49236), 1.88x "
+      },
+      "cohort": [],
+      "since": "v0.27.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "model-runner-v2-expands-to-non-generative-worklo",
+      "title": "Model Runner V2 expands to non-generative workloads: encoder-only attention, sequence pooling for embedding/classification, encoder token classification and token embedding, BGE-M3 pooling",
+      "concept": "compilation",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "cpu",
+        "sentence": "**Model Runner V2 expands to non-generative workloads**: encoder-only attention (#49331), sequence pooling for embedding/classification (#48791), encoder token classification (#50293) and token embedding (#50574), BGE-M3 pooling (#50661), m"
+      },
+      "cohort": [],
+      "since": "v0.27.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "resilient-large-scale-serving-a-simplified-fault",
+      "title": "Resilient large-scale serving: a (simplified) fault tolerance framework for DP+EP external load-balancer deployments and async preparation for elastic EP scaling",
+      "concept": "parallelism",
+      "confidence": "medium",
+      "cohort": [],
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "disaggregation-for-hybrid-models-nixl-p-d-for-hy",
+      "title": "Disaggregation for hybrid models: NIXL P/D for hybrid MLA+SSM models, heterogeneous P/D block sizes for hybrid models, and MoRIIO heterogeneous TP<->DP prefill/decode read routing",
+      "concept": "parallelism",
+      "confidence": "medium",
+      "cohort": [],
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "rust-frontend-grows-a-grpc-control-plane-engine-",
+      "title": "Rust frontend grows a gRPC control plane: engine-aware health reporting, abort control, server and model discovery, KV event source discovery, plus vllm-bench integrated into the vllm CLI",
+      "concept": "other",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "out of scope"
+    },
+    {
+      "id": "early-next-gen-hardware-enablement-sm-107-target",
+      "title": "Early next-gen hardware enablement: sm_107 target for NVIDIA Rubin with NVLink all-reduce paths on SM107, and ROCm gfx1250 architecture enabled",
+      "concept": "other",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "out of scope"
+    },
+    {
+      "id": "models-removed-plamo2-ouro",
+      "title": "Models removed: Plamo2, Ouro",
+      "concept": "other",
+      "kind": "breaking",
+      "cohort": [],
+      "skipped": "breaking change — belongs in the stale section"
+    },
+    {
+      "id": "removed-the-no-longer-supported-max-num-partial-",
+      "title": "Removed the no-longer-supported max_num_partial_prefills and max_long_partial_prefills arguments",
+      "concept": "other",
+      "kind": "breaking",
+      "cohort": [],
+      "skipped": "breaking change — belongs in the stale section"
+    },
+    {
+      "id": "documentation-now-warns-that-api-key-does-not-ga",
+      "title": "Documentation now warns that --api-key does not gate all endpoints",
+      "concept": "other",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "out of scope"
+    },
+    {
+      "id": "kimi-k3-performance-push-a-major-optimization-ef",
+      "title": "Kimi-K3 performance push: a major optimization effort for Kimi-K3 across the stack — Decode Context Parallel (DCP) support, fused FlashKDA decode and prefill kernels",
+      "concept": "parallelism",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "moe",
+        "sentence": "**Kimi-K3 performance push**: a major optimization effort for Kimi-K3 across the stack — Decode Context Parallel (DCP) support (#50484), fused FlashKDA decode and prefill kernels (#50654, #51311, #52458), SiTU activation support for MegaMoE"
+      },
+      "cohort": [],
+      "since": "v0.28.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "deepseek-v4-sparse-mla-now-works-end-to-end-for-",
+      "title": "DeepSeek V4: sparse MLA now works end-to-end for plain decode, MTP, and DSpark speculative decoding, joined by AMD Quark NVFP4 support",
+      "concept": "spec_decoding",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "nvfp4",
+        "sentence": "**DeepSeek V4**: sparse MLA now works end-to-end for plain decode, MTP, and DSpark speculative decoding (#51538), joined by AMD Quark NVFP4 support (#47972), reasoning-effort prompts and mappings (#50580), sparse top-k metadata kernel optim"
+      },
+      "cohort": [],
+      "since": "v0.28.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "speculative-decoding-advances-dflash2-with-local",
+      "title": "Speculative decoding advances: DFlash2 with local convolution and a candidate selector, DSpark confidence-scheduled verification, and async scheduling auto-enabled for draft models",
+      "concept": "spec_decoding",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "spec_decoding",
+        "sentence": "**Speculative decoding advances**: DFlash2 with local convolution and a candidate selector (#52816), DSpark confidence-scheduled verification (#47808), and async scheduling auto-enabled for draft models (#48341)."
+      },
+      "cohort": [],
+      "since": "v0.28.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "model-runner-v2-maturation-e-p-d-disaggregation-",
+      "title": "Model Runner V2 maturation: E/P/D disaggregation, weight offloading, multi-layer MTP KV cache support, encoder CUDA graphs",
+      "concept": "compilation",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "spec_decoding",
+        "sentence": "**Model Runner V2 maturation**: E/P/D disaggregation (#38390), weight offloading (#51413), multi-layer MTP KV cache support (#50062), encoder CUDA graphs (#49852), decoder token-wise pooling (#50931) plus Transformers pooling models (#52425"
+      },
+      "cohort": [],
+      "since": "v0.28.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "tiered-kv-cache-offloading-disk-offloading-suppo",
+      "title": "Tiered KV cache offloading: disk offloading support, out-of-tree secondary tier managers via module_path, partial secondary-tier load results, tiering metrics",
+      "concept": "kv_cache",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "cpu",
+        "sentence": "**Tiered KV cache offloading**: disk offloading support (#49644), out-of-tree secondary tier managers via `module_path` (#51007), partial secondary-tier load results (#50321), tiering metrics (#48798), and a canonical CPU layout for paralle"
+      },
+      "cohort": [],
+      "since": "v0.28.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "rust-frontend-grpc-a-standalone-renderer-multimo",
+      "title": "Rust frontend & gRPC: a standalone renderer, multimodal image inference over gRPC, explicit data-parallel rank routing, and RL lifecycle control",
+      "concept": "other",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "out of scope"
+    },
+    {
+      "id": "max-num-batched-tokens-raised-from-8192-to-16384",
+      "title": "max_num_batched_tokens raised from 8192 to 16384",
+      "concept": "other",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "out of scope"
+    },
+    {
+      "id": "prefix-caching-enabled-by-default-for-mamba-mode",
+      "title": "prefix caching enabled by default for Mamba models",
+      "concept": "kv_cache",
+      "confidence": "medium",
+      "cohort": [],
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "and-the-blackwell-cuda-graph-capture-default-rai",
+      "title": "and the Blackwell CUDA graph capture default raised to 1024",
+      "concept": "compilation",
+      "confidence": "medium",
+      "supporting_sentence": {
+        "dimension": "blackwell",
+        "sentence": "and the Blackwell CUDA graph capture default raised to 1024 (#49390)."
+      },
+      "cohort": [],
+      "since": "v0.28.0",
+      "caveat": null,
+      "reverse_hits": [],
+      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+    },
+    {
+      "id": "bitsandbytes-support-migrated-to-an-out-of-tree-",
+      "title": "bitsandbytes support migrated to an out-of-tree plugin",
+      "concept": "other",
+      "kind": "breaking",
+      "cohort": [],
+      "skipped": "breaking change — belongs in the stale section"
+    },
+    {
+      "id": "the-deprecated-calculate-kv-scales-runtime-kv-sc",
+      "title": "The deprecated calculate_kv_scales runtime KV scale calculation was removed",
+      "concept": "other",
+      "kind": "breaking",
+      "cohort": [],
+      "skipped": "breaking change — belongs in the stale section"
+    },
+    {
+      "id": "override-attention-dtype-was-removed",
+      "title": "override_attention_dtype was removed",
+      "concept": "other",
+      "kind": "breaking",
+      "cohort": [],
+      "skipped": "breaking change — belongs in the stale section"
+    },
+    {
+      "id": "reasoning-content-output-removal-is-documented-a",
+      "title": "reasoning_content output removal is documented as a breaking client change",
+      "concept": "other",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "out of scope"
+    },
+    {
+      "id": "kv-offload-tiering-metrics-renamed-from-kv-offlo",
+      "title": "KV offload tiering metrics renamed from kv_offload_tiering_block_{queries,hits} to ..._chunk_",
+      "concept": "kv_cache",
+      "confidence": "medium",
+      "cohort": [],
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "moe-legacy-code-removed",
+      "title": "MoE legacy code removed",
+      "concept": "moe_backend",
+      "kind": "breaking",
+      "cohort": [],
+      "skipped": "breaking change — belongs in the stale section"
+    },
+    {
+      "id": "cpu-offload-params-now-reaches-vision-audio-towe",
+      "title": "--cpu-offload-params now reaches vision/audio towers",
+      "concept": "other",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "out of scope"
+    },
+    {
+      "id": "context-parallelism-dcp-q-replicate-with-query-r",
+      "title": "Context parallelism: --dcp-q-replicate with query replication default-on for GLM sparse attention, DCP fused attention fix for DeepSeek-V3.2 / GLM-5.2",
+      "concept": "parallelism",
+      "confidence": "high",
+      "cohort": [],
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "moe-communication-deepep-v2-receiver-cpu-overhea",
+      "title": "MoE communication: DeepEP v2 receiver CPU overhead and MXFP8 activation scale dispatch, FlashInfer one-sided All2All refinements",
+      "concept": "runtime",
+      "effect": "correctness",
+      "confidence": "high",
+      "how_enabled": {
+        "mode": "explicit",
+        "flags": [
+          "--enforce-eager"
+        ],
+        "envs": [],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [
+          "nvidia",
+          "cpu"
+        ],
+        "model_traits": {
+          "architecture": "moe"
+        },
+        "quant": [
+          "mxfp8"
+        ]
+      },
+      "evidence": {
+        "source": "release-notes-area",
+        "section": "Large Scale Serving",
+        "prs": [
+          "51114",
+          "51398",
+          "51824",
+          "51924",
+          "52632",
+          "53008"
+        ],
+        "text": "**MoE communication**: DeepEP v2 receiver CPU overhead (#51114) and MXFP8 activation scale dispatch (#51398), FlashInfer one-sided All2All refinements (#51924), DeepEP v2 fixes for `--enforce-eager` startup (#51824) and the decode/cudagraph path (#52632), NCCL>=2.31 heap overflow fix (#53008)",
+        "also": []
+      },
+      "since": "v0.29.0",
+      "caveat": null,
+      "required_floor": null,
+      "floor_note": null,
+      "evidence_sentence": null,
+      "install": null,
+      "note": null,
+      "supporting_sentence": {
+        "dimension": "cpu",
+        "sentence": "**MoE communication**: DeepEP v2 receiver CPU overhead (#51114) and MXFP8 activation scale dispatch (#51398), FlashInfer one-sided All2All refinements (#51924), DeepEP v2 fixes for `--enforce-eager` startup (#51824) and the decode/cudagraph"
+      },
+      "reverse_hits": [],
+      "cohort": [
+        {
+          "file": "models/MiniMaxAI/MiniMax-M3.yaml",
+          "why": "hardware nvidia; traits match; quant mxfp8",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "mxfp8",
+            "nvfp4",
+            "mxfp4"
+          ],
+          "matched_hardware": [],
+          "matched_quant": [
+            "mxfp8"
+          ],
+          "conflicts": [],
+          "hardware_keys": [
+            "h200",
+            "b200",
+            "b300",
+            "mi300x",
+            "mi355x",
+            "amd",
+            "blackwell",
+            "h100"
+          ],
+          "floor": "0.24.0"
+        },
+        {
+          "file": "models/tencent/Hy4-preview.yaml",
+          "why": "hardware nvidia; traits match; quant mxfp8",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "mxfp8"
+          ],
+          "matched_hardware": [],
+          "matched_quant": [
+            "mxfp8"
+          ],
+          "conflicts": [],
+          "hardware_keys": [
+            "b200",
+            "b300",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "blackwell"
+          ],
+          "floor": "0.29.0"
+        }
+      ],
+      "excluded_already_using": []
+    },
+    {
+      "id": "new-endpoints-options-max-num-queued-reqs-max-nu",
+      "title": "New endpoints & options: --max-num-queued-reqs / --max-num-queued-tokens",
+      "concept": "scheduling",
+      "confidence": "high",
+      "cohort": [],
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "rust-frontend-generation-config-vllm",
+      "title": "Rust frontend: --generation-config vllm",
+      "concept": "runtime",
+      "confidence": "high",
+      "cohort": [],
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "vllm-max-audio-clip-filesize-mb-enforced-on-all-",
+      "title": "VLLM_MAX_AUDIO_CLIP_FILESIZE_MB enforced on all audio paths",
+      "concept": "other",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "out of scope"
+    },
+    {
       "id": "model-runner-v2-is-now-the-default-for-all-model",
       "title": "Model Runner V2 is now the default for all models: completing the rollout that began with pooling models",
       "concept": "compilation",
@@ -11,7 +1260,7 @@
       },
       "cohort": [],
       "since": "v0.29.0",
-      "caveat": "MRV1 remains in use for a few ROCm models and for features MRV2 does not yet support, so an explicit VLLM_USE_V2_MODEL_RUNNER=1 may be deliberate on those recipes — confirm the model class is on MRV2 before removing it.",
+      "caveat": "MRV1 remains in use for a few ROCm models and for features MRV2 does not yet support — confirm the model class is on MRV2 before removing an explicit enable.",
       "reverse_hits": [
         {
           "file": "models/Google/gemma-4-26B-A4B-it.yaml",
@@ -190,7 +1439,7 @@
     },
     {
       "id": "per-request-acceptance-stats-in-openai-api-respo",
-      "title": "Per-request speculative-decoding acceptance metrics in OpenAI API responses",
+      "title": "Per-Request Acceptance Metrics",
       "concept": "spec_decoding",
       "effect": "usability",
       "confidence": "high",
@@ -203,7 +1452,10 @@
         "enum_values": []
       },
       "applies_to": {
-        "hardware": [],
+        "hardware": [
+          "blackwell",
+          "hopper"
+        ],
         "model_traits": {
           "features": [
             "spec_decoding"
@@ -248,7 +1500,7 @@
       "reverse_hits": [],
       "cohort": [],
       "excluded_already_using": [],
-      "skipped": "cohort of 64 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
+      "skipped": "cohort of 52 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
       "cohort_sample": [
         "models/Google/gemma-4-12B-it.yaml",
         "models/Google/gemma-4-26B-A4B-it.yaml",
@@ -267,7 +1519,7 @@
     },
     {
       "id": "internal-prefill-checkpoints-deliver-a-9-25-ttft",
-      "title": "Mamba prefix caching: internal prefill checkpoints (9-25% TTFT)",
+      "title": "internal prefill checkpoints deliver a 9%-25% TTFT improvement",
       "concept": "spec_decoding",
       "confidence": "medium",
       "supporting_sentence": {
@@ -293,14 +1545,6 @@
       "title": "prefix-cache NONE_HASH is deterministic by default so distributed KV cache users no longer need to pin PYTHONHASHSEED",
       "concept": "kv_cache",
       "confidence": "medium",
-      "cohort": [],
-      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
-    },
-    {
-      "id": "new-max-num-queued-reqs-max-num-queued-tokens-ad",
-      "title": "new --max-num-queued-reqs / --max-num-queued-tokens admission-control flags",
-      "concept": "scheduling",
-      "confidence": "high",
       "cohort": [],
       "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
     },
@@ -345,6 +1589,14 @@
       "skipped": "breaking change — belongs in the stale section"
     },
     {
+      "id": "endpoint-plugins-vllm-plugins",
+      "title": "Endpoint Plugins: VLLM_PLUGINS",
+      "concept": "other",
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "out of scope"
+    },
+    {
       "id": "b12x-linear-and-moe-backends/linear",
       "title": "b12x linear and MoE backends for SM120/SM121 — linear backend",
       "concept": "kernel",
@@ -387,20 +1639,20 @@
         "source": "docs-diff",
         "section": "docs/features/quantization/b12x.md",
         "prs": [],
-        "text": "b12x provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs (RTX Pro 6000/5000, RTX 5090, DGX Spark GB10), installed with pip install vllm[b12x]. b12x linear kernels participate in automatic selection after established optimized backends and before emulation; select them explicitly with --linear-backend b12x and --moe-backend b12x. Only pass --moe-backend b12x for a compatible NVFP4 or MXFP4 MoE model. b12x uses MXFP8 activations by default for MXFP4 MoE and the checkpoint's activation format for NVFP4 MoE; set VLLM_B12X_MOE_FP4_FORCE_A16=1 to force BF16 activations for either FP4 weight format. Linear supports per-tensor FP8, 128x128 block FP8, MXFP8, NVFP4 and MXFP4. The b12x MoE backend does not support expert parallelism, expert maps, EXL3, or NF3.",
+        "text": "b12x provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs (RTX Pro 6000/5000, RTX 5090, DGX Spark GB10), installed with pip install vllm[b12x]. Select them with --linear-backend b12x and --moe-backend b12x. Only pass --moe-backend b12x for a compatible NVFP4 or MXFP4 MoE model. Linear supports per-tensor FP8, 128x128 block FP8, MXFP8, NVFP4 and MXFP4. The b12x MoE backend does not support expert parallelism, expert maps, EXL3, or NF3.",
         "also": []
       },
       "part": "primary",
       "since": "v0.29.0",
       "caveat": null,
       "required_floor": "0.29.0",
-      "floor_note": "--linear-backend itself exists since 0.22.0; the b12x value is new in 0.29.0",
-      "evidence_sentence": "b12x linear kernels participate in automatic selection after established optimized backends and before emulation; select them explicitly with --linear-backend b12x. Linear supports per-tensor FP8, 128x128 block FP8, MXFP8, NVFP4 and MXFP4.",
+      "floor_note": "--linear-backend exists since 0.22.0; the b12x value is new in 0.29.0",
+      "evidence_sentence": "b12x linear kernels participate in automatic selection after established optimized backends and before emulation; select them explicitly with --linear-backend b12x.",
       "install": {
         "command": "uv pip install \"vllm[b12x]\"",
         "note": "b12x kernels ship as a wheel extra, not in the base wheel"
       },
-      "note": "VLLM_B12X_MOE_FP4_FORCE_A16=1 forces BF16 activations for FP4 MoE. It is an opt-in numerics knob, not part of enabling b12x, and is deliberately excluded from adoption.",
+      "note": "VLLM_B12X_MOE_FP4_FORCE_A16=1 forces BF16 activations for FP4 MoE — an opt-in numerics knob, deliberately excluded from adoption.",
       "supporting_sentence": {
         "dimension": "rtx_pro_6000",
         "sentence": "b12x provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs (RTX Pro 6000/5000, RTX 5090, DGX Spark GB10), installed with pip install vllm[b12x]."
@@ -805,20 +2057,20 @@
         "source": "docs-diff",
         "section": "docs/features/quantization/b12x.md",
         "prs": [],
-        "text": "b12x provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs (RTX Pro 6000/5000, RTX 5090, DGX Spark GB10), installed with pip install vllm[b12x]. b12x linear kernels participate in automatic selection after established optimized backends and before emulation; select them explicitly with --linear-backend b12x and --moe-backend b12x. Only pass --moe-backend b12x for a compatible NVFP4 or MXFP4 MoE model. b12x uses MXFP8 activations by default for MXFP4 MoE and the checkpoint's activation format for NVFP4 MoE; set VLLM_B12X_MOE_FP4_FORCE_A16=1 to force BF16 activations for either FP4 weight format. Linear supports per-tensor FP8, 128x128 block FP8, MXFP8, NVFP4 and MXFP4. The b12x MoE backend does not support expert parallelism, expert maps, EXL3, or NF3.",
+        "text": "b12x provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs (RTX Pro 6000/5000, RTX 5090, DGX Spark GB10), installed with pip install vllm[b12x]. Select them with --linear-backend b12x and --moe-backend b12x. Only pass --moe-backend b12x for a compatible NVFP4 or MXFP4 MoE model. Linear supports per-tensor FP8, 128x128 block FP8, MXFP8, NVFP4 and MXFP4. The b12x MoE backend does not support expert parallelism, expert maps, EXL3, or NF3.",
         "also": []
       },
       "part": "primary",
       "since": "v0.29.0",
       "caveat": null,
       "required_floor": "0.29.0",
-      "floor_note": "--moe-backend itself exists since 0.17.0; the b12x value is new in 0.29.0",
+      "floor_note": "--moe-backend exists since 0.17.0; the b12x value is new in 0.29.0",
       "evidence_sentence": "Only pass --moe-backend b12x for a compatible NVFP4 or MXFP4 MoE model. The b12x MoE backend does not support expert parallelism, expert maps, EXL3, or NF3.",
       "install": {
         "command": "uv pip install \"vllm[b12x]\"",
         "note": "b12x kernels ship as a wheel extra, not in the base wheel"
       },
-      "note": "VLLM_B12X_MOE_FP4_FORCE_A16=1 forces BF16 activations for FP4 MoE. It is an opt-in numerics knob, not part of enabling b12x, and is deliberately excluded from adoption.",
+      "note": "VLLM_B12X_MOE_FP4_FORCE_A16=1 forces BF16 activations for FP4 MoE — an opt-in numerics knob, deliberately excluded from adoption.",
       "supporting_sentence": {
         "dimension": "rtx_pro_6000",
         "sentence": "b12x provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs (RTX Pro 6000/5000, RTX 5090, DGX Spark GB10), installed with pip install vllm[b12x]."
@@ -1092,6 +2344,323 @@
       ]
     },
     {
+      "id": "adaptive-verification-enforce-eager-speculative-",
+      "title": "Adaptive Verification: --enforce-eager, --speculative-config, --tokenizer-mode",
+      "concept": "runtime",
+      "effect": "memory",
+      "confidence": "high",
+      "how_enabled": {
+        "mode": "explicit",
+        "flags": [
+          "--enforce-eager",
+          "--speculative-config",
+          "--tokenizer-mode",
+          "--trust-remote-code"
+        ],
+        "envs": [
+          "VLLM_ADAPTIVE_VERIFICATION_PROFILE_CONTEXT_LEN"
+        ],
+        "enum_values": []
+      },
+      "applies_to": {
+        "hardware": [],
+        "model_traits": {
+          "features": [
+            "spec_decoding"
+          ]
+        },
+        "quant": []
+      },
+      "evidence": {
+        "source": "docs-diff",
+        "section": "docs/features/speculative_decoding/adaptive_verification.md",
+        "prs": [],
+        "text": "# Adaptive Verification\n\nSpeculative decoding buys fewer decode steps with more compute. At batch size 1 that is a good trade: the GPU is memory-bound with spare compute, so the extra draft tokens are close to free. At batch size 256 it is a much more delicate one. Draft tokens now compete with real tokens for the same compute, and every rejected token is compute wasted; with enough of them, throughput drops.\n\nThat matters because per-position acceptance decays fast. While the GPU is memory-bound that slot is effectively free and worth the gamble; once it saturates the gamble has a real throug",
+        "also": []
+      },
+      "since": "v0.29.0",
+      "caveat": null,
+      "required_floor": null,
+      "floor_note": null,
+      "evidence_sentence": null,
+      "install": null,
+      "note": null,
+      "supporting_sentence": {
+        "dimension": "spec_decoding",
+        "sentence": "# Adaptive Verification Speculative decoding buys fewer decode steps with more compute."
+      },
+      "reverse_hits": [],
+      "cohort": [
+        {
+          "file": "models/zai-org/GLM-OCR.yaml",
+          "why": "capability names no hardware; traits match; capability names no quantization",
+          "architecture": "dense",
+          "precisions": [
+            "bf16"
+          ],
+          "matched_hardware": [],
+          "matched_quant": [],
+          "conflicts": [],
+          "hardware_keys": [],
+          "floor": "0.12.0"
+        }
+      ],
+      "excluded_already_using": [
+        {
+          "file": "models/Google/gemma-4-12B-it.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/Google/gemma-4-26B-A4B-it.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/Google/gemma-4-31B-it.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/Google/gemma-4-E2B-it.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/Google/gemma-4-E4B-it.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/JetBrains/Mellum2-12B-A2.5B-Thinking.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/MiniMaxAI/MiniMax-M3.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/Qwen/Qwen3-Next-80B-A3B-Instruct.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/Qwen/Qwen3.5-122B-A10B.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/Qwen/Qwen3.5-27B.yaml",
+          "reason": "already passes --enforce-eager"
+        },
+        {
+          "file": "models/Qwen/Qwen3.5-2B.yaml",
+          "reason": "already passes --enforce-eager"
+        },
+        {
+          "file": "models/Qwen/Qwen3.5-35B-A3B.yaml",
+          "reason": "already passes --enforce-eager"
+        },
+        {
+          "file": "models/Qwen/Qwen3.5-397B-A17B.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/Qwen/Qwen3.5-4B.yaml",
+          "reason": "already passes --enforce-eager"
+        },
+        {
+          "file": "models/Qwen/Qwen3.5-9B.yaml",
+          "reason": "already passes --enforce-eager"
+        },
+        {
+          "file": "models/Qwen/Qwen3.6-27B.yaml",
+          "reason": "already passes --enforce-eager"
+        },
+        {
+          "file": "models/Qwen/Qwen3.6-35B-A3B.yaml",
+          "reason": "already passes --enforce-eager"
+        },
+        {
+          "file": "models/Qwen/Qwen3.8-2.4T-A95B.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/Qwen/Qwen3.8-27B.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/Qwen/Qwen3.8-Flash-Next.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/XiaomiMiMo/MiMo-V2.5-Pro.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/XiaomiMiMo/MiMo-V2.5.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/baidu/ERNIE-4.5-21B-A3B-PT.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V3.2.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4-Pro.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4.1-Flash.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/dots-studio/dots3-note-prev.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/inclusionAI/Ling-3.0-flash.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/internlm/Intern-S2-397B.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/internlm/Intern-S2-Preview.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/meta-llama/Llama-3.1-8B-Instruct.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/meta-models/Muse-Glimmer-30B.yaml",
+          "reason": "already passes --enforce-eager"
+        },
+        {
+          "file": "models/mindlab-research/Macaron-V1-Coding-Venti.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/mistralai/Mistral-Medium-3.5-128B.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/mistralai/Mistral-Small-4-119B-2603.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/moonshotai/Kimi-K2.5.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/moonshotai/Kimi-K2.6.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/moonshotai/Kimi-K2.7-Code.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/moonshotai/Kimi-K3.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/openai/gpt-oss-120b.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/poolside/Laguna-S-2.1.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/poolside/Laguna-XS-2.1.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/poolside/Laguna-XS.2.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/stepfun-ai/Step-3.5-Flash.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/stepfun-ai/Step-3.7-Flash.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/tencent/Hy3-preview.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/tencent/Hy3.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/tencent/Hy4-preview.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/thinkingmachines/Inkling-Small.yaml",
+          "reason": "already passes --enforce-eager"
+        },
+        {
+          "file": "models/thinkingmachines/Inkling.yaml",
+          "reason": "already passes --enforce-eager"
+        },
+        {
+          "file": "models/zai-org/GLM-4.5.yaml",
+          "reason": "already passes --trust-remote-code"
+        },
+        {
+          "file": "models/zai-org/GLM-4.6.yaml",
+          "reason": "already passes --trust-remote-code"
+        },
+        {
+          "file": "models/zai-org/GLM-4.7.yaml",
+          "reason": "already passes --trust-remote-code"
+        },
+        {
+          "file": "models/zai-org/GLM-5.1.yaml",
+          "reason": "already passes --trust-remote-code"
+        },
+        {
+          "file": "models/zai-org/GLM-5.2.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/zai-org/GLM-5.3-Flash.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/zai-org/GLM-5.3.yaml",
+          "reason": "already passes --speculative-config"
+        },
+        {
+          "file": "models/zai-org/GLM-5.yaml",
+          "reason": "already passes --trust-remote-code"
+        }
+      ]
+    },
+    {
       "id": "trace-replay-enable-trace-replay",
       "title": "Trace Replay: --enable-trace-replay",
       "concept": "runtime",
@@ -1100,8 +2669,16 @@
       "skipped": "benchmark/profiling/serving-infra tooling, not a recipe capability"
     },
     {
-      "id": "security-vllm-max-media-download-size-mb",
-      "title": "Security: VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB",
+      "id": "sampling-mask-distribution-replay",
+      "title": "Sampling Mask (Distribution Replay)",
+      "concept": "runtime",
+      "confidence": "high",
+      "cohort": [],
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "security-api-key-mm-hasher-algorithm-vllm-max-me",
+      "title": "Security: --api-key, --mm-hasher-algorithm, VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB",
       "concept": "other",
       "kind": "out_of_scope",
       "cohort": [],
