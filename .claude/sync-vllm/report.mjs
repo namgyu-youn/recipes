@@ -28,6 +28,7 @@ const ACTION_WORD = {
   "raise-floor": "raise model floor",
   "raise-variant-floor": "raise variant pin",
   "per-block-floor-question": "per-block floor question",
+  "vendor-block-floor-question": "vendor-image block — cannot move a pin",
   replace: "replace",
   resolve: "decide: drop or re-spell",
   report: "report only",

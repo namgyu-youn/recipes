@@ -288,6 +288,27 @@ function guideScannableLines(lines, paths) {
   return scannable;
 }
 
+/**
+ * Does this path sit inside a block that cannot run a vLLM wheel?
+ *
+ * `install: { pip: false }` declares exactly that: on this hardware the recipe
+ * runs a pinned image whose flags are not in any official wheel. A version
+ * floor derived from such a block says nothing about the vLLM the rest of the
+ * recipe installs, so it must never move a model or variant pin.
+ */
+function ancestorVendorBlock(doc, path) {
+  const parts = path.split(".");
+  let node = doc;
+  let found = null;
+  for (const part of parts) {
+    if (!node || typeof node !== "object") break;
+    if (node.install && node.install.pip === false) found = node;
+    node = node[part];
+  }
+  if (node && typeof node === "object" && node.install && node.install.pip === false) found = node;
+  return found ? { docker_image: found.docker_image || null } : null;
+}
+
 /** The nearest enclosing block that pins a container image, if any. */
 function ancestorImage(doc, path) {
   const parts = path.split(".");
@@ -370,6 +391,7 @@ function scanFile(file, upstream) {
         floor: floor || null,
         floor_reason: reason || null,
         conditionality: isYaml && doc ? blockConditionality(doc, path) : "other",
+        vendor_block: isYaml && doc ? ancestorVendorBlock(doc, path) : null,
         ...finding,
       });
     }

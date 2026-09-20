@@ -1,6 +1,6 @@
 {
   "target": "v0.29.0",
-  "generated": "2026-09-20T12:01:20.895Z",
+  "generated": "2026-09-20T18:27:02.738Z",
   "findings": [
     {
       "id": "R-01",
@@ -1173,13 +1173,13 @@
             }
           ],
           "needed": "v0.22.0",
-          "action": "raise-variant-floor",
-          "why": "used only in variants.fp8, which carries its own pin"
+          "action": "per-block-floor-question",
+          "why": "used only in strategy override — opt-in or hardware-conditional, so the model floor may be right as it is; 2 further use(s) sit in a wheel-less vendor-image block"
         }
       ],
-      "auto_apply_candidates": 1,
+      "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "auto-apply-eligible"
+      "status": "needs decision"
     },
     {
       "id": "R-14",
@@ -1217,13 +1217,13 @@
             }
           ],
           "needed": "v0.22.0",
-          "action": "raise-variant-floor",
-          "why": "used only in variants.fp8, which carries its own pin"
+          "action": "vendor-block-floor-question",
+          "why": "used only in a block that pins eugr/spark-vllm-b12x:latest with install.pip: false — no wheel runs there, so this cannot move the model or variant pin"
         }
       ],
-      "auto_apply_candidates": 1,
+      "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "auto-apply-eligible"
+      "status": "needs decision"
     },
     {
       "id": "R-15",
