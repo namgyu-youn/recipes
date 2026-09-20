@@ -1,0 +1,1681 @@
+{
+  "counts": {
+    "default-changed": 3,
+    "deprecated": 3,
+    "new-feature": 78,
+    "removed": 10,
+    "renamed": 6
+  },
+  "generated": "2026-09-20T18:35:14Z",
+  "items": [
+    {
+      "category": "removed",
+      "detail": "present at v0.24.0, absent at v0.29.0",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1167,
+        "tag": "v0.24.0"
+      },
+      "id": "I-001",
+      "introduced": "v0.7.0",
+      "kind": "flag",
+      "name": "--calculate-kv-scales",
+      "replacement": null,
+      "source": "source-only"
+    },
+    {
+      "category": "removed",
+      "detail": "present at v0.24.0, absent at v0.29.0",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1409,
+        "tag": "v0.24.0"
+      },
+      "id": "I-002",
+      "introduced": "v0.7.3",
+      "kind": "flag",
+      "name": "--max-long-partial-prefills",
+      "replacement": null,
+      "source": "source-only"
+    },
+    {
+      "category": "removed",
+      "detail": "present at v0.24.0, absent at v0.29.0",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1406,
+        "tag": "v0.24.0"
+      },
+      "id": "I-003",
+      "introduced": "v0.7.3",
+      "kind": "flag",
+      "name": "--max-num-partial-prefills",
+      "replacement": null,
+      "source": "source-only"
+    },
+    {
+      "category": "removed",
+      "detail": "present at v0.24.0, absent at v0.29.0",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 866,
+        "tag": "v0.24.0"
+      },
+      "id": "I-004",
+      "introduced": "v0.9.2",
+      "kind": "flag",
+      "name": "--override-attention-dtype",
+      "replacement": null,
+      "source": "source-only"
+    },
+    {
+      "category": "removed",
+      "detail": "present at v0.24.0, absent at v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1265,
+        "tag": "v0.24.0"
+      },
+      "id": "I-005",
+      "introduced": "v0.7.0",
+      "kind": "env",
+      "name": "K_SCALE_CONSTANT",
+      "replacement": null,
+      "source": "source-only"
+    },
+    {
+      "category": "removed",
+      "detail": "present at v0.24.0, absent at v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1263,
+        "tag": "v0.24.0"
+      },
+      "id": "I-006",
+      "introduced": "v0.8.2",
+      "kind": "env",
+      "name": "Q_SCALE_CONSTANT",
+      "replacement": null,
+      "source": "source-only"
+    },
+    {
+      "category": "renamed",
+      "detail": "present at v0.24.0, absent at v0.29.0; closest new name VLLM_TRITON_USE_TD",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1370,
+        "tag": "v0.24.0"
+      },
+      "id": "I-007",
+      "introduced": "v0.8.0",
+      "kind": "env",
+      "name": "VLLM_CI_USE_S3",
+      "replacement": "VLLM_TRITON_USE_TD",
+      "source": "source-only"
+    },
+    {
+      "category": "renamed",
+      "detail": "present at v0.24.0, absent at v0.29.0; closest new name VLLM_CPU_CI_ENV",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 821,
+        "tag": "v0.24.0"
+      },
+      "id": "I-008",
+      "introduced": "v0.9.2",
+      "kind": "env",
+      "name": "VLLM_CPU_SGL_KERNEL",
+      "replacement": "VLLM_CPU_CI_ENV",
+      "source": "source-only"
+    },
+    {
+      "category": "renamed",
+      "detail": "present at v0.24.0, absent at v0.29.0; closest new name VLLM_FLASHINFER_AUTOTUNE_SKIP_OPS",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1565,
+        "tag": "v0.24.0"
+      },
+      "id": "I-009",
+      "introduced": "v0.10.2",
+      "kind": "env",
+      "name": "VLLM_FLASHINFER_ALLREDUCE_FUSION_THRESHOLDS_MB",
+      "replacement": "VLLM_FLASHINFER_AUTOTUNE_SKIP_OPS",
+      "source": "source-only"
+    },
+    {
+      "category": "renamed",
+      "detail": "present at v0.24.0, absent at v0.29.0; closest new name VLLM_ROCM_USE_AITER_CUSTOM_AR",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1178,
+        "tag": "v0.24.0"
+      },
+      "id": "I-010",
+      "introduced": "v0.11.0",
+      "kind": "env",
+      "name": "VLLM_ROCM_USE_AITER_FP4_ASM_GEMM",
+      "replacement": "VLLM_ROCM_USE_AITER_CUSTOM_AR",
+      "source": "source-only"
+    },
+    {
+      "category": "renamed",
+      "detail": "present at v0.24.0, absent at v0.29.0; closest new name VLLM_ROCM_USE_AITER_CUSTOM_AR",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1133,
+        "tag": "v0.24.0"
+      },
+      "id": "I-011",
+      "introduced": "v0.8.5",
+      "kind": "env",
+      "name": "VLLM_ROCM_USE_AITER_PAGED_ATTN",
+      "replacement": "VLLM_ROCM_USE_AITER_CUSTOM_AR",
+      "source": "source-only"
+    },
+    {
+      "category": "removed",
+      "detail": "present at v0.24.0, absent at v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1013,
+        "tag": "v0.24.0"
+      },
+      "id": "I-012",
+      "introduced": "v0.5.5",
+      "kind": "env",
+      "name": "VLLM_TEST_FORCE_FP8_MARLIN",
+      "replacement": null,
+      "source": "source-only"
+    },
+    {
+      "category": "removed",
+      "detail": "present at v0.24.0, absent at v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1421,
+        "tag": "v0.24.0"
+      },
+      "id": "I-013",
+      "introduced": "v0.8.3",
+      "kind": "env",
+      "name": "VLLM_TPU_BUCKET_PADDING_GAP",
+      "replacement": null,
+      "source": "source-only"
+    },
+    {
+      "category": "removed",
+      "detail": "present at v0.24.0, absent at v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1426,
+        "tag": "v0.24.0"
+      },
+      "id": "I-014",
+      "introduced": "v0.9.2",
+      "kind": "env",
+      "name": "VLLM_TPU_MOST_MODEL_LEN",
+      "replacement": null,
+      "source": "source-only"
+    },
+    {
+      "category": "renamed",
+      "detail": "present at v0.24.0, absent at v0.29.0; closest new name VLLM_TRITON_USE_TD",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 582,
+        "tag": "v0.24.0"
+      },
+      "id": "I-015",
+      "introduced": "v0.22.0",
+      "kind": "env",
+      "name": "VLLM_TRITON_ATTN_USE_TD",
+      "replacement": "VLLM_TRITON_USE_TD",
+      "source": "source-only"
+    },
+    {
+      "category": "removed",
+      "detail": "present at v0.24.0, absent at v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1267,
+        "tag": "v0.24.0"
+      },
+      "id": "I-016",
+      "introduced": "v0.7.0",
+      "kind": "env",
+      "name": "V_SCALE_CONSTANT",
+      "replacement": null,
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": null,
+      "detail": "new in v0.29.0 (sources: field)",
+      "evidence": {
+        "file": "vllm/entrypoints/launchers/cli_args.py",
+        "line": 167,
+        "tag": "v0.29.0"
+      },
+      "id": "I-017",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--cohere-format",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": null,
+      "detail": "new in v0.29.0 (sources: field)",
+      "evidence": {
+        "file": "vllm/entrypoints/launchers/cli_args.py",
+        "line": 158,
+        "tag": "v0.29.0"
+      },
+      "id": "I-018",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--cohere-is-reasoning-model",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "None",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1119,
+        "tag": "v0.29.0"
+      },
+      "id": "I-019",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--dcp-q-replicate",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "get_field(VllmConfig, 'ec_manager_config')",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1717,
+        "tag": "v0.29.0"
+      },
+      "id": "I-020",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--ec-manager-config",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "None",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1204,
+        "tag": "v0.29.0"
+      },
+      "id": "I-021",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--enable-batch-sharded-sampling",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "None",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1676,
+        "tag": "v0.29.0"
+      },
+      "id": "I-022",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--enable-bf16x3-router-gemm",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "False",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1257,
+        "tag": "v0.29.0"
+      },
+      "id": "I-023",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--enable-fault-tolerance",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "False",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1510,
+        "tag": "v0.29.0"
+      },
+      "id": "I-024",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--enable-moe-shared-loras",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": null,
+      "detail": "new in v0.29.0 (sources: field)",
+      "evidence": {
+        "file": "vllm/entrypoints/launchers/cli_args.py",
+        "line": 134,
+        "tag": "v0.29.0"
+      },
+      "id": "I-025",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--enable-per-request-metrics",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "False",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 937,
+        "tag": "v0.29.0"
+      },
+      "id": "I-026",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--enable-trace-replay",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "get_field(ParallelConfig, 'fault_tolerance_config')",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1260,
+        "tag": "v0.29.0"
+      },
+      "id": "I-027",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--fault-tolerance-config",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": [
+        "error",
+        "warn"
+      ],
+      "default": "'warn'",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1566,
+        "tag": "v0.29.0"
+      },
+      "id": "I-028",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--jit-monitor-mode",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": [
+        "auto",
+        "flashkda",
+        "triton"
+      ],
+      "default": "None",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1779,
+        "tag": "v0.29.0"
+      },
+      "id": "I-029",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--kda-prefill-backend",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "None",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1031,
+        "tag": "v0.29.0"
+      },
+      "id": "I-030",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--mamba-ssu-algorithm",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "None",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1602,
+        "tag": "v0.29.0"
+      },
+      "id": "I-031",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--max-num-queued-reqs",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "None",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1605,
+        "tag": "v0.29.0"
+      },
+      "id": "I-032",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--max-num-queued-tokens",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "None",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1588,
+        "tag": "v0.29.0"
+      },
+      "id": "I-033",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--max-num-scheduled-tokens",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "True",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1466,
+        "tag": "v0.29.0"
+      },
+      "id": "I-034",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--mm-device-do-normalize",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "get_field(MultiModalConfig, 'mm_hasher_algorithm')",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1388,
+        "tag": "v0.29.0"
+      },
+      "id": "I-035",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--mm-hasher-algorithm",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "Field(default=0, ge=0)",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1462,
+        "tag": "v0.29.0"
+      },
+      "id": "I-036",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--mm-ipc-gpu-memory-gb",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "'auto'",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1438,
+        "tag": "v0.29.0"
+      },
+      "id": "I-037",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--mm-processor-device",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "get_field(ModelConfig, 'model_class_overrides')",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 958,
+        "tag": "v0.29.0"
+      },
+      "id": "I-038",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--model-class-overrides",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": [
+        "detailed",
+        "none",
+        "summary"
+      ],
+      "default": "'none'",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1539,
+        "tag": "v0.29.0"
+      },
+      "id": "I-039",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--per-request-spec-decode-metrics",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "dataclasses.field(default_factory=_default_prefix_cache_retention_interval)",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1291,
+        "tag": "v0.29.0"
+      },
+      "id": "I-040",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--prefix-cache-retention-interval",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "get_field(CacheConfig, 'prefix_match_unit')",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1313,
+        "tag": "v0.29.0"
+      },
+      "id": "I-041",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--prefix-match-unit",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "Field(default=16, gt=0)",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1319,
+        "tag": "v0.29.0"
+      },
+      "id": "I-042",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--replayssm-buffer-len",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "False",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 930,
+        "tag": "v0.29.0"
+      },
+      "id": "I-043",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--return-sampling-mask",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": null,
+      "detail": "new in v0.29.0 (sources: field)",
+      "evidence": {
+        "file": "vllm/entrypoints/launchers/cli_args.py",
+        "line": 140,
+        "tag": "v0.29.0"
+      },
+      "id": "I-044",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--sse-keep-alive-interval",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": null,
+      "default": "False",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1322,
+        "tag": "v0.29.0"
+      },
+      "id": "I-045",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--use-replayssm",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": [
+        "evs",
+        "vidcom2"
+      ],
+      "default": "'evs'",
+      "detail": "new in v0.29.0 (sources: literal, field)",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 1431,
+        "tag": "v0.29.0"
+      },
+      "id": "I-046",
+      "introduced": "v0.29.0",
+      "kind": "flag",
+      "name": "--video-pruning-method",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1084,
+        "tag": "v0.29.0"
+      },
+      "id": "I-047",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_ADAPTIVE_VERIFICATION_PROFILE_CONTEXT_LEN",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1615,
+        "tag": "v0.29.0"
+      },
+      "id": "I-048",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_B12X_MOE_FP4_FORCE_A16",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 667,
+        "tag": "v0.29.0"
+      },
+      "id": "I-049",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_BUILD_COMMIT",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 668,
+        "tag": "v0.29.0"
+      },
+      "id": "I-050",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_BUILD_PIPELINE",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 669,
+        "tag": "v0.29.0"
+      },
+      "id": "I-051",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_BUILD_URL",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1555,
+        "tag": "v0.29.0"
+      },
+      "id": "I-052",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_DCP_Q_REPLICATE",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 2004,
+        "tag": "v0.29.0"
+      },
+      "id": "I-053",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_DISABLE_DSV4_MEGAMOE_SHARED_EXPERT_FUSION",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1674,
+        "tag": "v0.29.0"
+      },
+      "id": "I-054",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_EC_SIDE_CHANNEL_HOST",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1679,
+        "tag": "v0.29.0"
+      },
+      "id": "I-055",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_EC_SIDE_CHANNEL_PORT",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1852,
+        "tag": "v0.29.0"
+      },
+      "id": "I-056",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_ENABLE_COHERE_API",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 2172,
+        "tag": "v0.29.0"
+      },
+      "id": "I-057",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_ENABLE_HPC_OPS",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1883,
+        "tag": "v0.29.0"
+      },
+      "id": "I-058",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_ENABLE_STARTUP_PLAN",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1209,
+        "tag": "v0.29.0"
+      },
+      "id": "I-059",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_GDN_DECODE_KERNEL",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 637,
+        "tag": "v0.29.0"
+      },
+      "id": "I-060",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_GPU_SYNC_CHECK",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 670,
+        "tag": "v0.29.0"
+      },
+      "id": "I-061",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_IMAGE_TAG",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1600,
+        "tag": "v0.29.0"
+      },
+      "id": "I-062",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_KIMI_K3_AUX_ATTN_RES_STREAM",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1605,
+        "tag": "v0.29.0"
+      },
+      "id": "I-063",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_KIMI_K3_GEMM_AR",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1608,
+        "tag": "v0.29.0"
+      },
+      "id": "I-064",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_KIMI_K3_GEMM_RS",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1593,
+        "tag": "v0.29.0"
+      },
+      "id": "I-065",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_KIMI_K3_SHARD_SP_SHARED_EXPERT",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 2059,
+        "tag": "v0.29.0"
+      },
+      "id": "I-066",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_KV_OFFLOAD_MAX_BATCH_DESCRIPTORS",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1010,
+        "tag": "v0.29.0"
+      },
+      "id": "I-067",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_MAX_AUDIO_DECODE_BYTES",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1139,
+        "tag": "v0.29.0"
+      },
+      "id": "I-068",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_MAX_BAD_WORDS_TOTAL_TOKENS",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1128,
+        "tag": "v0.29.0"
+      },
+      "id": "I-069",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_MAX_COMPLETION_PROMPTS",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1026,
+        "tag": "v0.29.0"
+      },
+      "id": "I-070",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_MAX_IMAGE_PIXELS",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 977,
+        "tag": "v0.29.0"
+      },
+      "id": "I-071",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1134,
+        "tag": "v0.29.0"
+      },
+      "id": "I-072",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_MAX_NUM_BAD_WORDS",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1132,
+        "tag": "v0.29.0"
+      },
+      "id": "I-073",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_MAX_STOP_STRINGS",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1583,
+        "tag": "v0.29.0"
+      },
+      "id": "I-074",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_MOE_SKIP_PADDING",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1695,
+        "tag": "v0.29.0"
+      },
+      "id": "I-075",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_MOONCAKE_LOAD_RECV_THREADS",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1665,
+        "tag": "v0.29.0"
+      },
+      "id": "I-076",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_P2P_SIDE_CHANNEL_HOST",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1669,
+        "tag": "v0.29.0"
+      },
+      "id": "I-077",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_P2P_SIDE_CHANNEL_PORT",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1803,
+        "tag": "v0.29.0"
+      },
+      "id": "I-078",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_RAISE_ON_LOGIT_NANS",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 620,
+        "tag": "v0.29.0"
+      },
+      "id": "I-079",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_REPLICATE_EMBED",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1293,
+        "tag": "v0.29.0"
+      },
+      "id": "I-080",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_ROCM_AITER_MLA_ASM_PADDING",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1262,
+        "tag": "v0.29.0"
+      },
+      "id": "I-081",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_ROCM_USE_AITER_MOE_SITUV2_A8W4",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 2139,
+        "tag": "v0.29.0"
+      },
+      "id": "I-082",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_USE_DIRECT_DCP_A2A",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 2145,
+        "tag": "v0.29.0"
+      },
+      "id": "I-083",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_USE_DIRECT_DCP_KV_GATHER",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 2142,
+        "tag": "v0.29.0"
+      },
+      "id": "I-084",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_USE_DIRECT_DCP_Q_GATHER",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1200,
+        "tag": "v0.29.0"
+      },
+      "id": "I-085",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_USE_HW_AGNOSTIC",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 1402,
+        "tag": "v0.29.0"
+      },
+      "id": "I-086",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_USE_RUST_BENCH",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 2117,
+        "tag": "v0.29.0"
+      },
+      "id": "I-087",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_XPU_FORCE_N_CONTIG_WEIGHT",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "detail": "new in v0.29.0",
+      "evidence": {
+        "file": "vllm/envs.py",
+        "line": 2131,
+        "tag": "v0.29.0"
+      },
+      "id": "I-088",
+      "introduced": "v0.29.0",
+      "kind": "env",
+      "name": "VLLM_XPU_INC_WNA16_BACKEND",
+      "source": "source-only"
+    },
+    {
+      "category": "new-feature",
+      "choices": [
+        "auto",
+        "bfloat16",
+        "float16",
+        "fp8",
+        "fp8_ds_mla",
+        "fp8_e4m3",
+        "fp8_e5m2",
+        "fp8_inc",
+        "fp8_per_token_head",
+        "int4_per_token_head",
+        "int8_per_token_head",
+        "nvfp4",
+        "nvfp4_4over6",
+        "turboquant_3bit_nc",
+        "turboquant_4bit_nc",
+        "turboquant_k3v4_nc",
+        "turboquant_k8v4"
+      ],
+      "detail": "--kv-cache-dtype gained ['int4_per_token_head', 'nvfp4_4over6'] (now ['auto', 'bfloat16', 'float16', 'fp8', 'fp8_ds_mla', 'fp8_e4m3', 'fp8_e5m2', 'fp8_inc', 'fp8_per_token_head', 'int4_per_token_head', 'int8_per_token_head', 'nvfp4', 'nvfp4_4over6', 'turboquant_3bit_nc', 'turboquant_4bit_nc', 'turboquant_k3v4_nc', 'turboquant_k8v4'])",
+      "evidence": {
+        "file": "vllm/config/cache.py",
+        "line": 119,
+        "tag": "v0.29.0"
+      },
+      "id": "I-089",
+      "kind": "enum-value",
+      "name": "--kv-cache-dtype",
+      "source": "source-only",
+      "values": [
+        "int4_per_token_head",
+        "nvfp4_4over6"
+      ]
+    },
+    {
+      "category": "new-feature",
+      "choices": [
+        "aiter",
+        "auto",
+        "b12x",
+        "batched_triton",
+        "cutlass",
+        "deep_gemm",
+        "deep_gemm_mega_moe",
+        "emulation",
+        "flashinfer_b12x",
+        "flashinfer_cutedsl",
+        "flashinfer_cutlass",
+        "flashinfer_moe_ep_mega_cutedsl",
+        "flashinfer_moe_ep_mega_deep_gemm",
+        "flashinfer_trtllm",
+        "flydsl",
+        "hpc",
+        "humming",
+        "marlin",
+        "triton",
+        "triton_unfused"
+      ],
+      "detail": "--moe-backend gained ['b12x', 'batched_triton', 'flashinfer_moe_ep_mega_cutedsl', 'flashinfer_moe_ep_mega_deep_gemm', 'hpc'] (now ['aiter', 'auto', 'b12x', 'batched_triton', 'cutlass', 'deep_gemm', 'deep_gemm_mega_moe', 'emulation', 'flashinfer_b12x', 'flashinfer_cutedsl', 'flashinfer_cutlass', 'flashinfer_moe_ep_mega_cutedsl', 'flashinfer_moe_ep_mega_deep_gemm', 'flashinfer_trtllm', 'flydsl', 'hpc', 'humming', 'marlin', 'triton', 'triton_unfused'])",
+      "evidence": {
+        "file": "vllm/config/kernel.py",
+        "line": 235,
+        "tag": "v0.29.0"
+      },
+      "id": "I-090",
+      "kind": "enum-value",
+      "name": "--moe-backend",
+      "source": "source-only",
+      "values": [
+        "b12x",
+        "batched_triton",
+        "flashinfer_moe_ep_mega_cutedsl",
+        "flashinfer_moe_ep_mega_deep_gemm",
+        "hpc"
+      ]
+    },
+    {
+      "category": "new-feature",
+      "choices": [
+        "aiter",
+        "auto",
+        "b12x",
+        "conch",
+        "cutlass",
+        "deep_gemm",
+        "emulation",
+        "exllama",
+        "fbgemm",
+        "flashinfer_b12x",
+        "flashinfer_cudnn",
+        "flashinfer_cutedsl",
+        "flashinfer_cutlass",
+        "flashinfer_trtllm",
+        "humming",
+        "machete",
+        "marlin",
+        "torch",
+        "triton",
+        "xpu",
+        "xpu_woq"
+      ],
+      "detail": "--linear-backend gained ['b12x', 'humming', 'xpu', 'xpu_woq'] (now ['aiter', 'auto', 'b12x', 'conch', 'cutlass', 'deep_gemm', 'emulation', 'exllama', 'fbgemm', 'flashinfer_b12x', 'flashinfer_cudnn', 'flashinfer_cutedsl', 'flashinfer_cutlass', 'flashinfer_trtllm', 'humming', 'machete', 'marlin', 'torch', 'triton', 'xpu', 'xpu_woq'])",
+      "evidence": {
+        "file": "vllm/config/kernel.py",
+        "line": 269,
+        "tag": "v0.29.0"
+      },
+      "id": "I-091",
+      "kind": "enum-value",
+      "name": "--linear-backend",
+      "source": "source-only",
+      "values": [
+        "b12x",
+        "humming",
+        "xpu",
+        "xpu_woq"
+      ]
+    },
+    {
+      "category": "new-feature",
+      "choices": [
+        "AMX_MLA",
+        "CPU_ATTN",
+        "CPU_MLA",
+        "CUSTOM",
+        "CUTLASS_MLA",
+        "CUTLASS_MSA",
+        "FLASHINFER",
+        "FLASHINFER_MLA",
+        "FLASHINFER_MLA_SPARSE",
+        "FLASHINFER_MLA_SPARSE_DSV4",
+        "FLASHINFER_MLA_SPARSE_SM120",
+        "FLASHMLA",
+        "FLASHMLA_SPARSE",
+        "FLASHMLA_SPARSE_DSV4",
+        "FLASH_ATTN",
+        "FLASH_ATTN_DIFFKV",
+        "FLASH_ATTN_MLA",
+        "FLASH_ATTN_MLA_SPARSE",
+        "FLEX_ATTENTION",
+        "HPC_ATTN",
+        "MINIMAX_M3_SPARSE",
+        "NO_ATTENTION",
+        "ROCM_AITER_FA",
+        "ROCM_AITER_MLA",
+        "ROCM_AITER_MLA_SPARSE",
+        "ROCM_AITER_TRITON_MLA",
+        "ROCM_AITER_UNIFIED_ATTN",
+        "ROCM_ATTN",
+        "ROCM_FLASHMLA_SPARSE_DSV4",
+        "TOKENSPEED_MLA",
+        "TORCH_SDPA",
+        "TRITON_ATTN",
+        "TRITON_ATTN_DIFFKV",
+        "TRITON_MLA",
+        "TRITON_MSA",
+        "TURBOQUANT",
+        "XPU_MLA_SPARSE"
+      ],
+      "detail": "--mm-encoder-attn-backend gained ['AMX_MLA', 'CPU_MLA', 'CUTLASS_MSA', 'FLASH_ATTN_MLA_SPARSE', 'HPC_ATTN', 'TRITON_MSA'] (now ['AMX_MLA', 'CPU_ATTN', 'CPU_MLA', 'CUSTOM', 'CUTLASS_MLA', 'CUTLASS_MSA', 'FLASHINFER', 'FLASHINFER_MLA', 'FLASHINFER_MLA_SPARSE', 'FLASHINFER_MLA_SPARSE_DSV4', 'FLASHINFER_MLA_SPARSE_SM120', 'FLASHMLA', 'FLASHMLA_SPARSE', 'FLASHMLA_SPARSE_DSV4', 'FLASH_ATTN', 'FLASH_ATTN_DIFFKV', 'FLASH_ATTN_MLA', 'FLASH_ATTN_MLA_SPARSE', 'FLEX_ATTENTION', 'HPC_ATTN', 'MINIMAX_M3_SPARSE', 'NO_ATTENTION', 'ROCM_AITER_FA', 'ROCM_AITER_MLA', 'ROCM_AITER_MLA_SPARSE', 'ROCM_AITER_TRITON_MLA', 'ROCM_AITER_UNIFIED_ATTN', 'ROCM_ATTN', 'ROCM_FLASHMLA_SPARSE_DSV4', 'TOKENSPEED_MLA', 'TORCH_SDPA', 'TRITON_ATTN', 'TRITON_ATTN_DIFFKV', 'TRITON_MLA', 'TRITON_MSA', 'TURBOQUANT', 'XPU_MLA_SPARSE'])",
+      "evidence": {
+        "file": "vllm/config/multimodal.py",
+        "line": 195,
+        "tag": "v0.29.0"
+      },
+      "id": "I-092",
+      "kind": "enum-value",
+      "name": "--mm-encoder-attn-backend",
+      "source": "source-only",
+      "values": [
+        "AMX_MLA",
+        "CPU_MLA",
+        "CUTLASS_MSA",
+        "FLASH_ATTN_MLA_SPARSE",
+        "HPC_ATTN",
+        "TRITON_MSA"
+      ]
+    },
+    {
+      "category": "new-feature",
+      "choices": [
+        "AMX_MLA",
+        "CPU_ATTN",
+        "CPU_MLA",
+        "CUSTOM",
+        "CUTLASS_MLA",
+        "CUTLASS_MSA",
+        "FLASHINFER",
+        "FLASHINFER_MLA",
+        "FLASHINFER_MLA_SPARSE",
+        "FLASHINFER_MLA_SPARSE_DSV4",
+        "FLASHINFER_MLA_SPARSE_SM120",
+        "FLASHMLA",
+        "FLASHMLA_SPARSE",
+        "FLASHMLA_SPARSE_DSV4",
+        "FLASH_ATTN",
+        "FLASH_ATTN_DIFFKV",
+        "FLASH_ATTN_MLA",
+        "FLASH_ATTN_MLA_SPARSE",
+        "FLEX_ATTENTION",
+        "HPC_ATTN",
+        "MINIMAX_M3_SPARSE",
+        "NO_ATTENTION",
+        "ROCM_AITER_FA",
+        "ROCM_AITER_MLA",
+        "ROCM_AITER_MLA_SPARSE",
+        "ROCM_AITER_TRITON_MLA",
+        "ROCM_AITER_UNIFIED_ATTN",
+        "ROCM_ATTN",
+        "ROCM_FLASHMLA_SPARSE_DSV4",
+        "TOKENSPEED_MLA",
+        "TORCH_SDPA",
+        "TRITON_ATTN",
+        "TRITON_ATTN_DIFFKV",
+        "TRITON_MLA",
+        "TRITON_MSA",
+        "TURBOQUANT",
+        "XPU_MLA_SPARSE"
+      ],
+      "detail": "--attention-backend gained ['AMX_MLA', 'CPU_MLA', 'CUTLASS_MSA', 'FLASH_ATTN_MLA_SPARSE', 'HPC_ATTN', 'TRITON_MSA'] (now ['AMX_MLA', 'CPU_ATTN', 'CPU_MLA', 'CUSTOM', 'CUTLASS_MLA', 'CUTLASS_MSA', 'FLASHINFER', 'FLASHINFER_MLA', 'FLASHINFER_MLA_SPARSE', 'FLASHINFER_MLA_SPARSE_DSV4', 'FLASHINFER_MLA_SPARSE_SM120', 'FLASHMLA', 'FLASHMLA_SPARSE', 'FLASHMLA_SPARSE_DSV4', 'FLASH_ATTN', 'FLASH_ATTN_DIFFKV', 'FLASH_ATTN_MLA', 'FLASH_ATTN_MLA_SPARSE', 'FLEX_ATTENTION', 'HPC_ATTN', 'MINIMAX_M3_SPARSE', 'NO_ATTENTION', 'ROCM_AITER_FA', 'ROCM_AITER_MLA', 'ROCM_AITER_MLA_SPARSE', 'ROCM_AITER_TRITON_MLA', 'ROCM_AITER_UNIFIED_ATTN', 'ROCM_ATTN', 'ROCM_FLASHMLA_SPARSE_DSV4', 'TOKENSPEED_MLA', 'TORCH_SDPA', 'TRITON_ATTN', 'TRITON_ATTN_DIFFKV', 'TRITON_MLA', 'TRITON_MSA', 'TURBOQUANT', 'XPU_MLA_SPARSE'])",
+      "evidence": {
+        "file": "vllm/config/attention.py",
+        "line": 24,
+        "tag": "v0.29.0"
+      },
+      "id": "I-093",
+      "kind": "enum-value",
+      "name": "--attention-backend",
+      "source": "source-only",
+      "values": [
+        "AMX_MLA",
+        "CPU_MLA",
+        "CUTLASS_MSA",
+        "FLASH_ATTN_MLA_SPARSE",
+        "HPC_ATTN",
+        "TRITON_MSA"
+      ]
+    },
+    {
+      "category": "new-feature",
+      "choices": [
+        "CPU",
+        "FLASHINFER",
+        "TRITON"
+      ],
+      "detail": "--mamba-backend gained ['CPU'] (now ['CPU', 'FLASHINFER', 'TRITON'])",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 769,
+        "tag": "v0.29.0"
+      },
+      "id": "I-094",
+      "kind": "enum-value",
+      "name": "--mamba-backend",
+      "source": "source-only",
+      "values": [
+        "CPU"
+      ]
+    },
+    {
+      "category": "default-changed",
+      "detail": "default 'ag_rs' -> None",
+      "evidence": {
+        "file": "vllm/config/parallel.py",
+        "line": 361,
+        "tag": "v0.29.0"
+      },
+      "id": "I-095",
+      "kind": "flag",
+      "name": "--dcp-comm-backend",
+      "new_default": "None",
+      "old_default": "'ag_rs'",
+      "source": "source-only"
+    },
+    {
+      "category": "default-changed",
+      "detail": "default 0 -> Field(default=0, ge=0)",
+      "evidence": {
+        "file": "vllm/config/scheduler.py",
+        "line": 70,
+        "tag": "v0.29.0"
+      },
+      "id": "I-096",
+      "kind": "flag",
+      "name": "--long-prefill-token-threshold",
+      "new_default": "Field(default=0, ge=0)",
+      "old_default": "0",
+      "source": "source-only"
+    },
+    {
+      "category": "default-changed",
+      "detail": "default 20 -> Field(default=20, ge=-1)",
+      "evidence": {
+        "file": "vllm/config/model.py",
+        "line": 250,
+        "tag": "v0.29.0"
+      },
+      "id": "I-097",
+      "kind": "flag",
+      "name": "--max-logprobs",
+      "new_default": "Field(default=20, ge=-1)",
+      "old_default": "20",
+      "source": "source-only"
+    },
+    {
+      "category": "deprecated",
+      "detail": "\"\"\"Enable deprecated Prometheus metrics that have been hidden since the",
+      "evidence": {
+        "file": "vllm/config/observability.py",
+        "line": 22,
+        "tag": "v0.29.0"
+      },
+      "id": "I-098",
+      "kind": "flag",
+      "name": "--show-hidden-metrics-for-version",
+      "source": "source-only"
+    },
+    {
+      "category": "deprecated",
+      "detail": "and will be deprecated when PCP is fully supported.",
+      "evidence": {
+        "file": "vllm/config/parallel.py",
+        "line": 358,
+        "tag": "v0.29.0"
+      },
+      "id": "I-099",
+      "kind": "flag",
+      "name": "--dcp-kv-cache-interleave-size",
+      "source": "source-only"
+    },
+    {
+      "category": "deprecated",
+      "detail": "# deprecated VLLM_PREFIX_CACHE_RETENTION_INTERVAL env var, when set,",
+      "evidence": {
+        "file": "vllm/engine/arg_utils.py",
+        "line": 2084,
+        "tag": "v0.29.0"
+      },
+      "id": "I-100",
+      "kind": "env",
+      "name": "VLLM_PREFIX_CACHE_RETENTION_INTERVAL",
+      "source": "source-only"
+    }
+  ],
+  "prev": "v0.24.0",
+  "target": "v0.29.0"
+}

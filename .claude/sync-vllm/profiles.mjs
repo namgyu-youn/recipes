@@ -196,6 +196,13 @@ function buildProfiles(taxonomy) {
       strategies: doc.compatible_strategies || [],
       features: Object.keys(doc.features || {}),
       backends_in_use: backends,
+      // Whether the recipe serves an MLA-attention model, derived from the
+      // backends it already selects. Sparse-MLA kernels are the main reason a
+      // capability applies to DeepSeek/Kimi/GLM and to nothing else, and the
+      // recipe schema has no other way to say so.
+      uses_mla: Object.values(backends)
+        .flat()
+        .some((v) => /MLA/i.test(String(v))),
       flags_in_use: [...flags.keys()],
       flag_values: values,
       envs_in_use: [...envs.keys()],
@@ -240,6 +247,9 @@ function matchesTraits(cap, profile) {
   }
   if (traits.features?.length && !traits.features.some((f) => profile.features.includes(f))) {
     return { ok: false, why: `recipe has no ${traits.features.join("/")} feature` };
+  }
+  if (traits.attention === "mla" && !profile.uses_mla) {
+    return { ok: false, why: "recipe does not select an MLA attention backend" };
   }
   return { ok: true, why: "traits match" };
 }
@@ -432,7 +442,11 @@ function supportingSentence(cap) {
     ...(cap.applies_to?.hardware || []).filter((h) => !WILDCARD_HARDWARE.has(h.toLowerCase())),
     ...(cap.applies_to?.quant || []),
     cap.applies_to?.model_traits?.architecture,
+    cap.applies_to?.model_traits?.attention,
     ...(cap.applies_to?.model_traits?.features || []),
+    // A named enum value is itself specific: "ROCM_AITER_FA" picks one backend,
+    // even though the hardware it implies ("amd") is only a brand.
+    ...(cap.how_enabled?.enum_values || []).map((e) => e.value),
   ].filter(Boolean);
   const clean = (t) => t.replace(/\s+/g, " ").trim();
   for (const dimension of dimensions) {

@@ -103,8 +103,14 @@ HARDWARE_TERMS = {
 
 QUANT_TERMS = ["nvfp4", "mxfp4", "mxfp8", "fp8", "int8", "int4", "fp4", "bf16", "awq", "gptq"]
 
-SECTION_KEEP = re.compile(r"highlight|breaking|deprecat", re.I)
-SECTION_DROP = re.compile(r"contributor|release artifact", re.I)
+# Highlights and the breaking section are written at capability level, so every
+# bullet in them is a candidate. The per-area sections (Engine Core, Hardware &
+# Performance, Quantization, ...) are changelogs: hundreds of bullets per
+# release, most of them internal. A bullet there earns candidacy only by naming
+# a flag, env or enum value that still exists at the target tag — that is what
+# makes it something a recipe could actually set.
+SECTION_PRIMARY = re.compile(r"highlight|breaking|deprecat", re.I)
+SECTION_DROP = re.compile(r"contributor|release artifact|new contributor", re.I)
 
 # A release-note heading is not a capability title. "New defaults" says nothing
 # about what changed; the title has to name the thing.
@@ -128,23 +134,54 @@ BREAKING_RE = re.compile(
 # --------------------------------------------------------------------------
 
 
-def notes_sections(body: str) -> list[tuple[str, list[str]]]:
-    """[(heading, bullet lines)] for the sections worth reading at this level."""
+def notes_sections(body: str, primary_only: bool = True) -> list[tuple[str, list[str]]]:
+    """[(heading, bullet lines)] per section.
+
+    `primary_only` keeps Highlights and the breaking/deprecation sections; with
+    it false every content section comes back, and the caller is responsible for
+    filtering the per-area changelog down to bullets that name something real.
+    """
     out: list[tuple[str, list[str]]] = []
     heading = ""
     bullets: list[str] = []
+
+    def flush() -> None:
+        if not heading or not bullets or SECTION_DROP.search(heading):
+            return
+        if primary_only and not SECTION_PRIMARY.search(heading):
+            return
+        out.append((heading, bullets))
+
     for raw in body.splitlines():
         if raw.startswith("#"):
-            if heading and bullets and SECTION_KEEP.search(heading) and not SECTION_DROP.search(heading):
-                out.append((heading, bullets))
+            flush()
             heading = raw.lstrip("#").strip()
             bullets = []
             continue
         if re.match(r"^\s*[*-]\s+", raw):
             bullets.append(re.sub(r"^\s*[*-]\s+", "", raw).strip())
-    if heading and bullets and SECTION_KEEP.search(heading) and not SECTION_DROP.search(heading):
-        out.append((heading, bullets))
+    flush()
     return out
+
+
+def area_clauses(bullet: str) -> list[str]:
+    """Split a changelog bullet into the clauses its PRs belong to."""
+    parts = re.split(r";\s+|(?<=\))\s*,\s+(?=[a-z`])|\.\s+(?=[A-Z])", bullet)
+    return [p.strip() for p in parts if p.strip()]
+
+
+def names_something_real(text: str, flags: dict, envs: dict, semantics: dict) -> bool:
+    """Does this clause name a flag, env or enum value that exists at the tag?"""
+    if any(f in flags for f in FLAG_RE.findall(text)):
+        return True
+    if any(e in envs for e in ENV_RE.findall(text)):
+        return True
+    for token in BACKTICK_RE.findall(text):
+        value = token.strip()
+        for sem in semantics.values():
+            if value in (sem.get("choices") or []):
+                return True
+    return False
 
 
 def topic_of(bullet: str) -> str | None:
@@ -243,8 +280,22 @@ def classify_effect(text: str) -> str:
     return "usability"
 
 
-def applies_to(text: str, semantics: dict) -> dict:
+# An enum value can imply its own hardware: a ROCm backend is AMD, a Hopper
+# backend is hopper. Upstream states this in the value name itself.
+VALUE_HARDWARE = [
+    (re.compile(r"^ROCM_|_AITER", re.I), "amd"),
+    (re.compile(r"^CPU_|^AMX_", re.I), "cpu"),
+    (re.compile(r"^XPU_", re.I), "xpu"),
+    (re.compile(r"SM120|^B12X", re.I), "blackwell"),
+]
+
+
+def applies_to(text: str, semantics: dict, how: dict | None = None) -> dict:
     hardware = [k for k, pattern in HARDWARE_TERMS.items() if re.search(pattern, text, re.I)]
+    for entry in (how or {}).get("enum_values", []):
+        for pattern, hw in VALUE_HARDWARE:
+            if pattern.search(entry["value"]) and hw not in hardware:
+                hardware.append(hw)
     quant = [q for q in QUANT_TERMS if re.search(rf"\b{q}\b", text, re.I)]
     traits = {}
     if re.search(r"\bmoe\b|expert|mixture", text, re.I):
@@ -274,8 +325,28 @@ def enum_pairs(text: str, named_flags: list[str], semantics: dict) -> list[dict]
             if m.group(1) in choices and pair not in seen:
                 seen.add(pair)
                 enums.append({"flag": flag, "value": m.group(1)})
-    # Deliberately no free-floating backtick scan: any `256` in the prose would
-    # otherwise pair itself with whichever flag happens to accept that value.
+    # A backticked token can still name a value on its own — "`FLASH_ATTN_MLA_SPARSE`
+    # Hopper sparse-MLA backend" never repeats the flag. Pair it only when it is
+    # non-numeric and accepted by exactly ONE flag at the tag, so `256` cannot
+    # attach itself to whichever flag happens to take that number.
+    for token in BACKTICK_RE.findall(text):
+        value = token.strip()
+        if not value or value.replace(".", "").isdigit() or len(value) < 4:
+            continue
+        owners = [f for f, sem in semantics.items() if value in (sem.get("choices") or [])]
+        if not owners:
+            continue
+        # Several flags can share one enum class (--attention-backend and
+        # --mm-encoder-attn-backend both take AttentionBackendEnum). That is not
+        # ambiguity about the value, only about which knob it was meant for, so
+        # take the least-qualified flag — the general one, not the sub-scoped.
+        classes = {(semantics[f].get("choices_from") or f) for f in owners}
+        if len(classes) > 1:
+            continue
+        owner = min(owners, key=lambda f: (f.count("-"), f))
+        if (owner, value) not in seen:
+            seen.add((owner, value))
+            enums.append({"flag": owner, "value": value})
     return enums[:4]
 
 
@@ -391,6 +462,26 @@ def draft(prev: str, target: str, report_dir: Path) -> dict:
     tags = [p.stem for p in sorted(cache.glob("*.md"))] if cache.is_dir() else []
     for tag in tags:
         body = (cache / f"{tag}.md").read_text()
+
+        # per-area changelog sections, filtered to clauses naming something real
+        for heading, bullets in notes_sections(body, primary_only=False):
+            if SECTION_PRIMARY.search(heading):
+                continue
+            for bullet in bullets:
+                for clause in area_clauses(bullet):
+                    if not names_something_real(clause, flags, envs, semantics):
+                        continue
+                    raw.append(
+                        {
+                            "source": "release-notes-area",
+                            "tag": tag,
+                            "heading": heading,
+                            "topic": topic_of(bullet),
+                            "text": clause[:600],
+                            "prs": sorted(set(PR_RE.findall(clause)))[:6],
+                        }
+                    )
+
         for heading, bullets in notes_sections(body):
             for bullet in bullets:
                 topic = topic_of(bullet)
@@ -477,7 +568,7 @@ def draft(prev: str, target: str, report_dir: Path) -> dict:
                 "default_on": bool(AUTO_MARKERS.search(text) or DEFAULT_RE.search(text)) and not how["flags"],
                 "drop_reason": drop_reason,
                 "reverse_markers": reverse_markers(text, envs),
-                "applies_to": applies_to(text, semantics),
+                "applies_to": applies_to(text, semantics, how),
                 "effect": classify_effect(text),
                 "evidence": {
                     "source": item["source"],
@@ -488,6 +579,13 @@ def draft(prev: str, target: str, report_dir: Path) -> dict:
             }
         )
     return {"prev": prev, "target": target, "capabilities": dedupe(caps)}
+
+
+def version_rank(tag: str | None) -> tuple[int, ...]:
+    try:
+        return F.version_key(tag or "v999.0.0")
+    except Exception:
+        return (999, 0, 0)
 
 
 def dedupe(caps: list[dict]) -> list[dict]:
@@ -544,6 +642,8 @@ def dedupe(caps: list[dict]) -> list[dict]:
             merged[key] = {**cap, "evidence": {**cap["evidence"], "also": []}}
             continue
         first = merged[key]
+        if version_rank(cap.get("since")) < version_rank(first.get("since")):
+            first["since"] = cap["since"]  # first announced, not last mentioned
         first["evidence"]["also"].append(
             {"section": cap["evidence"].get("section"), "source": cap["evidence"].get("source")}
         )

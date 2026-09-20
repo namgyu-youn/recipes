@@ -1,6 +1,6 @@
 {
   "target": "v0.29.0",
-  "generated": "2026-09-20T18:27:02.738Z",
+  "generated": "2026-09-20T18:38:08.910Z",
   "findings": [
     {
       "id": "R-01",
@@ -367,7 +367,13 @@
         "introduced": "v0.13.0",
         "removed": null,
         "recheck": "introduced v0.13.0, present at v0.29.0",
-        "cite": null,
+        "cite": {
+          "tag": "v0.29.0",
+          "file": "vllm/config/attention.py",
+          "line": 24,
+          "ok": false,
+          "reason": "line 24 of vllm/config/attention.py at v0.29.0 does not mention --attention-backend"
+        },
         "prs": []
       },
       "recipe_count": 5,
@@ -450,7 +456,7 @@
         }
       ],
       "auto_apply_candidates": 0,
-      "confidence": "high",
+      "confidence": "low",
       "status": "needs decision"
     },
     {
@@ -1081,7 +1087,13 @@
         "introduced": "v0.13.0",
         "removed": null,
         "recheck": "no independent upstream re-check for this category",
-        "cite": null,
+        "cite": {
+          "tag": "v0.29.0",
+          "file": "vllm/config/attention.py",
+          "line": 24,
+          "ok": false,
+          "reason": "line 24 of vllm/config/attention.py at v0.29.0 does not mention --attention-backend"
+        },
         "prs": []
       },
       "recipe_count": 1,
@@ -1128,7 +1140,7 @@
         }
       ],
       "auto_apply_candidates": 0,
-      "confidence": "high",
+      "confidence": "low",
       "status": "needs decision"
     },
     {
@@ -1143,7 +1155,13 @@
         "introduced": "v0.22.0",
         "removed": null,
         "recheck": "introduced v0.22.0, present at v0.29.0",
-        "cite": null,
+        "cite": {
+          "tag": "v0.29.0",
+          "file": "vllm/config/kernel.py",
+          "line": 269,
+          "ok": true,
+          "text": "linear_backend: LinearBackend = \"auto\""
+        },
         "prs": []
       },
       "recipe_count": 1,
@@ -1265,6 +1283,56 @@
     },
     {
       "id": "R-16",
+      "category": "default-changed",
+      "token": "--long-prefill-token-threshold",
+      "kind": "flag",
+      "invalid_value": null,
+      "accepted_sample": [],
+      "source": "source-only",
+      "upstream": {
+        "introduced": "v0.7.3",
+        "removed": null,
+        "recheck": "the recipe relies on the default, which changed upstream",
+        "cite": {
+          "tag": "v0.29.0",
+          "file": "vllm/config/scheduler.py",
+          "line": 70,
+          "ok": true,
+          "text": "long_prefill_token_threshold: int = Field(default=0, ge=0)"
+        },
+        "prs": []
+      },
+      "recipe_count": 1,
+      "line_count": 2,
+      "recipes": [
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4-Pro.yaml",
+          "floor": "0.20.0",
+          "blocks": [
+            {
+              "line": 499,
+              "path": "guide",
+              "scope": "guide text",
+              "tier": "prose"
+            },
+            {
+              "line": 502,
+              "path": "guide",
+              "scope": "guide text",
+              "tier": "prose"
+            }
+          ],
+          "needed": "v0.7.3",
+          "action": "report",
+          "why": ""
+        }
+      ],
+      "auto_apply_candidates": 0,
+      "confidence": "medium",
+      "status": "needs decision"
+    },
+    {
+      "id": "R-17",
       "category": "below-introducing-version",
       "token": "--speculative-config",
       "kind": "flag",
@@ -1308,7 +1376,7 @@
       "status": "needs decision"
     },
     {
-      "id": "R-17",
+      "id": "R-18",
       "category": "removed",
       "token": "--disable-log-requests",
       "kind": "flag",
@@ -1346,7 +1414,7 @@
       "status": "needs decision"
     },
     {
-      "id": "R-18",
+      "id": "R-19",
       "category": "default-changed",
       "token": "--dcp-comm-backend",
       "kind": "flag",
@@ -1396,7 +1464,7 @@
       "status": "needs decision"
     },
     {
-      "id": "R-19",
+      "id": "R-20",
       "category": "below-introducing-version",
       "token": "--quantization-config.moe.activation",
       "kind": "flag",
@@ -1434,7 +1502,7 @@
       "status": "needs decision"
     },
     {
-      "id": "R-20",
+      "id": "R-21",
       "category": "wrong-dash",
       "token": "--cc.pass_config.fuse_allreduce_rms",
       "kind": "flag",
@@ -1769,7 +1837,7 @@
       "recipes": [
         "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
       ],
-      "note": "upstream ships b12x linear/MoE kernels in-tree since v0.29.0 behind --linear-backend/--moe-backend; the VLLM_USE_B12X_* switches exist at no upstream tag, the newest rc or main, and three of them have no documented upstream equivalent",
+      "note": "upstream ships b12x linear/MoE kernels in-tree since v0.29.0 behind --linear-backend/--moe-backend; the VLLM_USE_B12X_* switches exist at no upstream tag, the newest rc or main",
       "mapping": {
         "VLLM_USE_B12X_WO_PROJECTION": "no upstream equivalent documented — cannot be dropped",
         "VLLM_USE_B12X_MHC": "no upstream equivalent documented — cannot be dropped",
