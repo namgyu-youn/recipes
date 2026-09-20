@@ -370,6 +370,8 @@ function main() {
       category,
       token,
       kind,
+      invalid_value: first.value || null,
+      accepted_sample: (first.choices || []).slice(0, 6),
       source: inv?.source || "source-only",
       upstream: {
         introduced: history?.introduced || null,

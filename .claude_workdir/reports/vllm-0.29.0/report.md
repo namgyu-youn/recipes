@@ -63,7 +63,7 @@ Tier: **report-only — needs an edit template and review before applying.**
 | R-03 | `--mm-encoder-tp-mode` | used below its introducing release (needs v0.10.2) | 5 | raise model floor, per-block floor question | high |
 | R-09 | `--task` | removed upstream (gone in v0.13.0) | 1 | decide: drop or re-spell | high |
 | R-11 | `--rope-scaling` | removed upstream (gone in v0.11.1) | 1 | decide: drop or re-spell | high |
-| R-12 | `--attention-backend` | invalid-value — deepseek-ai/DeepSeek-V4-Flash sets `?`, not an accepted value | 1 | report only | high |
+| R-12 | `--attention-backend` | invalid-value — deepseek-ai/DeepSeek-V4-Flash sets `B12X_MLA_SPARSE`, not accepted at the target tag (accepted: AMX_MLA, CPU_ATTN, CPU_MLA, CUSTOM, …) | 1 | report only | high |
 | R-13 | `--linear-backend` | used below its introducing release (needs v0.22.0) | 1 | raise variant pin | high |
 | R-14 | `VLLM_USE_BREAKABLE_CUDAGRAPH` | used below its introducing release (needs v0.22.0) | 1 | raise variant pin | high |
 | R-17 | `--disable-log-requests` | removed upstream (gone in v0.17.0) | 1 | decide: drop or re-spell | high |
