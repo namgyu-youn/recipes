@@ -110,18 +110,70 @@ def config_fields(tag: str) -> dict[str, dict]:
         for node in ast.walk(tree):
             if not isinstance(node, ast.ClassDef):
                 continue
-            for stmt in node.body:
+            body = node.body
+            for i, stmt in enumerate(body):
                 if not (
                     isinstance(stmt, ast.AnnAssign) and isinstance(stmt.target, ast.Name)
                 ):
                     continue
+                # vLLM documents a config field in the string literal that
+                # follows it — that docstring is the flag's --help text, and
+                # where a deprecation actually names its replacement.
+                nxt = body[i + 1] if i + 1 < len(body) else None
+                doc = (
+                    nxt.value.value
+                    if isinstance(nxt, ast.Expr)
+                    and isinstance(nxt.value, ast.Constant)
+                    and isinstance(nxt.value.value, str)
+                    else None
+                )
                 out[f"{node.name}.{stmt.target.id}"] = {
                     "default": ast.unparse(stmt.value) if stmt.value else None,
                     "choices": _literal_values(stmt.annotation, aliases),
+                    "doc": doc,
                     "file": path,
                     "line": stmt.lineno,
                 }
     return out
+
+
+def _enum_members(tag: str, class_name: str) -> list[str] | None:
+    """UPPER_CASE members of an enum class, wherever it lives in the tree.
+
+    Some choice sets are an Enum class rather than a Literal — the attention
+    backends are the important one. Without this, `--attention-backend` looks
+    like it accepts anything and a bogus value never gets caught.
+    """
+    hit = _git_grep(tag, f"class {class_name}")
+    if not hit:
+        return None
+    src = read_at(tag, hit)
+    if src is None:
+        return None
+    members: list[str] = []
+    inside = False
+    for line in src.splitlines():
+        if re.match(rf"class {re.escape(class_name)}\b", line):
+            inside = True
+            continue
+        if inside:
+            if line and not line[0].isspace():
+                break
+            m = re.match(r"\s+([A-Z][A-Z0-9_]*)\s*=", line)
+            if m:
+                members.append(m.group(1))
+    return sorted(members) or None
+
+
+def _git_grep(tag: str, needle: str) -> str | None:
+    r = F._git("grep", "-l", needle, tag, "--", "vllm/")
+    if r.returncode != 0 or not r.stdout.strip():
+        return None
+    return r.stdout.split()[0].split(":", 1)[1]
+
+
+def read_at(tag: str, path: str) -> str | None:
+    return F.read(tag, path)
 
 
 def flag_semantics(tag: str) -> dict[str, dict]:
@@ -156,6 +208,12 @@ def flag_semantics(tag: str) -> dict[str, dict]:
                 key = f"{stmt.value.value.id}.{stmt.value.attr}"
                 if key in cfg:
                     entry = {**cfg[key], "via": key}
+            if not entry.get("choices"):
+                enum_name = _annotation_enum(stmt.annotation)
+                if enum_name:
+                    members = _enum_members(tag, enum_name)
+                    if members:
+                        entry = {**entry, "choices": members, "choices_from": enum_name}
             out[flag] = entry
     return out
 
@@ -213,6 +271,160 @@ def _owner_ranges(src: str, path: str) -> list[tuple[int, int, str]]:
                     end = nxt.end_lineno or end  # the field's docstring
                 spans.append((stmt.lineno, end, "--" + name.replace("_", "-")))
     return spans
+
+
+def _annotation_enum(node: ast.expr) -> str | None:
+    """`AttentionBackendEnum | None` -> "AttentionBackendEnum"."""
+    names = []
+    stack = [node]
+    while stack:
+        cur = stack.pop()
+        if isinstance(cur, ast.Name):
+            names.append(cur.id)
+        elif isinstance(cur, ast.BinOp):
+            stack.extend([cur.left, cur.right])
+        elif isinstance(cur, ast.Subscript):
+            stack.append(cur.value)
+    return next((n for n in names if n.endswith("Enum")), None)
+
+
+def replacement_for(tag_removed: str, flag_or_env: str, index: dict) -> dict:
+    """What upstream said to use instead, read at the last tag where it existed.
+
+    A removed flag usually spent a release or two carrying its own obituary in
+    the argparse help or a deprecation warning. Reading that beats declaring
+    "no documented replacement" from the absence alone.
+    """
+    history = (index["flags"] if flag_or_env.startswith("-") else index["envs"]).get(flag_or_env)
+    if not history:
+        return {"replacement": None, "why": "no history for this name"}
+    tags = [t for t in index["indexed_tags"] if F.version_key(t) < F.version_key(tag_removed)]
+    if not tags:
+        return {"replacement": None, "why": "no indexed tag before the removal"}
+    last = tags[-1]
+
+    texts: list[tuple[str, str]] = []
+    for role in ("engine_args", "frontend_args", "envs"):
+        resolved = F.resolve_path(last, role)
+        if not resolved:
+            continue
+        path, src = resolved
+        if flag_or_env.startswith("-"):
+            for node in ast.walk(ast.parse(src)):
+                if not (isinstance(node, ast.Call) and F._is_add_argument(node.func)):
+                    continue
+                names = [
+                    a.value for a in node.args if isinstance(a, ast.Constant) and isinstance(a.value, str)
+                ]
+                if flag_or_env in names:
+                    texts.append((f"{path}:{node.lineno}", ast.unparse(node)))
+        if flag_or_env in src:
+            for i, line in enumerate(src.splitlines(), 1):
+                if flag_or_env in line and re.search(r"deprecat|instead|replaced|use ", line, re.I):
+                    texts.append((f"{path}:{i}", line.strip()))
+
+    # the flag's real help text: the config field docstring it forwards to
+    if flag_or_env.startswith("-"):
+        sem = flag_semantics(last).get(flag_or_env) or {}
+        via = sem.get("via")
+        cfg_entry = config_fields(last).get(via) if via else None
+        if cfg_entry and cfg_entry.get("doc"):
+            texts.append((f"{cfg_entry['file']}:{cfg_entry['line']} ({via} docstring)", cfg_entry["doc"]))
+
+    for module_path, src in _config_modules(last).items():
+        for i, line in enumerate(src.splitlines(), 1):
+            if flag_or_env.lstrip("-").replace("-", "_") in line and re.search(
+                r"deprecat|instead|replaced|use `", line, re.I
+            ):
+                texts.append((f"{module_path}:{i}", line.strip()))
+
+    # the deprecation notice is often nowhere near the parser — a request model,
+    # a platform check, a warning at startup. One bounded grep finds those.
+    field = flag_or_env.lstrip("-").replace("-", "_")
+    for needle in {flag_or_env, field}:
+        r = F._git("grep", "-n", "-I", "--", needle, last, "--", "vllm/")
+        if r.returncode != 0:
+            continue
+        for hit in r.stdout.splitlines():
+            if not re.search(r"deprecat|instead|replaced|in favou?r|please remove|no longer", hit, re.I):
+                continue
+            # `git grep -n <tag>` prints "<tag>:<path>:<line>:<text>"
+            _, _, rest = hit.partition(":")
+            path, _, rest = rest.partition(":")
+            lineno, _, _text = rest.partition(":")
+            # A deprecation message is usually split across several string
+            # literals, so the replacement sits a line or two below the word
+            # "deprecated". One line is not enough context.
+            src = F.read(last, path)
+            if src is None:
+                texts.append((f"{path}:{lineno}", _text.strip()[:240]))
+                continue
+            lines = src.splitlines()
+            i = int(lineno) if lineno.isdigit() else 1
+            window = " ".join(l.strip() for l in lines[max(0, i - 2) : i + 4])
+            texts.append((f"{path}:{i}", window[:400]))
+
+    patterns = [
+        r"use\s+`?(--[a-z0-9-]+|VLLM_[A-Z0-9_]+)`?\s+instead",
+        r"replaced\s+by\s+`?(--[a-z0-9-]+|VLLM_[A-Z0-9_]+)`?",
+        r"in favou?r of\s+`?(--[a-z0-9-]+|VLLM_[A-Z0-9_]+)`?",
+        r"superseded by\s+`?(--[a-z0-9-]+|VLLM_[A-Z0-9_]+)`?",
+        r"(?:migrate|switch) to\s+`?(--[a-z0-9-]+|VLLM_[A-Z0-9_]+)`?",
+    ]
+    # "please remove it" is a documented resolution too — and a mechanical one.
+    remove_patterns = [
+        r"please remove it",
+        r"simply (remove|drop) it",
+        r"no longer (needed|required|has any effect)",
+        r"is a no-?op",
+    ]
+
+    for where, text in texts:
+        for pattern in patterns:
+            m = re.search(pattern, text, re.I)
+            if m and m.group(1) != flag_or_env:
+                return {
+                    "replacement": m.group(1),
+                    "resolution": "replace",
+                    "why": f"documented at {last} in {where}",
+                    "quote": text[:240],
+                    "last_present": last,
+                }
+    for where, text in texts:
+        if any(re.search(pattern, text, re.I) for pattern in remove_patterns):
+            return {
+                "replacement": None,
+                "resolution": "remove",
+                "why": f"upstream says to drop it, documented at {last} in {where}",
+                "quote": text[:240],
+                "last_present": last,
+            }
+
+    # A BooleanOptionalAction flag whose default is the negation of another
+    # field was replaced by that field's flag: --disable-log-requests defaults
+    # to `not AsyncEngineArgs.enable_log_requests`, i.e. --enable-log-requests.
+    target_flags = F.flags_at(index["target"]) if index.get("target") else {}
+    for where, text in texts:
+        if "BooleanOptionalAction" not in text and "default=not " not in text:
+            continue
+        for referenced in re.findall(r"\b[A-Za-z]+Args\.([a-z_][a-z0-9_]*)", text):
+            candidate = "--" + referenced.replace("_", "-")
+            if candidate != flag_or_env and candidate in target_flags:
+                return {
+                    "replacement": candidate,
+                    "resolution": "replace",
+                    "why": f"its default was the negation of {referenced} at {last} ({where}), and {candidate} exists at the target tag",
+                    "quote": text[:240],
+                    "last_present": last,
+                }
+    return {
+        "replacement": None,
+        "resolution": "unknown",
+        "why": f"read the argparse help, the config field docstring and every deprecation line "
+        f"mentioning it at {last}; none names a replacement",
+        "last_present": last,
+        "quote": texts[0][1][:240] if texts else None,
+    }
 
 
 def deprecations(tag: str, names: list[str]) -> list[dict]:
@@ -436,6 +648,10 @@ def main() -> int:
     ap.add_argument("--prev", help="defaults to the previous stable release")
     ap.add_argument("--out", help="write inventory.json here")
     ap.add_argument(
+        "--replacements",
+        help="comma-separated removed flags/envs; print what upstream said to use instead",
+    )
+    ap.add_argument(
         "--dump-semantics",
         action="store_true",
         help="print {flag: {default, choices}} at --target and exit "
@@ -447,6 +663,23 @@ def main() -> int:
         if not F.tag_exists(tag):
             print(f"tag {tag} not found locally — fetch it first", file=sys.stderr)
             return 2
+    if args.replacements:
+        idx = IDX.index_for(args.target, quiet=True)
+        out = {}
+        for name in args.replacements.split(","):
+            name = name.strip()
+            if not name:
+                continue
+            history = (idx["flags"] if name.startswith("-") else idx["envs"]).get(name) or {}
+            removed = history.get("removed")
+            out[name] = (
+                replacement_for(removed, name, idx)
+                if removed
+                else {"replacement": None, "why": "not recorded as removed"}
+            )
+        print(json.dumps(out, indent=2, sort_keys=True))
+        return 0
+
     if args.dump_semantics:
         print(json.dumps(flag_semantics(args.target), indent=2, sort_keys=True))
         return 0

@@ -55,7 +55,8 @@ CONCEPTS = {
     "scheduling": r"schedul|admission|queue|chunked prefill|batch size|preempt",
     "compilation": r"compil|cudagraph|cuda graph|torch\.compile|inductor|piecewise",
     "frontend": r"api server|openai|frontend|tokenizer|response|endpoint|rust",
-    "default_change": r"now the default|by default|default(s)? (to|changed)|enabled by default|disabled by default",
+    "default_change": r"now the default|is (now )?the default|by default|default(s)? (to|changed)"
+    r"|enabled by default|disabled by default",
 }
 
 EFFECTS = {
@@ -93,6 +94,22 @@ QUANT_TERMS = ["nvfp4", "mxfp4", "mxfp8", "fp8", "int8", "int4", "fp4", "bf16", 
 SECTION_KEEP = re.compile(r"highlight|breaking|deprecat", re.I)
 SECTION_DROP = re.compile(r"contributor|release artifact", re.I)
 
+# A release-note heading is not a capability title. "New defaults" says nothing
+# about what changed; the title has to name the thing.
+GENERIC_TITLE = re.compile(
+    r"^(new )?(defaults?|models?|features?|highlights?|breaking changes?|deprecations?|"
+    r"performance|kernels?|robustness|correctness|hardware|quantization|api|engine core|"
+    r"large scale serving|rl weight sync|speculative decoding|mamba prefix caching)\s*:?$",
+    re.I,
+)
+
+# Removals and deprecations are breaking news, not shipped capabilities; they
+# belong in the stale/breaking section of the report.
+BREAKING_RE = re.compile(
+    r"\bremoved\b|\bdropped\b|no longer (supported|available|served)|\bdeprecat\w+",
+    re.I,
+)
+
 
 # --------------------------------------------------------------------------
 # draft
@@ -123,6 +140,44 @@ def topic_of(bullet: str) -> str | None:
     return m.group(1).rstrip(":").strip() if m else None
 
 
+def clean_title(text: str, topic: str | None = None) -> str:
+    """A title that names the thing.
+
+    Strips the bold topic, markdown and PR refs, then keeps the first item of
+    what is often a long enumeration — a Highlights bullet can carry eight
+    distinct kernel changes, and the first one is the title, not all eight.
+    Underscores survive: `VLLM_ALLREDUCE_USE_FLASHINFER` is a name, not
+    emphasis. An informative topic ("Kimi-K3 and DeepSeek V4 performance")
+    becomes a prefix; a generic one ("New defaults") is dropped.
+    """
+    body = re.sub(r"^\*\*(.+?)\*\*\s*:?\s*", "", text).strip()
+    body = re.sub(r"\s*\(#\d+(?:,\s*#\d+)*\)", "", body)
+    body = re.sub(r"[`*]", "", body)
+    body = re.split(r"(?<=[a-z0-9\)])\.\s+(?=[A-Z])", body)[0]
+    first = body.split(";")[0].strip(" .;,")
+    if len(first) > 150:
+        clauses = first.split(", ")
+        kept = clauses[0]
+        for clause in clauses[1:]:
+            if len(kept) + len(clause) + 2 > 150:
+                break
+            kept += ", " + clause
+        first = kept.strip(" .;,")
+    prefix = f"{topic}: " if topic and not GENERIC_TITLE.match(topic) else ""
+    return (prefix + first).strip(" .;,")
+
+
+def doc_title(tag: str, path: str) -> str | None:
+    """The H1 of a docs page, so a docs-derived capability is named, not pathed."""
+    src = F.read(tag, path)
+    if not src:
+        return None
+    for line in src.splitlines():
+        if line.startswith("# "):
+            return line[2:].strip()
+    return None
+
+
 def classify_concept(text: str) -> str:
     scores = {
         concept: len(re.findall(pattern, text, re.I)) for concept, pattern in CONCEPTS.items()
@@ -131,7 +186,7 @@ def classify_concept(text: str) -> str:
     specific = {k: v for k, v in scores.items() if k != "default_change" and v}
     if specific:
         return max(specific, key=specific.get)
-    return "default_change" if scores["default_change"] else "other"
+    return "default_change" if scores["default_change"] else "uncategorized"
 
 
 def classify_effect(text: str) -> str:
@@ -156,17 +211,32 @@ def applies_to(text: str, semantics: dict) -> dict:
     return {"hardware": hardware, "model_traits": traits, "quant": quant}
 
 
+def enum_pairs(text: str, named_flags: list[str], semantics: dict) -> list[dict]:
+    """`--moe-backend b12x` — the pair, not just the flag.
+
+    Without the value, "already uses --moe-backend" excludes every recipe that
+    passes any MoE backend at all, which is how a real adoption cohort gets
+    silently emptied.
+    """
+    enums: list[dict] = []
+    seen: set[tuple[str, str]] = set()
+    for flag in named_flags:
+        choices = (semantics.get(flag) or {}).get("choices") or []
+        for m in re.finditer(rf"{re.escape(flag)}[`\s=]+`?([A-Za-z0-9_.-]+)`?", text):
+            pair = (flag, m.group(1))
+            if m.group(1) in choices and pair not in seen:
+                seen.add(pair)
+                enums.append({"flag": flag, "value": m.group(1)})
+    # Deliberately no free-floating backtick scan: any `256` in the prose would
+    # otherwise pair itself with whichever flag happens to accept that value.
+    return enums[:4]
+
+
 def enabling(text: str, flags: dict, envs: dict, semantics: dict) -> dict:
     """Flags, envs and enum values named in the text that really exist upstream."""
     named_flags = sorted({f for f in FLAG_RE.findall(text) if f in flags})
     named_envs = sorted({e for e in ENV_RE.findall(text) if e in envs})
-    enums = []
-    for token in BACKTICK_RE.findall(text):
-        value = token.strip()
-        for flag, sem in semantics.items():
-            choices = sem.get("choices") or []
-            if value in choices:
-                enums.append({"flag": flag, "value": value})
+    enums = enum_pairs(text, named_flags, semantics)
     mode = "auto" if AUTO_MARKERS.search(text) and not named_flags else None
     if mode is None:
         mode = "explicit" if (named_flags or named_envs or enums or EXPLICIT_MARKERS.search(text)) else "auto"
@@ -174,7 +244,37 @@ def enabling(text: str, flags: dict, envs: dict, semantics: dict) -> dict:
         "mode": mode,
         "flags": named_flags,
         "envs": named_envs,
-        "enum_values": enums[:4],
+        "enum_values": enums,
+    }
+
+
+def reverse_markers(text: str, envs: dict) -> dict:
+    """Names whose presence in a recipe is now redundant or obsolete.
+
+    A capability that is on by default has no flag to add — but it can still
+    imply an edit: a recipe that explicitly sets what is now the default, or
+    keeps a workaround the release makes unnecessary. These are the names to
+    look for in the recipes.
+    """
+    now_default: list[str] = []
+    obsolete: list[str] = []
+
+    for m in re.finditer(r"opt out with `?([A-Z][A-Z0-9_]{3,}|--[a-z0-9-]+)`?", text, re.I):
+        now_default.append(m.group(1))
+    for m in re.finditer(
+        r"no longer (?:need(?:s)? to (?:pin|set|pass)|need(?:s)?|require(?:s)?) `?([A-Z][A-Z0-9_]{3,}|--[a-z0-9-]+)`?",
+        text,
+        re.I,
+    ):
+        obsolete.append(m.group(1))
+    # A SCREAMING_CASE name that is not a vLLM env is a workaround knob from
+    # somewhere else (PYTHONHASHSEED, CUDA_*), worth checking for in recipes.
+    for token in re.findall(r"\b([A-Z][A-Z0-9_]{5,})\b", text):
+        if token not in envs and token not in obsolete and not token.startswith("VLLM_"):
+            obsolete.append(token)
+    return {
+        "now_default": sorted(set(now_default)),
+        "obsolete": sorted(set(obsolete)),
     }
 
 
@@ -271,29 +371,53 @@ def draft(prev: str, target: str, report_dir: Path) -> dict:
     index = IDX.index_for(target, quiet=True)
     for item in docs_candidates(prev, target, flags, envs, index):
         item["tag"] = target
+        h1 = doc_title(target, item["heading"])
+        # A page titled "Security" or "Usage" names a chapter, not a capability;
+        # the flag it introduces is the subject.
+        if h1 and len(h1.split()) <= 2:
+            names = item["flags"] + item["envs"]
+            h1 = f"{h1}: {', '.join(names[:3])}" if names else None
+        item["title"] = h1 or item["title"]
         raw.append(item)
 
     used: set[str] = set()
     caps = []
     for item in raw:
         text = item["text"]
-        title = item.get("title") or item.get("topic") or re.sub(r"\*\*|`", "", text.split(".")[0])[:90]
+        title = item.get("title")
+        if not title or GENERIC_TITLE.match(title):
+            title = clean_title(text, item.get("topic"))
         how = enabling(text, flags, envs, semantics)
         if item["source"] == "docs-diff":
             how = {
                 "mode": "explicit" if item["flags"] or item["envs"] else "auto",
                 "flags": item["flags"],
                 "envs": item["envs"],
-                "enum_values": [],
+                "enum_values": enum_pairs(text, item["flags"], semantics),
             }
+        concept = classify_concept(text)
+        # The vocabulary is fixed. Anything outside it is not a capability —
+        # new model support, packaging, CI — and is kept in the YAML with a
+        # reason rather than padding "What shipped".
+        kind = (
+            "out_of_scope"
+            if item.get("topic") and re.match(r"new models?$", item["topic"].strip(), re.I)
+            else "breaking"
+            if BREAKING_RE.search(text)
+            else "out_of_scope"
+            if concept == "uncategorized"
+            else "capability"
+        )
         caps.append(
             {
                 "id": slugify(title, used),
-                "concept": classify_concept(text),
+                "kind": kind,
+                "concept": concept,
                 "title": title.strip(),
                 "since": item["tag"],
                 "how_enabled": how,
                 "default_on": bool(AUTO_MARKERS.search(text)) and not how["flags"],
+                "reverse_markers": reverse_markers(text, envs),
                 "applies_to": applies_to(text, semantics),
                 "effect": classify_effect(text),
                 "evidence": {
@@ -304,7 +428,81 @@ def draft(prev: str, target: str, report_dir: Path) -> dict:
                 },
             }
         )
-    return {"prev": prev, "target": target, "capabilities": caps}
+    return {"prev": prev, "target": target, "capabilities": dedupe(caps)}
+
+
+def dedupe(caps: list[dict]) -> list[dict]:
+    """Merge entries describing the same change.
+
+    The same capability is often announced twice — once in Highlights and once
+    under Breaking Changes — and again in the docs page that documents it. They
+    are the same fact with three citations, so they merge into one entry that
+    keeps all three.
+    """
+
+    stop = {"the", "a", "an", "new", "now", "is", "are", "for", "all", "of", "in", "to",
+            "and", "with", "on", "by", "its", "that", "this", "it"}
+
+    def names_of(cap: dict) -> str | None:
+        how = cap["how_enabled"]
+        names = sorted(how.get("flags", []) + how.get("envs", []))
+        return "|".join(names) or None
+
+    def words_of(cap: dict) -> set[str]:
+        words = [w for w in re.findall(r"[a-z0-9_]+", cap["title"].lower()) if w not in stop]
+        return set(words[:8])
+
+    def same_thing(a: dict, b: dict) -> bool:
+        """Two entries describe one change when their titles substantially overlap.
+
+        Exact keys miss the common case: Highlights says "Model Runner V2 is now
+        the default for all models" and the breaking section says "Model Runner
+        V2 is the default runner for all models".
+
+        The measure is the overlap coefficient, not Jaccard: one announcement is
+        usually a fuller version of the other ("Ten deprecated architectures
+        removed: Arctic, Chameleon, ..." vs "ten deprecated model architectures
+        removed"), and Jaccard punishes exactly that extra detail.
+        """
+        wa, wb = words_of(a), words_of(b)
+        if not wa or not wb:
+            return False
+        shared = wa & wb
+        return len(shared) >= 3 and len(shared) / min(len(wa), len(wb)) >= 0.7
+
+    merged: dict[str, dict] = {}
+    for cap in caps:
+        key = names_of(cap)
+        if key is None or key not in merged:
+            existing = next(
+                (k for k, v in merged.items() if same_thing(v, cap)),
+                None,
+            )
+            key = existing or key or f"title::{'|'.join(sorted(words_of(cap)))}"
+        if key not in merged:
+            merged[key] = {**cap, "evidence": {**cap["evidence"], "also": []}}
+            continue
+        first = merged[key]
+        first["evidence"]["also"].append(
+            {"section": cap["evidence"].get("section"), "source": cap["evidence"].get("source")}
+        )
+        first["evidence"]["prs"] = sorted(set(first["evidence"].get("prs", []) + cap["evidence"].get("prs", [])))
+        # a docs page names the thing better than a release-note sentence does
+        if cap["evidence"].get("source") == "docs-diff":
+            first["title"] = cap["title"]
+        if cap["kind"] == "breaking":
+            first["kind"] = "breaking"
+        for field in ("flags", "envs", "enum_values"):
+            have = first["how_enabled"].setdefault(field, [])
+            for extra in cap["how_enabled"].get(field, []):
+                if extra not in have:
+                    have.append(extra)
+        for field in ("hardware", "quant"):
+            have = first["applies_to"].setdefault(field, [])
+            for extra in cap["applies_to"].get(field, []):
+                if extra not in have:
+                    have.append(extra)
+    return list(merged.values())
 
 
 # --------------------------------------------------------------------------

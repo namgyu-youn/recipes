@@ -47,8 +47,6 @@ capabilities:
     - section: Breaking Changes & Deprecations
       source: release-notes
   curated: true
-  verified: []
-  confidence: medium
 - id: kimi-k3-and-deepseek-v4-performance-fused-mxfp4-
   kind: capability
   concept: moe_backend
@@ -94,8 +92,6 @@ capabilities:
       re-landed (#'
     also: []
   curated: true
-  verified: []
-  confidence: medium
 - id: per-request-acceptance-stats-in-openai-api-respo
   kind: capability
   concept: spec_decoding
@@ -138,9 +134,6 @@ capabilities:
     - section: docs/features/speculative_decoding/acceptance_metrics.md
       source: docs-diff
   curated: true
-  verified:
-  - --per-request-spec-decode-metrics exists at v0.29.0
-  confidence: high
 - id: internal-prefill-checkpoints-deliver-a-9-25-ttft
   kind: capability
   concept: kv_cache
@@ -176,8 +169,6 @@ capabilities:
       automatically restored for hybrid models using EAGLE/MTP (#55760, #55861).'
     also: []
   curated: true
-  verified: []
-  confidence: medium
 - id: flashinfer-all-reduce-enabled-by-default-for-tp-
   kind: capability
   concept: parallelism
@@ -211,9 +202,6 @@ capabilities:
     - section: Breaking Changes & Deprecations
       source: release-notes
   curated: true
-  verified:
-  - VLLM_ALLREDUCE_USE_FLASHINFER exists at v0.29.0
-  confidence: medium
 - id: prefix-cache-none-hash-is-deterministic-by-defau
   kind: capability
   concept: kv_cache
@@ -245,8 +233,6 @@ capabilities:
       need to pin `PYTHONHASHSEED` (#51875)
     also: []
   curated: true
-  verified: []
-  confidence: medium
 - id: new-max-num-queued-reqs-max-num-queued-tokens-ad
   kind: capability
   concept: scheduling
@@ -276,10 +262,47 @@ capabilities:
     text: new `--max-num-queued-reqs` / `--max-num-queued-tokens` admission-control flags (#49445).
     also: []
   curated: true
-  verified:
-  - --max-num-queued-reqs exists at v0.29.0
-  - --max-num-queued-tokens exists at v0.29.0
-  confidence: high
+- id: ten-deprecated-model-architectures-removed
+  kind: breaking
+  concept: moe_backend
+  title: ten deprecated model architectures removed
+  since: v0.29.0
+  how_enabled:
+    mode: explicit
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: false
+  reverse_markers:
+    now_default: []
+    obsolete: []
+  applies_to:
+    hardware:
+    - amd
+    model_traits:
+      tasks:
+      - multimodal
+    quant: []
+  effect: correctness
+  evidence:
+    source: release-notes
+    section: Highlights
+    prs:
+    - '52131'
+    - '52182'
+    - '53141'
+    - '53608'
+    - '53615'
+    - '54231'
+    text: '**Breaking changes**: ten deprecated model architectures removed (#53608); FlexOlmo, Olmo3
+      and Hunyuan V1/VL migrated to the Transformers modeling backend (#53615); PyAV video decoder backend
+      removed (#54231); `python -m vllm.entrypoints.openai.api_server` deprecated in favor of `vllm serve`
+      (#52131); `VLLM_TEST_FORCE_FP8_MARLIN` (#52182) and `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` (#53141)
+      removed.'
+    also:
+    - section: Breaking Changes & Deprecations
+      source: release-notes
+  curated: true
 - id: pyav-video-decoder-backend-removed
   kind: breaking
   concept: uncategorized
@@ -309,8 +332,6 @@ capabilities:
     text: PyAV video decoder backend removed; use OpenCV or Torchcodec (#54231).
     also: []
   curated: true
-  verified: []
-  confidence: medium
 - id: python-m-vllm-entrypoints-openai-api-server-is-d
   kind: breaking
   concept: frontend
@@ -338,8 +359,6 @@ capabilities:
     text: '`python -m vllm.entrypoints.openai.api_server` is deprecated; use `vllm serve` (#52131).'
     also: []
   curated: true
-  verified: []
-  confidence: medium
 - id: prefix-cache-retention-interval-default-changed-
   kind: breaking
   concept: default_change
@@ -369,8 +388,6 @@ capabilities:
       var is deprecated in favor of the argument (#52216).'
     also: []
   curated: true
-  verified: []
-  confidence: medium
 - id: vllm-test-force-fp8-marlin-removed-in-favor-of-l
   kind: breaking
   concept: moe_backend
@@ -408,11 +425,6 @@ capabilities:
       removed (#52557); other long-deprecated parameters cleaned up (#53559).'
     also: []
   curated: true
-  verified:
-  - --attention-config exists at v0.29.0
-  - --linear-backend exists at v0.29.0
-  - --moe-backend exists at v0.29.0
-  confidence: high
 - id: b12x-linear-and-moe-backends
   kind: capability
   concept: moe_backend
@@ -463,13 +475,6 @@ capabilities:
       not support expert parallelism, expert maps, EXL3, or NF3.
     also: []
   curated: true
-  verified:
-  - --linear-backend exists at v0.29.0
-  - --moe-backend exists at v0.29.0
-  - VLLM_B12X_MOE_FP4_FORCE_A16 exists at v0.29.0
-  - --linear-backend=b12x is an accepted value at v0.29.0
-  - --moe-backend=b12x is an accepted value at v0.29.0
-  confidence: high
 - id: trace-replay-enable-trace-replay
   kind: capability
   concept: scheduling
@@ -509,9 +514,6 @@ capabilities:
       to detect logprob divergence caused by numerical differences between trainin'
     also: []
   curated: true
-  verified:
-  - --enable-trace-replay exists at v0.29.0
-  confidence: high
 - id: security-vllm-max-media-download-size-mb
   kind: capability
   concept: frontend
@@ -554,51 +556,4 @@ capabilities:
       file. Enforced on all audio inputs (multimodal chat URLs, speech-to-text'
     also: []
   curated: true
-  verified:
-  - VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB exists at v0.29.0
-  confidence: high
 curated_from: capabilities.draft.yaml
-dropped:
-- id: ten-deprecated-model-architectures-removed
-  kind: breaking
-  concept: moe_backend
-  title: ten deprecated model architectures removed
-  since: v0.29.0
-  how_enabled:
-    mode: explicit
-    flags: []
-    envs: []
-    enum_values: []
-  default_on: false
-  reverse_markers:
-    now_default: []
-    obsolete: []
-  applies_to:
-    hardware:
-    - amd
-    model_traits:
-      tasks:
-      - multimodal
-    quant: []
-  effect: correctness
-  evidence:
-    source: release-notes
-    section: Highlights
-    prs:
-    - '52131'
-    - '52182'
-    - '53141'
-    - '53608'
-    - '53615'
-    - '54231'
-    text: '**Breaking changes**: ten deprecated model architectures removed (#53608); FlexOlmo, Olmo3
-      and Hunyuan V1/VL migrated to the Transformers modeling backend (#53615); PyAV video decoder backend
-      removed (#54231); `python -m vllm.entrypoints.openai.api_server` deprecated in favor of `vllm serve`
-      (#52131); `VLLM_TEST_FORCE_FP8_MARLIN` (#52182) and `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` (#53141)
-      removed.'
-    also:
-    - section: Breaking Changes & Deprecations
-      source: release-notes
-  curated: true
-  dropped_because:
-  - claims an explicit enabling flag/env but names none that exists
