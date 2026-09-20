@@ -143,18 +143,41 @@ function main() {
             lines.push(
               `Add ${enablement(c.how_enabled)} to ${c.cohort.length} recipes${already}: ${shown}${more}.`
             );
+            const conflicting = c.cohort.filter((r) => r.conflicts?.length);
+            if (conflicting.length) {
+              lines.push(
+                `⚠ ${conflicting.length} of them already set the same flag to a different value — ` +
+                  `that is a backend swap with a behaviour change, not an addition: ${conflicting
+                    .slice(0, 4)
+                    .map((r) => `${short(r.file)} (${r.conflicts[0].flag} ${r.conflicts[0].current} → ${r.conflicts[0].proposed})`)
+                    .join(", ")}${conflicting.length > 4 ? ", …" : ""}.`
+              );
+            }
           }
           if (c.reverse_hits?.length) {
-            const kinds = {};
-            for (const h of c.reverse_hits) kinds[h.kind] = (kinds[h.kind] || 0) + 1;
-            const summary = Object.entries(kinds)
-              .map(([k, n]) => `${n} ${k.replace(/-/g, " ")}`)
-              .join(", ");
-            const sample = c.reverse_hits
-              .slice(0, 4)
-              .map((h) => `${short(h.file)} [${h.kind.replace(/-/g, " ")}: ${h.name}]`)
-              .join(", ");
-            lines.push(`Subtractive edits: ${summary} — ${sample}${c.reverse_hits.length > 4 ? ", …" : ""}.`);
+            // Per row: what is set, to what value, and against which floor —
+            // the three things that decide whether it is really redundant.
+            lines.push("");
+            lines.push("| Recipe | Name | Value | Recipe floor | Verdict |");
+            lines.push("|---|---|---|---|---|");
+            for (const h of c.reverse_hits.slice(0, 12)) {
+              lines.push(
+                `| \`${short(h.file)}\` | \`${h.name}\` | ${h.value ? `\`${h.value}\`` : "—"} | ${
+                  h.floor || "unset"
+                } | ${h.kind.replace(/-/g, " ")}${h.replacement ? ` → \`${h.replacement}\`` : ""} |`
+              );
+            }
+            if (c.reverse_hits.length > 12) lines.push(`| … | +${c.reverse_hits.length - 12} more in cohorts.json | | | |`);
+            lines.push("");
+          }
+          // For a default change, quote the sentence that states the default —
+          // not whichever sentence happened to mention the dimension.
+          const defaultQuote = String(c.evidence?.text || "")
+            .split(/(?<=[.;])\s+/)
+            .map((t) => t.replace(/\s+/g, " ").trim())
+            .find((t) => /\bdefault\b/i.test(t));
+          if (c.reverse_hits?.length && defaultQuote) {
+            lines.push(`Upstream states the default: "${defaultQuote.slice(0, 240)}"`);
           }
           if (c.supporting_sentence) {
             lines.push(
@@ -195,8 +218,14 @@ function main() {
     )
     .join("\n");
 
-  const knownPlugin = pluginFlags.filter((p) => p.namespace !== "vendor-or-out-of-tree");
-  const vendor = pluginFlags.filter((p) => p.namespace === "vendor-or-out-of-tree");
+  const namespaces = new Map();
+  for (const p of pluginFlags) {
+    if (!namespaces.has(p.namespace)) namespaces.set(p.namespace, []);
+    namespaces.get(p.namespace).push(p);
+  }
+  const byNamespace = [...namespaces.entries()].sort((a, b) => b[1].length - a[1].length);
+  const knownPlugin = pluginFlags.filter((p) => p.namespace !== "vendor-image");
+  const vendor = pluginFlags.filter((p) => p.namespace === "vendor-image");
   const notYetReleased = findingsDoc.not_yet_released || [];
   const pluginTokens = pluginFlags.map((p) => p.token);
   const pluginRecipes = new Set(pluginFlags.flatMap((p) => p.recipes));
@@ -231,10 +260,10 @@ ${adoption}
 
 ${
   needNarrowing.length
-    ? `\n${needNarrowing.length} further capabilities matched more than 30 recipes, which means \`applies_to\` is not narrow enough to be evidence: ${needNarrowing
-        .map((c) => c.id)
-        .slice(0, 6)
-        .join(", ")}${needNarrowing.length > 6 ? ", …" : ""}. Narrow hardware/quant/traits in \`capabilities.yaml\` and re-run before judging these.`
+    ? `\n${needNarrowing.length} further capabilit${needNarrowing.length === 1 ? "y" : "ies"} matched more than 30 recipes, which means \`applies_to\` is not narrow enough to be evidence: ${needNarrowing
+        .map((c) => c.title)
+        .slice(0, 4)
+        .join("; ")}${needNarrowing.length > 4 ? "; …" : ""}. Narrow hardware/quant/traits in \`capabilities.yaml\` and re-run before judging these.`
     : ""
 }
 
@@ -266,14 +295,19 @@ Per-recipe lines, blocks and floors: \`findings.json\`.
 
 Not stale usage — vLLM never shipped these, so this tool has nothing to check them against.
 
-- **Known plugin namespaces** (${knownPlugin.length} across ${
-    new Set(knownPlugin.flatMap((p) => p.recipes)).size
-  } recipes): ${knownPlugin.map((p) => `\`${p.token}\``).join(", ") || "_none_"}.
-- **Vendor or out-of-tree** (${vendor.length} across ${
-    new Set(vendor.flatMap((p) => p.recipes)).size
-  } recipes) — plain \`VLLM_*\`/core-looking names absent from every stable tag, the newest rc and main, so they come from a pinned vendor image: ${
-    vendor.slice(0, 10).map((p) => `\`${p.token}\``).join(", ") || "_none_"
-  }${vendor.length > 10 ? `, +${vendor.length - 10} more` : ""}.
+Each is classified by the recipe context it sits in — an omni task section, a pinned image, or the company its neighbours keep — not by how the name is spelled.
+
+${byNamespace
+    .map(
+      ([ns, list]) =>
+        `- **${ns}** (${list.length} flags across ${
+          new Set(list.flatMap((p) => p.recipes)).size
+        } recipes) — ${list[0].why}: ${list
+          .slice(0, 8)
+          .map((p) => `\`${p.token}\``)
+          .join(", ")}${list.length > 8 ? `, +${list.length - 8} more` : ""}.`
+    )
+    .join("\n")}
 ${
   notYetReleased.length
     ? `- **Newer than ${target}** (${notYetReleased.length}) — present in the clone but not in a stable release yet, so the recipe is ahead of its pin: ${notYetReleased

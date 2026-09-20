@@ -104,6 +104,20 @@ function envAssignments(doc) {
   return out;
 }
 
+/** Only the fenced command blocks of a guide — never its prose. */
+function fencedGuide(guide) {
+  const out = [];
+  let open = false;
+  for (const line of guide.split("\n")) {
+    if (/^\s*```/.test(line)) {
+      open = !open;
+      continue;
+    }
+    if (open) out.push(line);
+  }
+  return out.join("\n");
+}
+
 function hardwareKeys(doc) {
   const keys = new Set();
   for (const k of Object.keys(doc?.meta?.hardware || {})) keys.add(k);
@@ -167,6 +181,7 @@ function buildProfiles(taxonomy) {
       envs_in_use: [...envs.keys()],
       env_assignments: envAssignments(doc),
       guide: String(doc.guide || ""),
+      guide_fences: fencedGuide(String(doc.guide || "")),
       min_vllm_version: doc.model.min_vllm_version || null,
       variant_floors: Object.fromEntries(
         Object.entries(doc.variants || {})
@@ -241,20 +256,72 @@ function alreadyUsing(cap, profile) {
  * guide text describing the old behaviour. Without one of these there is
  * nothing to do, and the capability is not an adoption opportunity at all.
  */
+function cmpVersion(a, b) {
+  const key = (v) => String(v || "").replace(/^v/, "").split(".").map((x) => parseInt(x, 10) || 0);
+  const [x, y] = [key(a), key(b)];
+  for (let i = 0; i < Math.max(x.length, y.length); i += 1) {
+    if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0);
+  }
+  return 0;
+}
+
+const OPT_IN_VALUES = new Set(["1", "true", "on", "yes"]);
+const OPT_OUT_VALUES = new Set(["0", "false", "off", "no"]);
+
 function reverseHits(cap, profile) {
   const markers = cap.reverse_markers || {};
   const hits = [];
+  const floor = profile.min_vllm_version || null;
+  // Setting a value is only *redundant* once the recipe's own floor is at or
+  // above the release that made it the default. Below that floor the recipe
+  // still supports versions where the setting does something, so it stays.
+  const floorCovers = floor && cmpVersion(floor, cap.since || "") >= 0;
+
   for (const name of markers.now_default || []) {
     const assigned = profile.env_assignments?.[name];
     if (assigned) {
+      const value = String(assigned.value).toLowerCase();
+      // "0" turns the new default OFF. That is a deliberate workaround, not a
+      // redundant restatement, and deleting it would change behaviour.
+      if (OPT_OUT_VALUES.has(value)) {
+        hits.push({
+          file: profile.file,
+          kind: "explicit-opt-out",
+          name,
+          value: assigned.value,
+          floor,
+          detail: `${name}=${assigned.value} in ${assigned.path} opts OUT of the new default — keep unless the reason is gone`,
+        });
+        continue;
+      }
+      if (!OPT_IN_VALUES.has(value)) continue;
+      if (!floorCovers) {
+        hits.push({
+          file: profile.file,
+          kind: "redundant-below-floor",
+          name,
+          value: assigned.value,
+          floor,
+          detail: `${name}=${assigned.value} in ${assigned.path}; default only since ${cap.since}, recipe floor is ${floor || "unset"} — still load-bearing`,
+        });
+        continue;
+      }
       hits.push({
         file: profile.file,
         kind: "redundant-explicit",
         name,
-        detail: `${name}=${assigned.value} in ${assigned.path} — now the default`,
+        value: assigned.value,
+        floor,
+        detail: `${name}=${assigned.value} in ${assigned.path}; default since ${cap.since}, recipe floor ${floor} — redundant`,
       });
-    } else if (profile.flags_in_use.includes(name)) {
-      hits.push({ file: profile.file, kind: "redundant-explicit", name, detail: `passes ${name}, now the default` });
+    } else if (profile.flags_in_use.includes(name) && floorCovers) {
+      hits.push({
+        file: profile.file,
+        kind: "redundant-explicit",
+        name,
+        floor,
+        detail: `passes ${name}; default since ${cap.since}, recipe floor ${floor} — redundant`,
+      });
     }
   }
   for (const name of markers.obsolete || []) {
@@ -264,12 +331,19 @@ function reverseHits(cap, profile) {
         file: profile.file,
         kind: "obsolete-workaround",
         name,
-        detail: `${name}=${assigned.value} in ${assigned.path} — no longer needed`,
+        value: assigned.value,
+        floor,
+        replacement: (cap.supersedes || {})[name] || null,
+        detail: `${name}=${assigned.value} in ${assigned.path} — superseded${
+          (cap.supersedes || {})[name] ? ` by ${cap.supersedes[name]}` : ""
+        }`,
       });
     }
   }
   for (const name of [...(markers.now_default || []), ...(markers.obsolete || [])]) {
-    if (profile.guide.includes(name)) {
+    // Only a command in a fenced block counts; prose that merely mentions the
+    // name is usually documentation saying it is no longer needed.
+    if (profile.guide_fences.includes(name)) {
       hits.push({ file: profile.file, kind: "stale-guide-text", name, detail: `guide mentions ${name}` });
     }
   }
@@ -329,9 +403,54 @@ function supportingSentence(cap) {
   return null;
 }
 
-function buildCohorts(caps, profiles) {
+/**
+ * A capability can enable more than one thing, and the parts do not share a
+ * cohort. b12x is the case in point: the linear backend applies to any
+ * supported quantization, the MoE backend only to MoE models, and the FP4
+ * activation knob only to NVFP4 checkpoints. Folding them into one flag list
+ * would propose `--moe-backend b12x` for dense models.
+ */
+function expandParts(caps) {
   const out = [];
   for (const cap of caps) {
+    if (!cap.parts?.length) {
+      out.push(cap);
+      continue;
+    }
+    for (const [i, part] of cap.parts.entries()) {
+      out.push({
+        ...cap,
+        // Reverse markers belong to the capability, not to each part; listing
+        // them under every part would repeat the same rows three times.
+        reverse_markers: i === 0 ? cap.reverse_markers : { now_default: [], obsolete: [] },
+        id: `${cap.id}/${part.id}`,
+        title: `${cap.title} — ${part.title || part.id}`,
+        part: part.kind || "primary",
+        how_enabled: part.how_enabled,
+        applies_to: { ...cap.applies_to, ...(part.applies_to || {}) },
+        parts: undefined,
+      });
+    }
+  }
+  return out;
+}
+
+function buildCohorts(allCaps, profiles) {
+  const out = [];
+  const caps = expandParts(allCaps);
+  for (const cap of caps) {
+    // A removal is not something to adopt.
+    if (cap.kind === "breaking" || cap.kind === "out_of_scope") {
+      out.push({
+        id: cap.id,
+        title: cap.title,
+        concept: cap.concept,
+        kind: cap.kind,
+        cohort: [],
+        skipped: cap.kind === "breaking" ? "breaking change — belongs in the stale section" : cap.drop_reason || "out of scope",
+      });
+      continue;
+    }
     const bounded =
       (cap.applies_to?.hardware || []).length ||
       Object.keys(cap.applies_to?.model_traits || {}).length ||
@@ -399,12 +518,24 @@ function buildCohorts(caps, profiles) {
         excluded.push({ file: profile.file, reason: using });
         continue;
       }
+      const wanted = (cap.applies_to?.hardware || []).map((h) => h.toLowerCase());
       cohort.push({
         file: profile.file,
         why: checks.map((c) => c.why).join("; "),
         architecture: profile.architecture,
         precisions: profile.precisions,
+        // Which of the recipe's own hardware blocks the edit belongs in.
+        matched_hardware: profile.hardware_keys.filter((k) => wanted.includes(k.toLowerCase())),
+        matched_quant: (cap.applies_to?.quant || []).filter((q) => profile.precisions.includes(q)),
+        // The same flag already set to a different value: adopting is then a
+        // swap with a behaviour change, not an addition.
+        conflicts: (cap.how_enabled?.enum_values || []).flatMap((e) =>
+          (profile.flag_values || [])
+            .filter((v) => v.flag === e.flag && v.value !== e.value)
+            .map((v) => ({ flag: e.flag, current: v.value, proposed: e.value, path: v.path }))
+        ),
         hardware_keys: profile.hardware_keys,
+        floor: profile.min_vllm_version,
       });
     }
     const entry = {
@@ -416,6 +547,7 @@ function buildCohorts(caps, profiles) {
       how_enabled: cap.how_enabled,
       applies_to: cap.applies_to,
       evidence: cap.evidence,
+      part: cap.part,
       supporting_sentence: support,
       reverse_hits: profiles.flatMap((p) => reverseHits(cap, p)),
       cohort,

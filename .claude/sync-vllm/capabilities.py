@@ -51,13 +51,22 @@ CONCEPTS = {
     "quantization": r"quantiz|fp8|nvfp4|mxfp4|mxfp8|int4|int8|fp4\b|awq|gptq|compressed-tensors|quark",
     "parallelism": r"tensor parallel|expert parallel|pipeline parallel|data parallel|context parallel|\bdcp\b|\bpcp\b|\btp\b|\bep\b|\bpp\b|\bdp\b|disaggregat|prefill/decode",
     "spec_decoding": r"specul|eagle|\bmtp\b|dspark|dflash|draft model|acceptance",
-    "kv_cache": r"kv cache|kv-cache|prefix cach|kv offload|kv transfer|kv connector|paged|block size",
+    "kv_cache": r"kv[ _-]cache|prefix[ _-]cach|kv offload|kv transfer|kv connector|paged|block size|none_hash",
     "scheduling": r"schedul|admission|queue|chunked prefill|batch size|preempt",
-    "compilation": r"compil|cudagraph|cuda graph|torch\.compile|inductor|piecewise",
-    "frontend": r"api server|openai|frontend|tokenizer|response|endpoint|rust",
-    "default_change": r"now the default|is (now )?the default|by default|default(s)? (to|changed)"
-    r"|enabled by default|disabled by default",
+    "compilation": r"compil|cudagraph|cuda graph|torch\.compile|inductor|piecewise|model runner",
 }
+
+# "A default changed" is not a concept — it is a property of one. The concept is
+# whatever the default belongs to, and `default_on` carries the rest.
+DEFAULT_RE = re.compile(
+    r"now the default|is (now )?the default|by default|default(s)? (to|changed)"
+    r"|enabled by default|disabled by default",
+    re.I,
+)
+
+# Tooling for benchmarking, profiling or debugging is not something a recipe
+# turns on for users.
+TOOLING_RE = re.compile(r"trace replay|benchmark|profil|debug|api server|security|media download", re.I)
 
 EFFECTS = {
     "correctness": r"\bfix|incorrect|wrong|corrupt|race|hang|crash|accuracy regression",
@@ -178,15 +187,18 @@ def doc_title(tag: str, path: str) -> str | None:
     return None
 
 
-def classify_concept(text: str) -> str:
+def classify_concept(text: str, title: str = "") -> str:
+    # What the title says outweighs what the body mentions in passing: the
+    # Model Runner V2 bullet name-drops EAGLE and MTP while being about the
+    # runner, not about speculative decoding.
     scores = {
-        concept: len(re.findall(pattern, text, re.I)) for concept, pattern in CONCEPTS.items()
+        concept: len(re.findall(pattern, text, re.I)) + 3 * len(re.findall(pattern, title, re.I))
+        for concept, pattern in CONCEPTS.items()
     }
-    # a changed default is a concept of its own only when nothing more specific fires
-    specific = {k: v for k, v in scores.items() if k != "default_change" and v}
+    specific = {k: v for k, v in scores.items() if v}
     if specific:
         return max(specific, key=specific.get)
-    return "default_change" if scores["default_change"] else "uncategorized"
+    return "uncategorized"
 
 
 def classify_effect(text: str) -> str:
@@ -395,7 +407,7 @@ def draft(prev: str, target: str, report_dir: Path) -> dict:
                 "envs": item["envs"],
                 "enum_values": enum_pairs(text, item["flags"], semantics),
             }
-        concept = classify_concept(text)
+        concept = classify_concept(text, title)
         # The vocabulary is fixed. Anything outside it is not a capability —
         # new model support, packaging, CI — and is kept in the YAML with a
         # reason rather than padding "What shipped".
@@ -405,8 +417,17 @@ def draft(prev: str, target: str, report_dir: Path) -> dict:
             else "breaking"
             if BREAKING_RE.search(text)
             else "out_of_scope"
-            if concept == "uncategorized"
+            if concept == "uncategorized" or TOOLING_RE.search(title)
             else "capability"
+        )
+        drop_reason = (
+            "new model support — not a serving capability"
+            if item.get("topic") and re.match(r"new models?$", item["topic"].strip(), re.I)
+            else "outside the concept vocabulary"
+            if concept == "uncategorized"
+            else "benchmark/profiling/serving-infra tooling, not a recipe capability"
+            if TOOLING_RE.search(title)
+            else None
         )
         caps.append(
             {
@@ -416,7 +437,8 @@ def draft(prev: str, target: str, report_dir: Path) -> dict:
                 "title": title.strip(),
                 "since": item["tag"],
                 "how_enabled": how,
-                "default_on": bool(AUTO_MARKERS.search(text)) and not how["flags"],
+                "default_on": bool(AUTO_MARKERS.search(text) or DEFAULT_RE.search(text)) and not how["flags"],
+                "drop_reason": drop_reason,
                 "reverse_markers": reverse_markers(text, envs),
                 "applies_to": applies_to(text, semantics),
                 "effect": classify_effect(text),
