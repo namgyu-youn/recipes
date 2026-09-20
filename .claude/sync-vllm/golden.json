@@ -1,0 +1,24 @@
+{
+  "comment": "Findings that a --report-only run of v0.29.0 MUST reproduce. Sourced from .claude_workdir/staleness-audit-2026-09-02.md (the manual audit this tool automates) plus two regressions found in review. A miss fails the run loudly: these are the cases that proved the scan works at all.",
+  "target": "v0.29.0",
+  "expected": [
+    {"token": "--rope-scaling", "file": "models/Qwen/Qwen3-VL-235B-A22B-Instruct.yaml", "category": "removed", "source": "audit §1.1 class; inline-code guide recommendation"},
+    {"token": "--cc.pass_config.fuse_allreduce_rms", "file": "models/zai-org/GLM-5.1.yaml", "category": "wrong-dash", "source": "audit §1.5"},
+    {"token": "--mm-encoder-tp-mode", "file": "models/Qwen/Qwen2.5-VL-7B-Instruct.yaml", "source": "audit §1.4 — default-on feature at a lower pin"},
+    {"token": "--mm-encoder-tp-mode", "file": "models/Qwen/Qwen2.5-VL-72B-Instruct.yaml", "source": "audit §5"},
+    {"token": "--mm-encoder-tp-mode", "file": "models/internlm/Intern-S1.yaml", "source": "audit §5"},
+    {"token": "--attention-backend", "file": "models/openai/gpt-oss-120b.yaml", "source": "audit §1.4"},
+    {"token": "--attention-backend", "file": "models/openai/gpt-oss-20b.yaml", "source": "audit §1.4"},
+    {"token": "--attention-backend", "file": "models/MiniMaxAI/MiniMax-M2.yaml", "source": "audit §1.4"},
+    {"token": "--attention-backend", "file": "models/MiniMaxAI/MiniMax-M2.1.yaml", "source": "audit §5"},
+    {"token": "--linear-backend", "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml", "source": "audit §1.4"},
+    {"token": "--language-model-only", "file": "models/Qwen/Qwen3-VL-30B-A3B-Instruct.yaml", "source": "audit §1.4"},
+    {"token": "--language-model-only", "file": "models/PaddlePaddle/PaddleOCR-VL-1.6.yaml", "source": "audit §1.4"},
+    {"token": "--speculative-config", "file": "models/meta-llama/Llama-3.1-8B-Instruct.yaml", "source": "audit §1.4"}
+  ],
+  "expected_absent": [
+    {"token": "VLLM_USE_V1", "file": "models/Qwen/Qwen2.5-32B.yaml", "why": "guide prose states no export is needed — a mention, not a use"},
+    {"token": "--tool-call-parser-plugin", "file": "models/nvidia/NVIDIA-Nemotron-Nano-9B-v2.yaml", "why": "audit §5, fixed in d10a4e9"},
+    {"token": "--linear-backend", "file": "models/zai-org/GLM-5.1.yaml", "why": "audit §1.4 listed it at pin 0.19.1; the recipe now pins 0.24.0, above the 0.22.0 introduction"}
+  ]
+}

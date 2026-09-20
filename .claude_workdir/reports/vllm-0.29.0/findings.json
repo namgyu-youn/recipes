@@ -1,6 +1,6 @@
 {
   "target": "v0.29.0",
-  "generated": "2026-09-20T11:42:20.776Z",
+  "generated": "2026-09-20T12:00:58.184Z",
   "findings": [
     {
       "id": "R-01",
@@ -65,7 +65,7 @@
         },
         {
           "file": "models/internlm/Intern-S1.yaml",
-          "floor": "0.10.2",
+          "floor": "0.10.0",
           "blocks": [
             {
               "line": 44,
@@ -215,7 +215,7 @@
         },
         {
           "file": "models/Qwen/Qwen2.5-VL-72B-Instruct.yaml",
-          "floor": "0.10.2",
+          "floor": "0.7.0",
           "blocks": [
             {
               "line": 34,
@@ -230,7 +230,7 @@
         },
         {
           "file": "models/Qwen/Qwen2.5-VL-7B-Instruct.yaml",
-          "floor": "0.10.2",
+          "floor": "0.7.0",
           "blocks": [
             {
               "line": 33,
@@ -355,174 +355,6 @@
     },
     {
       "id": "R-02",
-      "category": "removed",
-      "token": "--disable-log-requests",
-      "kind": "flag",
-      "source": "source-only",
-      "upstream": {
-        "introduced": "v0.4.2",
-        "removed": "v0.17.0",
-        "recheck": "absent at v0.29.0; removed in v0.17.0",
-        "cite": null,
-        "prs": []
-      },
-      "recipe_count": 9,
-      "line_count": 11,
-      "recipes": [
-        {
-          "file": "models/baidu/ERNIE-4.5-VL-28B-A3B-PT.yaml",
-          "floor": "0.11.0",
-          "blocks": [
-            {
-              "line": 148,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.4.2",
-          "action": "resolve",
-          "why": "pin 0.11.0 predates the removal in v0.17.0"
-        },
-        {
-          "file": "models/meta-llama/Llama-3.1-8B-Instruct.yaml",
-          "floor": "0.6.0",
-          "blocks": [
-            {
-              "line": 143,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.4.2",
-          "action": "resolve",
-          "why": "pin 0.6.0 predates the removal in v0.17.0"
-        },
-        {
-          "file": "models/meta-llama/Llama-3.3-70B-Instruct.yaml",
-          "floor": "0.12.0",
-          "blocks": [
-            {
-              "line": 134,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.4.2",
-          "action": "resolve",
-          "why": "pin 0.12.0 predates the removal in v0.17.0"
-        },
-        {
-          "file": "models/meta-llama/Llama-4-Scout-17B-16E-Instruct.yaml",
-          "floor": "0.12.0",
-          "blocks": [
-            {
-              "line": 145,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.4.2",
-          "action": "resolve",
-          "why": "pin 0.12.0 predates the removal in v0.17.0"
-        },
-        {
-          "file": "models/moonshotai/Kimi-K2-Instruct.yaml",
-          "floor": "0.12.0",
-          "blocks": [
-            {
-              "line": 92,
-              "path": "strategy_overrides.multi_node_tp_pp.vllm_args",
-              "scope": "strategy override",
-              "tier": "prose"
-            },
-            {
-              "line": 143,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.4.2",
-          "action": "resolve",
-          "why": "pin 0.12.0 predates the removal in v0.17.0"
-        },
-        {
-          "file": "models/Qwen/Qwen3-235B-A22B-Instruct-2507.yaml",
-          "floor": "0.10.0",
-          "blocks": [
-            {
-              "line": 113,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            },
-            {
-              "line": 132,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.4.2",
-          "action": "resolve",
-          "why": "pin 0.10.0 predates the removal in v0.17.0"
-        },
-        {
-          "file": "models/Qwen/Qwen3-32B.yaml",
-          "floor": "0.8.5",
-          "blocks": [
-            {
-              "line": 128,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.4.2",
-          "action": "resolve",
-          "why": "pin 0.8.5 predates the removal in v0.17.0"
-        },
-        {
-          "file": "models/Qwen/Qwen3-4B.yaml",
-          "floor": "0.8.5",
-          "blocks": [
-            {
-              "line": 111,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.4.2",
-          "action": "resolve",
-          "why": "pin 0.8.5 predates the removal in v0.17.0"
-        },
-        {
-          "file": "models/zai-org/GLM-4.7.yaml",
-          "floor": "0.24.0",
-          "blocks": [
-            {
-              "line": 150,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.4.2",
-          "action": "replace",
-          "why": "replace with --enable-log-requests — its default was the negation of enable_log_requests at v0.16.0 (vllm/engine/arg_utils.py:2087), and --enable-log-requests exists at the target tag"
-        }
-      ],
-      "auto_apply_candidates": 1,
-      "confidence": "high",
-      "status": "auto-apply-eligible"
-    },
-    {
-      "id": "R-03",
       "category": "below-introducing-version",
       "token": "--attention-backend",
       "kind": "flag",
@@ -535,7 +367,7 @@
         "prs": []
       },
       "recipe_count": 5,
-      "line_count": 9,
+      "line_count": 5,
       "recipes": [
         {
           "file": "models/MiniMaxAI/MiniMax-M2.1.yaml",
@@ -576,17 +408,11 @@
               "path": "hardware_overrides.amd.extra_args",
               "scope": "hardware override",
               "tier": "structured"
-            },
-            {
-              "line": 184,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
             }
           ],
           "needed": "v0.13.0",
           "action": "per-block-floor-question",
-          "why": "used only in hardware override, guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
+          "why": "used only in hardware override — opt-in or hardware-conditional, so the model floor may be right as it is"
         },
         {
           "file": "models/openai/gpt-oss-20b.yaml",
@@ -597,36 +423,18 @@
               "path": "hardware_overrides.amd.extra_args",
               "scope": "hardware override",
               "tier": "structured"
-            },
-            {
-              "line": 187,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
             }
           ],
           "needed": "v0.13.0",
           "action": "per-block-floor-question",
-          "why": "used only in hardware override, guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
+          "why": "used only in hardware override — opt-in or hardware-conditional, so the model floor may be right as it is"
         },
         {
           "file": "models/Qwen/Qwen3-VL-235B-A22B-Instruct.yaml",
           "floor": "0.11.0",
           "blocks": [
             {
-              "line": 199,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            },
-            {
-              "line": 224,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            },
-            {
-              "line": 253,
+              "line": 231,
               "path": "guide",
               "scope": "guide text",
               "tier": "prose"
@@ -642,7 +450,214 @@
       "status": "needs decision"
     },
     {
+      "id": "R-03",
+      "category": "below-introducing-version",
+      "token": "--mm-encoder-tp-mode",
+      "kind": "flag",
+      "source": "source-only",
+      "upstream": {
+        "introduced": "v0.10.2",
+        "removed": null,
+        "recheck": "introduced v0.10.2, present at v0.29.0",
+        "cite": null,
+        "prs": []
+      },
+      "recipe_count": 5,
+      "line_count": 9,
+      "recipes": [
+        {
+          "file": "models/internlm/Intern-S1.yaml",
+          "floor": "0.10.0",
+          "blocks": [
+            {
+              "line": 48,
+              "path": "features.encoder_parallel.args",
+              "scope": "feature encoder_parallel",
+              "tier": "structured"
+            }
+          ],
+          "needed": "v0.10.2",
+          "action": "raise-floor",
+          "why": "used in the unconditional command (features.encoder_parallel.args)"
+        },
+        {
+          "file": "models/microsoft/Phi-4-mini-instruct.yaml",
+          "floor": "0.7.0",
+          "blocks": [
+            {
+              "line": 34,
+              "path": "features.encoder_parallel.args",
+              "scope": "feature encoder_parallel",
+              "tier": "structured"
+            }
+          ],
+          "needed": "v0.10.2",
+          "action": "per-block-floor-question",
+          "why": "used only in feature encoder_parallel — opt-in or hardware-conditional, so the model floor may be right as it is"
+        },
+        {
+          "file": "models/OpenGVLab/InternVL3_5-8B.yaml",
+          "floor": "0.10.0",
+          "blocks": [
+            {
+              "line": 38,
+              "path": "features.encoder_parallel.args",
+              "scope": "feature encoder_parallel",
+              "tier": "structured"
+            }
+          ],
+          "needed": "v0.10.2",
+          "action": "per-block-floor-question",
+          "why": "used only in feature encoder_parallel — opt-in or hardware-conditional, so the model floor may be right as it is"
+        },
+        {
+          "file": "models/Qwen/Qwen2.5-VL-72B-Instruct.yaml",
+          "floor": "0.7.0",
+          "blocks": [
+            {
+              "line": 38,
+              "path": "features.encoder_parallel.args",
+              "scope": "feature encoder_parallel",
+              "tier": "structured"
+            },
+            {
+              "line": 70,
+              "path": "hardware_overrides.hopper.extra_args",
+              "scope": "hardware override",
+              "tier": "structured"
+            },
+            {
+              "line": 75,
+              "path": "hardware_overrides.blackwell.extra_args",
+              "scope": "hardware override",
+              "tier": "structured"
+            },
+            {
+              "line": 81,
+              "path": "hardware_overrides.amd.extra_args",
+              "scope": "hardware override",
+              "tier": "structured"
+            },
+            {
+              "line": 157,
+              "path": "guide",
+              "scope": "guide text",
+              "tier": "prose"
+            }
+          ],
+          "needed": "v0.10.2",
+          "action": "raise-floor",
+          "why": "used in the unconditional command (features.encoder_parallel.args)"
+        },
+        {
+          "file": "models/Qwen/Qwen2.5-VL-7B-Instruct.yaml",
+          "floor": "0.7.0",
+          "blocks": [
+            {
+              "line": 37,
+              "path": "features.encoder_parallel.args",
+              "scope": "feature encoder_parallel",
+              "tier": "structured"
+            }
+          ],
+          "needed": "v0.10.2",
+          "action": "raise-floor",
+          "why": "used in the unconditional command (features.encoder_parallel.args)"
+        }
+      ],
+      "auto_apply_candidates": 3,
+      "confidence": "high",
+      "status": "auto-apply-eligible"
+    },
+    {
       "id": "R-04",
+      "category": "below-introducing-version",
+      "token": "--moe-backend",
+      "kind": "flag",
+      "source": "source-only",
+      "upstream": {
+        "introduced": "v0.17.0",
+        "removed": null,
+        "recheck": "introduced v0.17.0, present at v0.29.0",
+        "cite": {
+          "tag": "v0.29.0",
+          "file": "vllm/config/kernel.py",
+          "line": 235,
+          "ok": true,
+          "text": "moe_backend: MoEBackend = \"auto\""
+        },
+        "prs": []
+      },
+      "recipe_count": 4,
+      "line_count": 4,
+      "recipes": [
+        {
+          "file": "models/deepseek-ai/DeepSeek-R1.yaml",
+          "floor": "0.12.0",
+          "blocks": [
+            {
+              "line": 204,
+              "path": "guide",
+              "scope": "guide text",
+              "tier": "prose"
+            }
+          ],
+          "needed": "v0.17.0",
+          "action": "per-block-floor-question",
+          "why": "used only in guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V3.yaml",
+          "floor": "0.12.0",
+          "blocks": [
+            {
+              "line": 201,
+              "path": "guide",
+              "scope": "guide text",
+              "tier": "prose"
+            }
+          ],
+          "needed": "v0.17.0",
+          "action": "per-block-floor-question",
+          "why": "used only in guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
+        },
+        {
+          "file": "models/openai/gpt-oss-120b.yaml",
+          "floor": "0.10.0",
+          "blocks": [
+            {
+              "line": 147,
+              "path": "guide",
+              "scope": "guide text",
+              "tier": "prose"
+            }
+          ],
+          "needed": "v0.17.0",
+          "action": "per-block-floor-question",
+          "why": "used only in guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
+        },
+        {
+          "file": "models/openai/gpt-oss-20b.yaml",
+          "floor": "0.10.0",
+          "blocks": [
+            {
+              "line": 174,
+              "path": "guide",
+              "scope": "guide text",
+              "tier": "prose"
+            }
+          ],
+          "needed": "v0.17.0",
+          "action": "per-block-floor-question",
+          "why": "used only in guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
+        }
+      ],
+      "auto_apply_candidates": 0,
+      "confidence": "high",
+      "status": "needs decision"
+    },
+    {
+      "id": "R-05",
       "category": "below-introducing-version",
       "token": "VLLM_ROCM_SHUFFLE_KV_CACHE_LAYOUT",
       "kind": "env",
@@ -655,7 +670,7 @@
         "prs": []
       },
       "recipe_count": 3,
-      "line_count": 6,
+      "line_count": 4,
       "recipes": [
         {
           "file": "models/MiniMaxAI/MiniMax-M2.1.yaml",
@@ -698,19 +713,7 @@
               "tier": "structured"
             },
             {
-              "line": 189,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            },
-            {
-              "line": 210,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            },
-            {
-              "line": 241,
+              "line": 231,
               "path": "guide",
               "scope": "guide text",
               "tier": "prose"
@@ -726,50 +729,65 @@
       "status": "needs decision"
     },
     {
-      "id": "R-05",
+      "id": "R-06",
       "category": "below-introducing-version",
-      "token": "--mm-encoder-tp-mode",
-      "kind": "flag",
+      "token": "VLLM_ROCM_USE_AITER",
+      "kind": "env",
       "source": "source-only",
       "upstream": {
-        "introduced": "v0.10.2",
+        "introduced": "v0.8.2",
         "removed": null,
-        "recheck": "introduced v0.10.2, present at v0.29.0",
+        "recheck": "introduced v0.8.2, present at v0.29.0",
         "cite": null,
         "prs": []
       },
-      "recipe_count": 2,
-      "line_count": 2,
+      "recipe_count": 3,
+      "line_count": 3,
       "recipes": [
         {
-          "file": "models/microsoft/Phi-4-mini-instruct.yaml",
+          "file": "models/jinaai/jina-reranker-m0.yaml",
+          "floor": "0.8.0",
+          "blocks": [
+            {
+              "line": 46,
+              "path": "hardware_overrides.amd.extra_env.VLLM_ROCM_USE_AITER",
+              "scope": "hardware override",
+              "tier": "structured"
+            }
+          ],
+          "needed": "v0.8.2",
+          "action": "per-block-floor-question",
+          "why": "used only in hardware override — opt-in or hardware-conditional, so the model floor may be right as it is"
+        },
+        {
+          "file": "models/meta-llama/Llama-3.1-8B-Instruct.yaml",
+          "floor": "0.6.0",
+          "blocks": [
+            {
+              "line": 95,
+              "path": "hardware_overrides.amd.extra_env.VLLM_ROCM_USE_AITER",
+              "scope": "hardware override",
+              "tier": "structured"
+            }
+          ],
+          "needed": "v0.8.2",
+          "action": "per-block-floor-question",
+          "why": "used only in hardware override — opt-in or hardware-conditional, so the model floor may be right as it is"
+        },
+        {
+          "file": "models/Qwen/Qwen2.5-VL-72B-Instruct.yaml",
           "floor": "0.7.0",
           "blocks": [
             {
-              "line": 34,
-              "path": "features.encoder_parallel.args",
-              "scope": "feature encoder_parallel",
+              "line": 86,
+              "path": "hardware_overrides.amd.extra_env.VLLM_ROCM_USE_AITER",
+              "scope": "hardware override",
               "tier": "structured"
             }
           ],
-          "needed": "v0.10.2",
+          "needed": "v0.8.2",
           "action": "per-block-floor-question",
-          "why": "used only in feature encoder_parallel — opt-in or hardware-conditional, so the model floor may be right as it is"
-        },
-        {
-          "file": "models/OpenGVLab/InternVL3_5-8B.yaml",
-          "floor": "0.10.0",
-          "blocks": [
-            {
-              "line": 38,
-              "path": "features.encoder_parallel.args",
-              "scope": "feature encoder_parallel",
-              "tier": "structured"
-            }
-          ],
-          "needed": "v0.10.2",
-          "action": "per-block-floor-question",
-          "why": "used only in feature encoder_parallel — opt-in or hardware-conditional, so the model floor may be right as it is"
+          "why": "used only in hardware override — opt-in or hardware-conditional, so the model floor may be right as it is"
         }
       ],
       "auto_apply_candidates": 0,
@@ -777,7 +795,7 @@
       "status": "needs decision"
     },
     {
-      "id": "R-06",
+      "id": "R-07",
       "category": "below-introducing-version",
       "token": "VLLM_SSM_CONV_STATE_LAYOUT",
       "kind": "env",
@@ -840,7 +858,7 @@
       "status": "needs decision"
     },
     {
-      "id": "R-07",
+      "id": "R-08",
       "category": "below-introducing-version",
       "token": "VLLM_ENGINE_READY_TIMEOUT_S",
       "kind": "env",
@@ -853,7 +871,7 @@
         "prs": []
       },
       "recipe_count": 2,
-      "line_count": 4,
+      "line_count": 2,
       "recipes": [
         {
           "file": "models/deepseek-ai/DeepSeek-R1.yaml",
@@ -864,17 +882,11 @@
               "path": "strategy_overrides.single_node_dpa_tp.extra_env.VLLM_ENGINE_READY_TIMEOUT_S",
               "scope": "strategy override",
               "tier": "structured"
-            },
-            {
-              "line": 166,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
             }
           ],
           "needed": "v0.14.0",
           "action": "per-block-floor-question",
-          "why": "used only in strategy override, guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
+          "why": "used only in strategy override — opt-in or hardware-conditional, so the model floor may be right as it is"
         },
         {
           "file": "models/deepseek-ai/DeepSeek-V3.yaml",
@@ -885,80 +897,11 @@
               "path": "strategy_overrides.single_node_dpa_tp.extra_env.VLLM_ENGINE_READY_TIMEOUT_S",
               "scope": "strategy override",
               "tier": "structured"
-            },
-            {
-              "line": 163,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
             }
           ],
           "needed": "v0.14.0",
           "action": "per-block-floor-question",
-          "why": "used only in strategy override, guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
-        }
-      ],
-      "auto_apply_candidates": 0,
-      "confidence": "high",
-      "status": "needs decision"
-    },
-    {
-      "id": "R-08",
-      "category": "below-introducing-version",
-      "token": "VLLM_ROCM_USE_AITER",
-      "kind": "env",
-      "source": "source-only",
-      "upstream": {
-        "introduced": "v0.8.2",
-        "removed": null,
-        "recheck": "introduced v0.8.2, present at v0.29.0",
-        "cite": null,
-        "prs": []
-      },
-      "recipe_count": 2,
-      "line_count": 4,
-      "recipes": [
-        {
-          "file": "models/jinaai/jina-reranker-m0.yaml",
-          "floor": "0.8.0",
-          "blocks": [
-            {
-              "line": 46,
-              "path": "hardware_overrides.amd.extra_env.VLLM_ROCM_USE_AITER",
-              "scope": "hardware override",
-              "tier": "structured"
-            },
-            {
-              "line": 90,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.8.2",
-          "action": "per-block-floor-question",
-          "why": "used only in hardware override, guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
-        },
-        {
-          "file": "models/meta-llama/Llama-3.1-8B-Instruct.yaml",
-          "floor": "0.6.0",
-          "blocks": [
-            {
-              "line": 95,
-              "path": "hardware_overrides.amd.extra_env.VLLM_ROCM_USE_AITER",
-              "scope": "hardware override",
-              "tier": "structured"
-            },
-            {
-              "line": 140,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.8.2",
-          "action": "per-block-floor-question",
-          "why": "used only in hardware override, guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
+          "why": "used only in strategy override — opt-in or hardware-conditional, so the model floor may be right as it is"
         }
       ],
       "auto_apply_candidates": 0,
@@ -967,57 +910,6 @@
     },
     {
       "id": "R-09",
-      "category": "below-introducing-version",
-      "token": "--tool-server",
-      "kind": "flag",
-      "source": "source-only",
-      "upstream": {
-        "introduced": "v0.10.1",
-        "removed": null,
-        "recheck": "introduced v0.10.1, present at v0.29.0",
-        "cite": null,
-        "prs": []
-      },
-      "recipe_count": 2,
-      "line_count": 2,
-      "recipes": [
-        {
-          "file": "models/openai/gpt-oss-120b.yaml",
-          "floor": "0.10.0",
-          "blocks": [
-            {
-              "line": 198,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.10.1",
-          "action": "per-block-floor-question",
-          "why": "used only in guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
-        },
-        {
-          "file": "models/openai/gpt-oss-20b.yaml",
-          "floor": "0.10.0",
-          "blocks": [
-            {
-              "line": 212,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.10.1",
-          "action": "per-block-floor-question",
-          "why": "used only in guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
-        }
-      ],
-      "auto_apply_candidates": 0,
-      "confidence": "high",
-      "status": "needs decision"
-    },
-    {
-      "id": "R-10",
       "category": "removed",
       "token": "--task",
       "kind": "flag",
@@ -1077,15 +969,15 @@
       "status": "needs decision"
     },
     {
-      "id": "R-11",
-      "category": "removed",
-      "token": "--guided-decoding-backend",
+      "id": "R-10",
+      "category": "below-introducing-version",
+      "token": "--disable-chunked-mm-input",
       "kind": "flag",
       "source": "source-only",
       "upstream": {
-        "introduced": "v0.4.2",
-        "removed": "v0.12.0",
-        "recheck": "absent at v0.29.0; removed in v0.12.0",
+        "introduced": "v0.8.4",
+        "removed": null,
+        "recheck": "introduced v0.8.4, present at v0.29.0",
         "cite": null,
         "prs": []
       },
@@ -1094,94 +986,16 @@
       "recipes": [
         {
           "file": "models/Qwen/Qwen2.5-VL-7B-Instruct.yaml",
-          "floor": "0.10.2",
+          "floor": "0.7.0",
           "blocks": [
             {
-              "line": 160,
+              "line": 190,
               "path": "guide",
               "scope": "guide text",
               "tier": "prose"
             }
           ],
-          "needed": "v0.4.2",
-          "action": "resolve",
-          "why": "upstream says to drop it, documented at v0.11.2 in vllm/entrypoints/openai/protocol.py:699"
-        }
-      ],
-      "auto_apply_candidates": 0,
-      "confidence": "high",
-      "status": "needs decision"
-    },
-    {
-      "id": "R-12",
-      "category": "removed",
-      "token": "--swap-space",
-      "kind": "flag",
-      "source": "source-only",
-      "upstream": {
-        "introduced": "v0.4.2",
-        "removed": "v0.18.0",
-        "recheck": "absent at v0.29.0; removed in v0.18.0",
-        "cite": null,
-        "prs": []
-      },
-      "recipe_count": 1,
-      "line_count": 2,
-      "recipes": [
-        {
-          "file": "models/Qwen/Qwen3-235B-A22B-Instruct-2507.yaml",
-          "floor": "0.10.0",
-          "blocks": [
-            {
-              "line": 114,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            },
-            {
-              "line": 133,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.4.2",
-          "action": "resolve",
-          "why": "read the argparse help, the config field docstring and every deprecation line mentioning it at v0.17.1; none names a replacement"
-        }
-      ],
-      "auto_apply_candidates": 0,
-      "confidence": "high",
-      "status": "needs decision"
-    },
-    {
-      "id": "R-13",
-      "category": "below-introducing-version",
-      "token": "--async-scheduling",
-      "kind": "flag",
-      "source": "source-only",
-      "upstream": {
-        "introduced": "v0.10.0",
-        "removed": null,
-        "recheck": "introduced v0.10.0, present at v0.29.0",
-        "cite": null,
-        "prs": []
-      },
-      "recipe_count": 1,
-      "line_count": 1,
-      "recipes": [
-        {
-          "file": "models/Qwen/Qwen3-32B.yaml",
-          "floor": "0.8.5",
-          "blocks": [
-            {
-              "line": 156,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.10.0",
+          "needed": "v0.8.4",
           "action": "per-block-floor-question",
           "why": "used only in guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
         }
@@ -1191,7 +1005,43 @@
       "status": "needs decision"
     },
     {
-      "id": "R-14",
+      "id": "R-11",
+      "category": "removed",
+      "token": "--rope-scaling",
+      "kind": "flag",
+      "source": "source-only",
+      "upstream": {
+        "introduced": "v0.4.3",
+        "removed": "v0.11.1",
+        "recheck": "absent at v0.29.0; removed in v0.11.1",
+        "cite": null,
+        "prs": []
+      },
+      "recipe_count": 1,
+      "line_count": 1,
+      "recipes": [
+        {
+          "file": "models/Qwen/Qwen3-VL-235B-A22B-Instruct.yaml",
+          "floor": "0.11.0",
+          "blocks": [
+            {
+              "line": 267,
+              "path": "guide",
+              "scope": "guide text",
+              "tier": "prose"
+            }
+          ],
+          "needed": "v0.4.3",
+          "action": "resolve",
+          "why": "read the argparse help, the config field docstring and every deprecation line mentioning it at v0.11.0; none names a replacement"
+        }
+      ],
+      "auto_apply_candidates": 0,
+      "confidence": "high",
+      "status": "needs decision"
+    },
+    {
+      "id": "R-12",
       "category": "invalid-value",
       "token": "--attention-backend",
       "kind": "flag",
@@ -1217,25 +1067,25 @@
               "tier": "structured"
             },
             {
-              "line": 253,
+              "line": 252,
               "path": "variants.fp8.hardware_overrides.dgx_spark_gb10.extra_args",
               "scope": "variants.fp8",
               "tier": "structured"
             },
             {
-              "line": 330,
+              "line": 328,
               "path": "variants.nvfp4.hardware_overrides.dgx_spark_gb10.extra_args",
               "scope": "variants.nvfp4",
               "tier": "structured"
             },
             {
-              "line": 401,
+              "line": 399,
               "path": "variants.dspark.hardware_overrides.dgx_spark_gb10.extra_args",
               "scope": "variants.dspark",
               "tier": "structured"
             },
             {
-              "line": 629,
+              "line": 627,
               "path": "strategy_overrides.multi_node_tp.hardware_overrides.blackwell.extra_args",
               "scope": "strategy override",
               "tier": "structured"
@@ -1251,7 +1101,7 @@
       "status": "needs decision"
     },
     {
-      "id": "R-15",
+      "id": "R-13",
       "category": "below-introducing-version",
       "token": "--linear-backend",
       "kind": "flag",
@@ -1264,45 +1114,93 @@
         "prs": []
       },
       "recipe_count": 1,
-      "line_count": 1,
+      "line_count": 3,
       "recipes": [
         {
           "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
           "floor": "0.20.0",
           "blocks": [
             {
-              "line": 627,
+              "line": 250,
+              "path": "variants.fp8.hardware_overrides.dgx_spark_gb10.extra_args",
+              "scope": "variants.fp8",
+              "tier": "structured"
+            },
+            {
+              "line": 326,
+              "path": "variants.nvfp4.hardware_overrides.dgx_spark_gb10.extra_args",
+              "scope": "variants.nvfp4",
+              "tier": "structured"
+            },
+            {
+              "line": 625,
               "path": "strategy_overrides.multi_node_tp.hardware_overrides.blackwell.extra_args",
               "scope": "strategy override",
               "tier": "structured"
             }
           ],
           "needed": "v0.22.0",
-          "action": "per-block-floor-question",
-          "why": "used only in strategy override — opt-in or hardware-conditional, so the model floor may be right as it is"
+          "action": "raise-variant-floor",
+          "why": "used only in variants.fp8, which carries its own pin"
         }
       ],
-      "auto_apply_candidates": 0,
+      "auto_apply_candidates": 1,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "auto-apply-eligible"
     },
     {
-      "id": "R-16",
+      "id": "R-14",
       "category": "below-introducing-version",
-      "token": "VLLM_PREFIX_CACHE_RETENTION_INTERVAL",
+      "token": "VLLM_USE_BREAKABLE_CUDAGRAPH",
       "kind": "env",
       "source": "source-only",
       "upstream": {
-        "introduced": "v0.23.0",
+        "introduced": "v0.22.0",
         "removed": null,
-        "recheck": "introduced v0.23.0, present at v0.29.0",
-        "cite": {
-          "tag": "v0.29.0",
-          "file": "vllm/engine/arg_utils.py",
-          "line": 2084,
-          "ok": true,
-          "text": "# deprecated VLLM_PREFIX_CACHE_RETENTION_INTERVAL env var, when set,"
-        },
+        "recheck": "introduced v0.22.0, present at v0.29.0",
+        "cite": null,
+        "prs": []
+      },
+      "recipe_count": 1,
+      "line_count": 2,
+      "recipes": [
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
+          "floor": "0.20.0",
+          "blocks": [
+            {
+              "line": 262,
+              "path": "variants.fp8.hardware_overrides.dgx_spark_gb10.extra_env.VLLM_USE_BREAKABLE_CUDAGRAPH",
+              "scope": "variants.fp8",
+              "tier": "structured"
+            },
+            {
+              "line": 338,
+              "path": "variants.nvfp4.hardware_overrides.dgx_spark_gb10.extra_env.VLLM_USE_BREAKABLE_CUDAGRAPH",
+              "scope": "variants.nvfp4",
+              "tier": "structured"
+            }
+          ],
+          "needed": "v0.22.0",
+          "action": "raise-variant-floor",
+          "why": "used only in variants.fp8, which carries its own pin"
+        }
+      ],
+      "auto_apply_candidates": 1,
+      "confidence": "high",
+      "status": "auto-apply-eligible"
+    },
+    {
+      "id": "R-15",
+      "category": "below-introducing-version",
+      "token": "--prefill-schedule-interval",
+      "kind": "flag",
+      "source": "source-only",
+      "upstream": {
+        "introduced": "v0.24.0",
+        "removed": null,
+        "recheck": "introduced v0.24.0, present at v0.29.0",
+        "cite": null,
         "prs": []
       },
       "recipe_count": 1,
@@ -1313,13 +1211,13 @@
           "floor": "0.20.0",
           "blocks": [
             {
-              "line": 517,
+              "line": 499,
               "path": "guide",
               "scope": "guide text",
               "tier": "prose"
             }
           ],
-          "needed": "v0.23.0",
+          "needed": "v0.24.0",
           "action": "per-block-floor-question",
           "why": "used only in guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
         }
@@ -1329,7 +1227,7 @@
       "status": "needs decision"
     },
     {
-      "id": "R-17",
+      "id": "R-16",
       "category": "below-introducing-version",
       "token": "--speculative-config",
       "kind": "flag",
@@ -1355,7 +1253,7 @@
               "tier": "structured"
             },
             {
-              "line": 233,
+              "line": 229,
               "path": "guide",
               "scope": "guide text",
               "tier": "prose"
@@ -1364,6 +1262,42 @@
           "needed": "v0.8.2",
           "action": "per-block-floor-question",
           "why": "used only in feature spec_decoding, guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
+        }
+      ],
+      "auto_apply_candidates": 0,
+      "confidence": "high",
+      "status": "needs decision"
+    },
+    {
+      "id": "R-17",
+      "category": "removed",
+      "token": "--disable-log-requests",
+      "kind": "flag",
+      "source": "source-only",
+      "upstream": {
+        "introduced": "v0.4.2",
+        "removed": "v0.17.0",
+        "recheck": "absent at v0.29.0; removed in v0.17.0",
+        "cite": null,
+        "prs": []
+      },
+      "recipe_count": 1,
+      "line_count": 1,
+      "recipes": [
+        {
+          "file": "models/moonshotai/Kimi-K2-Instruct.yaml",
+          "floor": "0.12.0",
+          "blocks": [
+            {
+              "line": 92,
+              "path": "strategy_overrides.multi_node_tp_pp.vllm_args",
+              "scope": "strategy override",
+              "tier": "prose"
+            }
+          ],
+          "needed": "v0.4.2",
+          "action": "resolve",
+          "why": "pin 0.12.0 predates the removal in v0.17.0"
         }
       ],
       "auto_apply_candidates": 0,
@@ -1390,7 +1324,7 @@
         "prs": []
       },
       "recipe_count": 1,
-      "line_count": 1,
+      "line_count": 2,
       "recipes": [
         {
           "file": "models/moonshotai/Kimi-K3.yaml",
@@ -1401,6 +1335,12 @@
               "path": "features.decode_context_parallelism.args",
               "scope": "feature decode_context_parallelism",
               "tier": "structured"
+            },
+            {
+              "line": 444,
+              "path": "guide",
+              "scope": "guide text",
+              "tier": "prose"
             }
           ],
           "needed": "v0.18.0",
@@ -1447,6 +1387,42 @@
       "auto_apply_candidates": 0,
       "confidence": "high",
       "status": "needs decision"
+    },
+    {
+      "id": "R-20",
+      "category": "wrong-dash",
+      "token": "--cc.pass_config.fuse_allreduce_rms",
+      "kind": "flag",
+      "source": "source-only",
+      "upstream": {
+        "introduced": null,
+        "removed": null,
+        "recheck": "--cc.pass_config.fuse_allreduce_rms is not a registered flag at v0.29.0",
+        "cite": null,
+        "prs": []
+      },
+      "recipe_count": 1,
+      "line_count": 1,
+      "recipes": [
+        {
+          "file": "models/zai-org/GLM-5.1.yaml",
+          "floor": "0.24.0",
+          "blocks": [
+            {
+              "line": 89,
+              "path": "variants.mxfp4.extra_args",
+              "scope": "variants.mxfp4",
+              "tier": "structured"
+            }
+          ],
+          "needed": null,
+          "action": "replace",
+          "why": "-cc is registered with a single dash as the alias of --compilation-config; `--cc` is not a prefix abbreviation of it, so this argument is rejected"
+        }
+      ],
+      "auto_apply_candidates": 0,
+      "confidence": "high",
+      "status": "needs decision"
     }
   ],
   "plugin_flags": [
@@ -1469,7 +1445,7 @@
       ],
       "lines": 12,
       "namespace": "vllm-omni",
-      "why": "recipe declares an omni task section"
+      "why": "name is in that plugin's namespace"
     },
     {
       "token": "--init-timeout",
@@ -1635,7 +1611,7 @@
       ],
       "lines": 5,
       "namespace": "vllm-omni",
-      "why": "recipe declares an omni task section"
+      "why": "name is in that plugin's namespace"
     },
     {
       "token": "--task-type",
@@ -1714,61 +1690,11 @@
         "models/Qwen/Qwen3.5-397B-A17B.yaml"
       ],
       "lines": 2,
-      "namespace": "unclassified",
-      "why": "no plugin, vendor image or sibling context"
+      "namespace": "vllm-ascend",
+      "why": "name is in that plugin's namespace"
     },
     {
       "token": "VLLM_MEMORY_PROFILE_INCLUDE_ATTN",
-      "kind": "env",
-      "recipes": [
-        "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
-      ],
-      "lines": 4,
-      "namespace": "vendor-image",
-      "why": "block pins eugr/spark-vllm-b12x:latest"
-    },
-    {
-      "token": "VLLM_USE_B12X_WO_PROJECTION",
-      "kind": "env",
-      "recipes": [
-        "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
-      ],
-      "lines": 4,
-      "namespace": "vendor-image",
-      "why": "block pins eugr/spark-vllm-b12x:latest"
-    },
-    {
-      "token": "VLLM_USE_B12X_MHC",
-      "kind": "env",
-      "recipes": [
-        "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
-      ],
-      "lines": 4,
-      "namespace": "vendor-image",
-      "why": "block pins eugr/spark-vllm-b12x:latest"
-    },
-    {
-      "token": "VLLM_USE_B12X_FP8_GEMM",
-      "kind": "env",
-      "recipes": [
-        "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
-      ],
-      "lines": 4,
-      "namespace": "vendor-image",
-      "why": "block pins eugr/spark-vllm-b12x:latest"
-    },
-    {
-      "token": "VLLM_USE_B12X_MOE",
-      "kind": "env",
-      "recipes": [
-        "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
-      ],
-      "lines": 4,
-      "namespace": "vendor-image",
-      "why": "block pins eugr/spark-vllm-b12x:latest"
-    },
-    {
-      "token": "VLLM_USE_B12X_SPARSE_INDEXER",
       "kind": "env",
       "recipes": [
         "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
@@ -1785,7 +1711,28 @@
       ],
       "lines": 1,
       "namespace": "vllm-omni",
-      "why": "recipe declares an omni task section"
+      "why": "name is in that plugin's namespace"
+    }
+  ],
+  "vendor_overlaps": [
+    {
+      "id": "V-1",
+      "capability": "b12x-linear-and-moe-backends",
+      "image": "eugr/spark-vllm-b12x:latest",
+      "recipes": [
+        "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
+      ],
+      "note": "upstream ships b12x linear/MoE kernels in-tree since v0.29.0 behind --linear-backend/--moe-backend; the VLLM_USE_B12X_* switches exist at no upstream tag, the newest rc or main, and three of them have no documented upstream equivalent",
+      "mapping": {
+        "VLLM_USE_B12X_WO_PROJECTION": "no upstream equivalent documented — cannot be dropped",
+        "VLLM_USE_B12X_MHC": "no upstream equivalent documented — cannot be dropped",
+        "VLLM_USE_B12X_FP8_GEMM": "--linear-backend b12x",
+        "VLLM_USE_B12X_MOE": "--moe-backend b12x",
+        "VLLM_USE_B12X_SPARSE_INDEXER": "no upstream equivalent documented — cannot be dropped"
+      },
+      "status": "needs decision",
+      "confidence": "medium",
+      "risk": "2 of 5 switches map to upstream flags the recipe already passes; the rest have no documented equivalent. Migrating off the image is a hardware-validated decision (GB10), not a mechanical edit."
     }
   ],
   "not_yet_released": [
@@ -1818,19 +1765,12 @@
       "resolution": "replace",
       "why": "its default was the negation of enable_log_requests at v0.16.0 (vllm/engine/arg_utils.py:2087), and --enable-log-requests exists at the target tag"
     },
-    "--guided-decoding-backend": {
-      "last_present": "v0.11.2",
-      "quote": "description=( \"`guided_decoding_backend` is deprecated. \" \"This will be removed in v0.12.0 or v1.0.0, whichever is soonest. \" \"Please remove it from your request.\" ), )",
-      "replacement": null,
-      "resolution": "remove",
-      "why": "upstream says to drop it, documented at v0.11.2 in vllm/entrypoints/openai/protocol.py:699"
-    },
-    "--swap-space": {
-      "last_present": "v0.17.1",
-      "quote": "cache_group.add_argument('--swap-space', **cache_kwargs['swap_space'])",
+    "--rope-scaling": {
+      "last_present": "v0.11.0",
+      "quote": "model_group.add_argument('--rope-scaling', **model_kwargs['rope_scaling'])",
       "replacement": null,
       "resolution": "unknown",
-      "why": "read the argparse help, the config field docstring and every deprecation line mentioning it at v0.17.1; none names a replacement"
+      "why": "read the argparse help, the config field docstring and every deprecation line mentioning it at v0.11.0; none names a replacement"
     },
     "--task": {
       "last_present": "v0.12.0",

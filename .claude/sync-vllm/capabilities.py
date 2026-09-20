@@ -68,6 +68,9 @@ DEFAULT_RE = re.compile(
 # turns on for users.
 TOOLING_RE = re.compile(r"trace replay|benchmark|profil|debug|api server|security|media download", re.I)
 
+# Training-side plumbing. A serving recipe never turns this on.
+NOT_SERVING_RE = re.compile(r"weight sync|weight transfer|sharded[_ ]rdt|rl workflow", re.I)
+
 EFFECTS = {
     "correctness": r"\bfix|incorrect|wrong|corrupt|race|hang|crash|accuracy regression",
     "accuracy": r"accuracy|quality|perplexity|eval score",
@@ -187,6 +190,38 @@ def doc_title(tag: str, path: str) -> str | None:
     return None
 
 
+# Where a flag is defined upstream is better evidence of what it is than the
+# words around it. vllm/config/kernel.py owns the backend selectors,
+# parallel.py the parallelism knobs, and so on.
+MODULE_CONCEPT = {
+    "kernel.py": "kernel",
+    "attention.py": "attention_backend",
+    "parallel.py": "parallelism",
+    "cache.py": "kv_cache",
+    "kv_transfer.py": "kv_cache",
+    "offload.py": "kv_cache",
+    "scheduler.py": "scheduling",
+    "compilation.py": "compilation",
+    "speculative.py": "spec_decoding",
+    "quantization.py": "quantization",
+    "multimodal.py": "multimodal",
+    "model.py": "runtime",
+    "vllm.py": "runtime",
+}
+
+
+def concept_from_modules(how: dict, semantics: dict) -> str | None:
+    """Concept implied by the config module that defines the enabling flag."""
+    votes: dict[str, int] = {}
+    for flag in how.get("flags") or []:
+        entry = semantics.get(flag) or {}
+        module = (entry.get("file") or "").rsplit("/", 1)[-1]
+        concept = MODULE_CONCEPT.get(module)
+        if concept:
+            votes[concept] = votes.get(concept, 0) + 1
+    return max(votes, key=votes.get) if votes else None
+
+
 def classify_concept(text: str, title: str = "") -> str:
     # What the title says outweighs what the body mentions in passing: the
     # Model Runner V2 bullet name-drops EAGLE and MTP while being about the
@@ -198,7 +233,7 @@ def classify_concept(text: str, title: str = "") -> str:
     specific = {k: v for k, v in scores.items() if v}
     if specific:
         return max(specific, key=specific.get)
-    return "uncategorized"
+    return "other"
 
 
 def classify_effect(text: str) -> str:
@@ -407,7 +442,7 @@ def draft(prev: str, target: str, report_dir: Path) -> dict:
                 "envs": item["envs"],
                 "enum_values": enum_pairs(text, item["flags"], semantics),
             }
-        concept = classify_concept(text, title)
+        concept = concept_from_modules(how, semantics) or classify_concept(text, title)
         # The vocabulary is fixed. Anything outside it is not a capability —
         # new model support, packaging, CI — and is kept in the YAML with a
         # reason rather than padding "What shipped".
@@ -417,7 +452,7 @@ def draft(prev: str, target: str, report_dir: Path) -> dict:
             else "breaking"
             if BREAKING_RE.search(text)
             else "out_of_scope"
-            if concept == "uncategorized" or TOOLING_RE.search(title)
+            if concept == "other" or TOOLING_RE.search(title) or NOT_SERVING_RE.search(title)
             else "capability"
         )
         drop_reason = (
@@ -425,6 +460,8 @@ def draft(prev: str, target: str, report_dir: Path) -> dict:
             if item.get("topic") and re.match(r"new models?$", item["topic"].strip(), re.I)
             else "outside the concept vocabulary"
             if concept == "uncategorized"
+            else "RL weight-sync plumbing, not a serving capability"
+            if NOT_SERVING_RE.search(title)
             else "benchmark/profiling/serving-infra tooling, not a recipe capability"
             if TOOLING_RE.search(title)
             else None
@@ -471,7 +508,9 @@ def dedupe(caps: list[dict]) -> list[dict]:
         return "|".join(names) or None
 
     def words_of(cap: dict) -> set[str]:
-        words = [w for w in re.findall(r"[a-z0-9_]+", cap["title"].lower()) if w not in stop]
+        # sharded_rdt and "Sharded RDT" are the same words differently spelled.
+        title = cap["title"].lower().replace("_", " ")
+        words = [w for w in re.findall(r"[a-z0-9]+", title) if w not in stop]
         return set(words[:8])
 
     def same_thing(a: dict, b: dict) -> bool:
@@ -490,7 +529,7 @@ def dedupe(caps: list[dict]) -> list[dict]:
         if not wa or not wb:
             return False
         shared = wa & wb
-        return len(shared) >= 3 and len(shared) / min(len(wa), len(wb)) >= 0.7
+        return len(shared) >= 2 and len(shared) / min(len(wa), len(wb)) >= 0.66
 
     merged: dict[str, dict] = {}
     for cap in caps:
@@ -676,6 +715,11 @@ def main() -> int:
     ap.add_argument("--draft", action="store_true")
     ap.add_argument("--verify", action="store_true")
     ap.add_argument("--self-test", action="store_true")
+    ap.add_argument(
+        "--recall",
+        action="store_true",
+        help="write recall.md: every Highlights bullet with the capability that covers it, or why not",
+    )
     ap.add_argument("--resolve-pr", help="print the local commit and changed files for one PR")
     args = ap.parse_args()
 
@@ -693,6 +737,59 @@ def main() -> int:
         commit, _, subject = log.partition("\x1f")
         print(f"{commit[:12]} {subject}")
         print(F._git("show", "--stat", "--format=", commit).stdout[:2000])
+        return 0
+
+    if args.recall:
+        import yaml
+
+        report_dir = Path(args.report_dir)
+        caps = yaml.safe_load((report_dir / "capabilities.yaml").read_text())["capabilities"]
+        body = (report_dir / "release-notes" / f"{args.target}.md").read_text()
+        rows = []
+        for heading, bullets in notes_sections(body):
+            if not re.search(r"highlight", heading, re.I):
+                continue
+            for bullet in bullets:
+                topic = topic_of(bullet) or clean_title(bullet)[:60]
+                prs = set(PR_RE.findall(bullet))
+                words = {
+                    w
+                    for w in re.findall(r"[a-z0-9]+", clean_title(bullet, topic).lower())
+                    if len(w) > 3
+                }
+                best, best_score = None, 0.0
+                for cap in caps:
+                    cap_prs = set(cap["evidence"].get("prs") or [])
+                    cap_words = {
+                        w for w in re.findall(r"[a-z0-9]+", cap["title"].lower()) if len(w) > 3
+                    }
+                    overlap = len(words & cap_words) / max(1, min(len(words), len(cap_words)))
+                    score = (2.0 if prs & cap_prs else 0.0) + overlap
+                    if score > best_score:
+                        best, best_score = cap, score
+                matched = best if best_score >= 0.5 else None
+                rows.append(
+                    {
+                        "item": topic,
+                        "capability": matched["id"] if matched else None,
+                        "kind": matched["kind"] if matched else None,
+                        "reason": None
+                        if matched and matched["kind"] == "capability"
+                        else (matched or {}).get("drop_reason")
+                        or ("recorded as breaking" if matched else "no capability extracted from this bullet"),
+                    }
+                )
+        md = ["# Recall — v0.29.0 Highlights, one row per item", "",
+              "| Highlights item | Capability | Outcome |", "|---|---|---|"]
+        for r in rows:
+            md.append(
+                f"| {r['item']} | {('`' + r['capability'] + '`') if r['capability'] else '—'} | "
+                f"{r['reason'] or 'covered'} |"
+            )
+        (report_dir / "recall.md").write_text("\n".join(md) + "\n")
+        covered = sum(1 for r in rows if r["reason"] is None)
+        print(f"recall: {covered}/{len(rows)} Highlights items map to a shipped capability")
+        print("\n".join(md))
         return 0
 
     if args.self_test:

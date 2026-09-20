@@ -47,6 +47,9 @@ capabilities:
     also:
     - section: Breaking Changes & Deprecations
       source: release-notes
+  caveat: MRV1 remains in use for a few ROCm models and for features MRV2 does not yet support, so an
+    explicit VLLM_USE_V2_MODEL_RUNNER=1 may be deliberate on those recipes — confirm the model class is
+    on MRV2 before removing it.
   verified: []
   confidence: medium
 - id: hy4-preview-tencent-s-770b-49b-active-moe-with-g
@@ -94,7 +97,7 @@ capabilities:
   confidence: medium
 - id: kimi-k3-and-deepseek-v4-performance-fused-mxfp4-
   kind: capability
-  concept: moe_backend
+  concept: quantization
   title: 'Kimi-K3 and DeepSeek V4 performance: fused MXFP4 top-k finalization in the K3 latent tail (about
     5% E2E latency, #53152)'
   since: v0.29.0
@@ -185,18 +188,19 @@ capabilities:
   - --per-request-spec-decode-metrics exists at v0.29.0
   confidence: high
 - id: a-new-sharded-rdt-p2p-backend-where-each-worker-
-  kind: capability
+  kind: out_of_scope
   concept: parallelism
-  title: a new sharded_rdt P2P backend where each worker pulls only its TP/EP slice over NIXL or Ray Direct
-    Transport, rank-local IPC weight updates
+  title: Sharded RDT Engine
   since: v0.29.0
   how_enabled:
     mode: auto
-    flags: []
+    flags:
+    - --distributed-executor-backend
+    - --weight-transfer-config
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: RL weight-sync plumbing, not a serving capability
   reverse_markers:
     now_default: []
     obsolete: []
@@ -219,9 +223,13 @@ capabilities:
       slice over NIXL or Ray Direct Transport (#43375), rank-local IPC weight updates (#52497), sparse
       checkpoint-coordinate updates through native weight loaders (#50723, #53751), and routed expert
       loading for gpt-oss (#52209).'
-    also: []
-  verified: []
-  confidence: medium
+    also:
+    - section: docs/training/weight_transfer/sharded_rdt.md
+      source: docs-diff
+  verified:
+  - --distributed-executor-backend exists at v0.29.0
+  - --weight-transfer-config exists at v0.29.0
+  confidence: high
 - id: internal-prefill-checkpoints-deliver-a-9-25-ttft
   kind: capability
   concept: spec_decoding
@@ -261,7 +269,7 @@ capabilities:
   confidence: medium
 - id: flashinfer-all-reduce-enabled-by-default-for-tp-
   kind: capability
-  concept: parallelism
+  concept: attention_backend
   title: FlashInfer all-reduce enabled by default for TP CUDA groups, opt out with VLLM_ALLREDUCE_USE_FLASHINFER=0
   since: v0.29.0
   how_enabled:
@@ -363,7 +371,7 @@ capabilities:
   confidence: high
 - id: flexolmo-olmo3-hunyuan-v1-and-hunyuan-vl-are-now
   kind: out_of_scope
-  concept: uncategorized
+  concept: other
   title: FlexOlmo, Olmo3, Hunyuan V1 and Hunyuan VL are now served through the Transformers modeling backend
   since: v0.29.0
   how_enabled:
@@ -372,7 +380,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: outside the concept vocabulary
+  drop_reason: null
   reverse_markers:
     now_default: []
     obsolete: []
@@ -395,7 +403,7 @@ capabilities:
   confidence: medium
 - id: pyav-video-decoder-backend-removed
   kind: breaking
-  concept: uncategorized
+  concept: other
   title: PyAV video decoder backend removed
   since: v0.29.0
   how_enabled:
@@ -404,7 +412,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: outside the concept vocabulary
+  drop_reason: null
   reverse_markers:
     now_default: []
     obsolete: []
@@ -426,7 +434,7 @@ capabilities:
   confidence: medium
 - id: python-m-vllm-entrypoints-openai-api-server-is-d
   kind: breaking
-  concept: uncategorized
+  concept: other
   title: python -m vllm.entrypoints.openai.api_server is deprecated
   since: v0.29.0
   how_enabled:
@@ -435,7 +443,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: outside the concept vocabulary
+  drop_reason: null
   reverse_markers:
     now_default: []
     obsolete: []
@@ -486,7 +494,7 @@ capabilities:
   confidence: medium
 - id: vllm-test-force-fp8-marlin-removed-in-favor-of-l
   kind: breaking
-  concept: moe_backend
+  concept: kernel
   title: VLLM_TEST_FORCE_FP8_MARLIN removed in favor of --linear-backend / --moe-backend
   since: v0.29.0
   how_enabled:
@@ -528,7 +536,7 @@ capabilities:
   confidence: high
 - id: b12x-linear-and-moe-backends
   kind: capability
-  concept: moe_backend
+  concept: kernel
   title: b12x linear and MoE backends for SM120/SM121
   since: v0.29.0
   how_enabled:
@@ -547,12 +555,7 @@ capabilities:
   drop_reason: null
   reverse_markers:
     now_default: []
-    obsolete:
-    - VLLM_USE_B12X_WO_PROJECTION
-    - VLLM_USE_B12X_MHC
-    - VLLM_USE_B12X_FP8_GEMM
-    - VLLM_USE_B12X_MOE
-    - VLLM_USE_B12X_SPARSE_INDEXER
+    obsolete: []
   applies_to:
     hardware:
     - rtx_pro_6000
@@ -586,8 +589,19 @@ capabilities:
     also: []
   install:
     command: uv pip install "vllm[b12x]"
-    note: b12x kernels ship as an extra, not in the base wheel
-  min_vllm_version: 0.29.0
+    note: b12x kernels ship as a wheel extra, not in the base wheel
+  note: VLLM_B12X_MOE_FP4_FORCE_A16=1 forces BF16 activations for FP4 MoE. It is an opt-in numerics knob,
+    not part of enabling b12x, and is deliberately excluded from adoption.
+  supersedes:
+    VLLM_USE_B12X_MOE: --moe-backend b12x
+    VLLM_USE_B12X_FP8_GEMM: --linear-backend b12x
+    VLLM_USE_B12X_WO_PROJECTION: null
+    VLLM_USE_B12X_MHC: null
+    VLLM_USE_B12X_SPARSE_INDEXER: null
+    _image: eugr/spark-vllm-b12x:latest
+    _note: upstream ships b12x linear/MoE kernels in-tree since v0.29.0 behind --linear-backend/--moe-backend;
+      the VLLM_USE_B12X_* switches exist at no upstream tag, the newest rc or main, and three of them
+      have no documented upstream equivalent
   parts:
   - id: linear
     kind: primary
@@ -607,6 +621,11 @@ capabilities:
       - mxfp8
       - fp8
       model_traits: {}
+    required_floor: 0.29.0
+    floor_note: --linear-backend itself exists since 0.22.0; the b12x value is new in 0.29.0
+    evidence_sentence: b12x linear kernels participate in automatic selection after established optimized
+      backends and before emulation; select them explicitly with --linear-backend b12x. Linear supports
+      per-tensor FP8, 128x128 block FP8, MXFP8, NVFP4 and MXFP4.
   - id: moe
     kind: primary
     title: MoE backend (MoE models only)
@@ -624,29 +643,10 @@ capabilities:
       - mxfp4
       model_traits:
         architecture: moe
-  - id: fp4-force-a16
-    kind: tuning
-    title: force BF16 activations for FP4 MoE
-    how_enabled:
-      mode: explicit
-      flags: []
-      envs:
-      - VLLM_B12X_MOE_FP4_FORCE_A16
-      enum_values: []
-    applies_to:
-      quant:
-      - nvfp4
-      model_traits:
-        architecture: moe
-  supersedes:
-    VLLM_USE_B12X_MOE: --moe-backend b12x
-    VLLM_USE_B12X_FP8_GEMM: --linear-backend b12x
-    VLLM_USE_B12X_WO_PROJECTION: no upstream equivalent documented
-    VLLM_USE_B12X_MHC: no upstream equivalent documented
-    VLLM_USE_B12X_SPARSE_INDEXER: no upstream equivalent documented
-    note: upstream ships b12x linear/MoE kernels in-tree since v0.29.0 and exposes them through --linear-backend/--moe-backend
-      plus VLLM_B12X_MOE_FP4_FORCE_A16; the VLLM_USE_B12X_* switches exist at no upstream tag, the newest
-      rc or main
+    required_floor: 0.29.0
+    floor_note: --moe-backend itself exists since 0.17.0; the b12x value is new in 0.29.0
+    evidence_sentence: Only pass --moe-backend b12x for a compatible NVFP4 or MXFP4 MoE model. The b12x
+      MoE backend does not support expert parallelism, expert maps, EXL3, or NF3.
   verified:
   - --linear-backend exists at v0.29.0
   - --moe-backend exists at v0.29.0
@@ -656,7 +656,7 @@ capabilities:
   confidence: high
 - id: trace-replay-enable-trace-replay
   kind: out_of_scope
-  concept: attention_backend
+  concept: runtime
   title: 'Trace Replay: --enable-trace-replay'
   since: v0.29.0
   how_enabled:
@@ -696,55 +696,9 @@ capabilities:
   verified:
   - --enable-trace-replay exists at v0.29.0
   confidence: high
-- id: sharded-rdt-engine
-  kind: capability
-  concept: moe_backend
-  title: Sharded RDT Engine
-  since: v0.29.0
-  how_enabled:
-    mode: explicit
-    flags:
-    - --distributed-executor-backend
-    - --weight-transfer-config
-    envs: []
-    enum_values: []
-  default_on: false
-  drop_reason: null
-  reverse_markers:
-    now_default: []
-    obsolete: []
-  applies_to:
-    hardware: []
-    model_traits:
-      architecture: moe
-    quant: []
-  effect: usability
-  evidence:
-    source: docs-diff
-    section: docs/training/weight_transfer/sharded_rdt.md
-    prs: []
-    text: '# Sharded RDT Engine
-
-
-      The sharded RDT weight transfer engine moves weights point-to-point over [NIXL](https://github.com/ai-dynamo/nixl)
-      using Ray Direct Transport (RDT), Ray''s zero-copy tensor transport between actors. It is **pull-based**:
-      the inference workers initiate every transfer and each one asks only for the *slice* it consumes
-      under tensor and expert parallelism. A large MoE model therefore moves roughly `total_bytes / num_workers`
-      per worker instead of the `total_bytes` a broadcast costs.
-
-
-      ## When to Use Sharded RDT
-
-
-      - Very large models where broadcasting whole parameters is the bot'
-    also: []
-  verified:
-  - --distributed-executor-backend exists at v0.29.0
-  - --weight-transfer-config exists at v0.29.0
-  confidence: high
 - id: security-vllm-max-media-download-size-mb
   kind: out_of_scope
-  concept: uncategorized
+  concept: other
   title: 'Security: VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB'
   since: v0.29.0
   how_enabled:
@@ -754,7 +708,7 @@ capabilities:
     - VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB
     enum_values: []
   default_on: false
-  drop_reason: outside the concept vocabulary
+  drop_reason: benchmark/profiling/serving-infra tooling, not a recipe capability
   reverse_markers:
     now_default: []
     obsolete: []

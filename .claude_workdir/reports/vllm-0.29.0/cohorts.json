@@ -10,102 +10,158 @@
         "sentence": "MRV2 also gained CUDA graph memory profiling for KV cache auto-sizing (#53306), batch-sharded sampling that cuts per-step logits memory by 1/TP (#50465), prompt embeds (#42963), `extract_hidden_states` speculation (#49811), padded FULL cuda"
       },
       "cohort": [],
+      "since": "v0.29.0",
+      "caveat": "MRV1 remains in use for a few ROCm models and for features MRV2 does not yet support, so an explicit VLLM_USE_V2_MODEL_RUNNER=1 may be deliberate on those recipes — confirm the model class is on MRV2 before removing it.",
       "reverse_hits": [
         {
           "file": "models/Google/gemma-4-26B-A4B-it.yaml",
-          "kind": "redundant-below-floor",
+          "kind": "keep-below-floor",
+          "actionable": false,
           "name": "VLLM_USE_V2_MODEL_RUNNER",
           "value": "1",
           "floor": "0.25.0",
-          "detail": "VLLM_USE_V2_MODEL_RUNNER=1 in variants.nvidia_nvfp4.hardware_overrides.rtx_5090.extra_env; default only since v0.29.0, recipe floor is 0.25.0 — still load-bearing"
+          "detail": "VLLM_USE_V2_MODEL_RUNNER=1 in variants.nvidia_nvfp4.hardware_overrides.rtx_5090.extra_env; default only since v0.29.0, recipe floor is 0.25.0 — keep"
         },
         {
           "file": "models/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp.yaml",
           "kind": "redundant-explicit",
+          "actionable": true,
           "name": "VLLM_USE_V2_MODEL_RUNNER",
           "value": "1",
           "floor": "0.29.0",
+          "path": "hardware_overrides.amd.extra_env",
           "detail": "VLLM_USE_V2_MODEL_RUNNER=1 in hardware_overrides.amd.extra_env; default since v0.29.0, recipe floor 0.29.0 — redundant"
         },
         {
           "file": "models/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp.yaml",
-          "kind": "stale-guide-text",
+          "kind": "guide-explains-why",
+          "actionable": false,
           "name": "VLLM_USE_V2_MODEL_RUNNER",
-          "detail": "guide mentions VLLM_USE_V2_MODEL_RUNNER"
+          "value": "1",
+          "floor": "0.29.0",
+          "line": 304,
+          "snippet": "- `VLLM_USE_V2_MODEL_RUNNER=1` — required for DSpark (the V1 ROCm runner refuses it);",
+          "detail": "guide shows VLLM_USE_V2_MODEL_RUNNER at line 304"
+        },
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp.yaml",
+          "kind": "stale-guide-text",
+          "actionable": true,
+          "name": "VLLM_USE_V2_MODEL_RUNNER",
+          "value": "1",
+          "floor": "0.29.0",
+          "line": 316,
+          "snippet": "-e VLLM_USE_V2_MODEL_RUNNER=1 \\",
+          "detail": "guide shows VLLM_USE_V2_MODEL_RUNNER at line 316"
         },
         {
           "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
-          "kind": "redundant-below-floor",
+          "kind": "keep-below-floor",
+          "actionable": false,
           "name": "VLLM_USE_V2_MODEL_RUNNER",
           "value": "1",
           "floor": "0.20.0",
-          "detail": "VLLM_USE_V2_MODEL_RUNNER=1 in variants.dspark.hardware_overrides.dgx_spark_gb10.extra_env; default only since v0.29.0, recipe floor is 0.20.0 — still load-bearing"
+          "detail": "VLLM_USE_V2_MODEL_RUNNER=1 in variants.dspark.hardware_overrides.dgx_spark_gb10.extra_env; default only since v0.29.0, recipe floor is 0.20.0 — keep"
         },
         {
           "file": "models/deepseek-ai/DeepSeek-V4.1-Flash.yaml",
           "kind": "redundant-explicit",
+          "actionable": true,
           "name": "VLLM_USE_V2_MODEL_RUNNER",
           "value": "1",
           "floor": "0.30.0",
+          "path": "variants.default.hardware_overrides.h100.extra_env",
           "detail": "VLLM_USE_V2_MODEL_RUNNER=1 in variants.default.hardware_overrides.h100.extra_env; default since v0.29.0, recipe floor 0.30.0 — redundant"
         },
         {
           "file": "models/moonshotai/Kimi-K3.yaml",
           "kind": "redundant-explicit",
+          "actionable": true,
           "name": "VLLM_USE_V2_MODEL_RUNNER",
           "value": "1",
           "floor": "0.29.0",
+          "path": "hardware_overrides.blackwell.extra_env",
           "detail": "VLLM_USE_V2_MODEL_RUNNER=1 in hardware_overrides.blackwell.extra_env; default since v0.29.0, recipe floor 0.29.0 — redundant"
         },
         {
+          "file": "models/moonshotai/Kimi-K3.yaml",
+          "kind": "guide-explains-why",
+          "actionable": false,
+          "name": "VLLM_USE_V2_MODEL_RUNNER",
+          "value": "1",
+          "floor": "0.29.0",
+          "line": 435,
+          "snippet": "- **Model Runner v2**: `VLLM_USE_V2_MODEL_RUNNER=1`: Model Runner v2 fully supports this model and can be enabled if nee",
+          "detail": "guide shows VLLM_USE_V2_MODEL_RUNNER at line 435"
+        },
+        {
           "file": "models/thinkingmachines/Inkling-Small.yaml",
-          "kind": "redundant-below-floor",
+          "kind": "keep-below-floor",
+          "actionable": false,
           "name": "VLLM_USE_V2_MODEL_RUNNER",
           "value": "1",
           "floor": "0.26.0",
-          "detail": "VLLM_USE_V2_MODEL_RUNNER=1 in model.base_env; default only since v0.29.0, recipe floor is 0.26.0 — still load-bearing"
+          "detail": "VLLM_USE_V2_MODEL_RUNNER=1 in model.base_env; default only since v0.29.0, recipe floor is 0.26.0 — keep"
         },
         {
           "file": "models/thinkingmachines/Inkling-Small.yaml",
           "kind": "stale-guide-text",
-          "name": "VLLM_USE_V2_MODEL_RUNNER",
-          "detail": "guide mentions VLLM_USE_V2_MODEL_RUNNER"
-        },
-        {
-          "file": "models/thinkingmachines/Inkling.yaml",
-          "kind": "redundant-below-floor",
+          "actionable": false,
           "name": "VLLM_USE_V2_MODEL_RUNNER",
           "value": "1",
           "floor": "0.26.0",
-          "detail": "VLLM_USE_V2_MODEL_RUNNER=1 in model.base_env; default only since v0.29.0, recipe floor is 0.26.0 — still load-bearing"
+          "line": 297,
+          "snippet": "export VLLM_USE_V2_MODEL_RUNNER=1",
+          "detail": "guide shows VLLM_USE_V2_MODEL_RUNNER at line 297"
+        },
+        {
+          "file": "models/thinkingmachines/Inkling.yaml",
+          "kind": "keep-below-floor",
+          "actionable": false,
+          "name": "VLLM_USE_V2_MODEL_RUNNER",
+          "value": "1",
+          "floor": "0.26.0",
+          "detail": "VLLM_USE_V2_MODEL_RUNNER=1 in model.base_env; default only since v0.29.0, recipe floor is 0.26.0 — keep"
         },
         {
           "file": "models/thinkingmachines/Inkling.yaml",
           "kind": "stale-guide-text",
+          "actionable": false,
           "name": "VLLM_USE_V2_MODEL_RUNNER",
-          "detail": "guide mentions VLLM_USE_V2_MODEL_RUNNER"
+          "value": "1",
+          "floor": "0.26.0",
+          "line": 261,
+          "snippet": "export VLLM_USE_V2_MODEL_RUNNER=1",
+          "detail": "guide shows VLLM_USE_V2_MODEL_RUNNER at line 261"
         },
         {
           "file": "models/zai-org/GLM-5.1.yaml",
-          "kind": "redundant-below-floor",
+          "kind": "keep-below-floor",
+          "actionable": false,
           "name": "VLLM_USE_V2_MODEL_RUNNER",
           "value": "1",
           "floor": "0.24.0",
-          "detail": "VLLM_USE_V2_MODEL_RUNNER=1 in variants.mxfp4.hardware_overrides.mi355x.extra_env; default only since v0.29.0, recipe floor is 0.24.0 — still load-bearing"
+          "detail": "VLLM_USE_V2_MODEL_RUNNER=1 in variants.mxfp4.hardware_overrides.mi355x.extra_env; default only since v0.29.0, recipe floor is 0.24.0 — keep"
         },
         {
           "file": "models/zai-org/GLM-5.2.yaml",
-          "kind": "redundant-below-floor",
+          "kind": "keep-below-floor",
+          "actionable": false,
           "name": "VLLM_USE_V2_MODEL_RUNNER",
           "value": "1",
           "floor": "0.24.0",
-          "detail": "VLLM_USE_V2_MODEL_RUNNER=1 in variants.mxfp4.hardware_overrides.mi355x.extra_env; default only since v0.29.0, recipe floor is 0.24.0 — still load-bearing"
+          "detail": "VLLM_USE_V2_MODEL_RUNNER=1 in variants.mxfp4.hardware_overrides.mi355x.extra_env; default only since v0.29.0, recipe floor is 0.24.0 — keep"
         },
         {
           "file": "models/zai-org/GLM-5.2.yaml",
           "kind": "stale-guide-text",
+          "actionable": false,
           "name": "VLLM_USE_V2_MODEL_RUNNER",
-          "detail": "guide mentions VLLM_USE_V2_MODEL_RUNNER"
+          "value": "1",
+          "floor": "0.24.0",
+          "line": 270,
+          "snippet": "export VLLM_USE_V2_MODEL_RUNNER=1",
+          "detail": "guide shows VLLM_USE_V2_MODEL_RUNNER at line 270"
         }
       ]
     },
@@ -120,13 +176,15 @@
     {
       "id": "kimi-k3-and-deepseek-v4-performance-fused-mxfp4-",
       "title": "Kimi-K3 and DeepSeek V4 performance: fused MXFP4 top-k finalization in the K3 latent tail (about 5% E2E latency, #53152)",
-      "concept": "moe_backend",
+      "concept": "quantization",
       "confidence": "medium",
       "supporting_sentence": {
         "dimension": "hopper",
         "sentence": "**Kimi-K3 and DeepSeek V4 performance**: fused MXFP4 top-k finalization in the K3 latent tail (about 5% E2E latency, #53152), K3 Mamba metadata preparation in one Triton launch (6.6-7.6x kernel speedup, #52388), tuned Hopper low-latency GEM"
       },
       "cohort": [],
+      "since": "v0.29.0",
+      "caveat": null,
       "reverse_hits": [],
       "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
     },
@@ -176,6 +234,13 @@
           }
         ]
       },
+      "since": "v0.29.0",
+      "caveat": null,
+      "required_floor": null,
+      "floor_note": null,
+      "evidence_sentence": null,
+      "install": null,
+      "note": null,
       "supporting_sentence": {
         "dimension": "spec_decoding",
         "sentence": "**Speculative decoding**: per-request acceptance stats in OpenAI API responses via `--per-request-spec-decode-metrics` (#48915), adaptive verification extended to logprobs (#52242), SM100 sparse MLA for GLM-5.2 (#52783) and DeepSeek V4 on S"
@@ -194,16 +259,11 @@
     },
     {
       "id": "a-new-sharded-rdt-p2p-backend-where-each-worker-",
-      "title": "a new sharded_rdt P2P backend where each worker pulls only its TP/EP slice over NIXL or Ray Direct Transport, rank-local IPC weight updates",
+      "title": "Sharded RDT Engine",
       "concept": "parallelism",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "moe",
-        "sentence": "**RL weight sync**: a new `sharded_rdt` P2P backend where each worker pulls only its TP/EP slice over NIXL or Ray Direct Transport (#43375), rank-local IPC weight updates (#52497), sparse checkpoint-coordinate updates through native weight "
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "RL weight-sync plumbing, not a serving capability"
     },
     {
       "id": "internal-prefill-checkpoints-deliver-a-9-25-ttft",
@@ -215,13 +275,15 @@
         "sentence": "`prefix_cache_retention_interval` is now a CLI argument defaulting to 0 (#52216), with dense retention automatically restored for hybrid models using EAGLE/MTP (#55760, #55861)."
       },
       "cohort": [],
+      "since": "v0.29.0",
+      "caveat": null,
       "reverse_hits": [],
       "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
     },
     {
       "id": "flashinfer-all-reduce-enabled-by-default-for-tp-",
       "title": "FlashInfer all-reduce enabled by default for TP CUDA groups, opt out with VLLM_ALLREDUCE_USE_FLASHINFER=0",
-      "concept": "parallelism",
+      "concept": "attention_backend",
       "confidence": "medium",
       "cohort": [],
       "skipped": "no non-wildcard hardware/model dimension backed by a sentence in the evidence — brand alone is not a dimension"
@@ -245,15 +307,15 @@
     {
       "id": "flexolmo-olmo3-hunyuan-v1-and-hunyuan-vl-are-now",
       "title": "FlexOlmo, Olmo3, Hunyuan V1 and Hunyuan VL are now served through the Transformers modeling backend",
-      "concept": "uncategorized",
+      "concept": "other",
       "kind": "out_of_scope",
       "cohort": [],
-      "skipped": "outside the concept vocabulary"
+      "skipped": "out of scope"
     },
     {
       "id": "pyav-video-decoder-backend-removed",
       "title": "PyAV video decoder backend removed",
-      "concept": "uncategorized",
+      "concept": "other",
       "kind": "breaking",
       "cohort": [],
       "skipped": "breaking change — belongs in the stale section"
@@ -261,7 +323,7 @@
     {
       "id": "python-m-vllm-entrypoints-openai-api-server-is-d",
       "title": "python -m vllm.entrypoints.openai.api_server is deprecated",
-      "concept": "uncategorized",
+      "concept": "other",
       "kind": "breaking",
       "cohort": [],
       "skipped": "breaking change — belongs in the stale section"
@@ -277,7 +339,7 @@
     {
       "id": "vllm-test-force-fp8-marlin-removed-in-favor-of-l",
       "title": "VLLM_TEST_FORCE_FP8_MARLIN removed in favor of --linear-backend / --moe-backend",
-      "concept": "moe_backend",
+      "concept": "kernel",
       "kind": "breaking",
       "cohort": [],
       "skipped": "breaking change — belongs in the stale section"
@@ -285,7 +347,7 @@
     {
       "id": "b12x-linear-and-moe-backends/linear",
       "title": "b12x linear and MoE backends for SM120/SM121 — linear backend",
-      "concept": "moe_backend",
+      "concept": "kernel",
       "effect": "perf",
       "confidence": "high",
       "how_enabled": {
@@ -329,57 +391,21 @@
         "also": []
       },
       "part": "primary",
+      "since": "v0.29.0",
+      "caveat": null,
+      "required_floor": "0.29.0",
+      "floor_note": "--linear-backend itself exists since 0.22.0; the b12x value is new in 0.29.0",
+      "evidence_sentence": "b12x linear kernels participate in automatic selection after established optimized backends and before emulation; select them explicitly with --linear-backend b12x. Linear supports per-tensor FP8, 128x128 block FP8, MXFP8, NVFP4 and MXFP4.",
+      "install": {
+        "command": "uv pip install \"vllm[b12x]\"",
+        "note": "b12x kernels ship as a wheel extra, not in the base wheel"
+      },
+      "note": "VLLM_B12X_MOE_FP4_FORCE_A16=1 forces BF16 activations for FP4 MoE. It is an opt-in numerics knob, not part of enabling b12x, and is deliberately excluded from adoption.",
       "supporting_sentence": {
         "dimension": "rtx_pro_6000",
         "sentence": "b12x provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs (RTX Pro 6000/5000, RTX 5090, DGX Spark GB10), installed with pip install vllm[b12x]."
       },
-      "reverse_hits": [
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
-          "kind": "obsolete-workaround",
-          "name": "VLLM_USE_B12X_WO_PROJECTION",
-          "value": "1",
-          "floor": "0.20.0",
-          "replacement": "no upstream equivalent documented",
-          "detail": "VLLM_USE_B12X_WO_PROJECTION=1 in variants.dspark.hardware_overrides.dgx_spark_gb10.extra_env — superseded by no upstream equivalent documented"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
-          "kind": "obsolete-workaround",
-          "name": "VLLM_USE_B12X_MHC",
-          "value": "1",
-          "floor": "0.20.0",
-          "replacement": "no upstream equivalent documented",
-          "detail": "VLLM_USE_B12X_MHC=1 in variants.dspark.hardware_overrides.dgx_spark_gb10.extra_env — superseded by no upstream equivalent documented"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
-          "kind": "obsolete-workaround",
-          "name": "VLLM_USE_B12X_FP8_GEMM",
-          "value": "1",
-          "floor": "0.20.0",
-          "replacement": "--linear-backend b12x",
-          "detail": "VLLM_USE_B12X_FP8_GEMM=1 in variants.dspark.hardware_overrides.dgx_spark_gb10.extra_env — superseded by --linear-backend b12x"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
-          "kind": "obsolete-workaround",
-          "name": "VLLM_USE_B12X_MOE",
-          "value": "1",
-          "floor": "0.20.0",
-          "replacement": "--moe-backend b12x",
-          "detail": "VLLM_USE_B12X_MOE=1 in variants.dspark.hardware_overrides.dgx_spark_gb10.extra_env — superseded by --moe-backend b12x"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
-          "kind": "obsolete-workaround",
-          "name": "VLLM_USE_B12X_SPARSE_INDEXER",
-          "value": "1",
-          "floor": "0.20.0",
-          "replacement": "no upstream equivalent documented",
-          "detail": "VLLM_USE_B12X_SPARSE_INDEXER=1 in variants.dspark.hardware_overrides.dgx_spark_gb10.extra_env — superseded by no upstream equivalent documented"
-        }
-      ],
+      "reverse_hits": [],
       "cohort": [
         {
           "file": "models/Google/diffusiongemma-26B-A4B-it.yaml",
@@ -441,35 +467,6 @@
             "rtx_5090"
           ],
           "floor": "0.25.0"
-        },
-        {
-          "file": "models/Lightricks/LTX-2.5-Diffusers.yaml",
-          "why": "hardware rtx_pro_6000,rtx_pro_5000,dgx_spark_gb10; traits match; quant fp8",
-          "architecture": "dense",
-          "precisions": [
-            "bf16",
-            "fp8"
-          ],
-          "matched_hardware": [
-            "dgx_spark_gb10",
-            "rtx_pro_5000",
-            "rtx_pro_6000"
-          ],
-          "matched_quant": [
-            "fp8"
-          ],
-          "conflicts": [],
-          "hardware_keys": [
-            "h200",
-            "b300",
-            "dgx_spark_gb10",
-            "rtx_pro_5000",
-            "rtx_pro_6000",
-            "b200",
-            "gb200",
-            "gb300"
-          ],
-          "floor": "0.27.0"
         },
         {
           "file": "models/MiniMaxAI/MiniMax-M2.7.yaml",
@@ -768,7 +765,7 @@
     {
       "id": "b12x-linear-and-moe-backends/moe",
       "title": "b12x linear and MoE backends for SM120/SM121 — MoE backend (MoE models only)",
-      "concept": "moe_backend",
+      "concept": "kernel",
       "effect": "perf",
       "confidence": "high",
       "how_enabled": {
@@ -812,6 +809,16 @@
         "also": []
       },
       "part": "primary",
+      "since": "v0.29.0",
+      "caveat": null,
+      "required_floor": "0.29.0",
+      "floor_note": "--moe-backend itself exists since 0.17.0; the b12x value is new in 0.29.0",
+      "evidence_sentence": "Only pass --moe-backend b12x for a compatible NVFP4 or MXFP4 MoE model. The b12x MoE backend does not support expert parallelism, expert maps, EXL3, or NF3.",
+      "install": {
+        "command": "uv pip install \"vllm[b12x]\"",
+        "note": "b12x kernels ship as a wheel extra, not in the base wheel"
+      },
+      "note": "VLLM_B12X_MOE_FP4_FORCE_A16=1 forces BF16 activations for FP4 MoE. It is an opt-in numerics knob, not part of enabling b12x, and is deliberately excluded from adoption.",
       "supporting_sentence": {
         "dimension": "rtx_pro_6000",
         "sentence": "b12x provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs (RTX Pro 6000/5000, RTX 5090, DGX Spark GB10), installed with pip install vllm[b12x]."
@@ -1085,369 +1092,20 @@
       ]
     },
     {
-      "id": "b12x-linear-and-moe-backends/fp4-force-a16",
-      "title": "b12x linear and MoE backends for SM120/SM121 — force BF16 activations for FP4 MoE",
-      "concept": "moe_backend",
-      "effect": "perf",
-      "confidence": "high",
-      "how_enabled": {
-        "mode": "explicit",
-        "flags": [],
-        "envs": [
-          "VLLM_B12X_MOE_FP4_FORCE_A16"
-        ],
-        "enum_values": []
-      },
-      "applies_to": {
-        "hardware": [
-          "rtx_pro_6000",
-          "rtx_pro_6000_2x",
-          "rtx_pro_6000_4x",
-          "rtx_pro_6000_8x",
-          "rtx_pro_5000",
-          "rtx_pro_5000_4x",
-          "rtx_5090",
-          "rtx_5090_2x",
-          "dgx_spark_gb10"
-        ],
-        "model_traits": {
-          "architecture": "moe"
-        },
-        "quant": [
-          "nvfp4"
-        ]
-      },
-      "evidence": {
-        "source": "docs-diff",
-        "section": "docs/features/quantization/b12x.md",
-        "prs": [],
-        "text": "b12x provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs (RTX Pro 6000/5000, RTX 5090, DGX Spark GB10), installed with pip install vllm[b12x]. b12x linear kernels participate in automatic selection after established optimized backends and before emulation; select them explicitly with --linear-backend b12x and --moe-backend b12x. Only pass --moe-backend b12x for a compatible NVFP4 or MXFP4 MoE model. b12x uses MXFP8 activations by default for MXFP4 MoE and the checkpoint's activation format for NVFP4 MoE; set VLLM_B12X_MOE_FP4_FORCE_A16=1 to force BF16 activations for either FP4 weight format. Linear supports per-tensor FP8, 128x128 block FP8, MXFP8, NVFP4 and MXFP4. The b12x MoE backend does not support expert parallelism, expert maps, EXL3, or NF3.",
-        "also": []
-      },
-      "part": "tuning",
-      "supporting_sentence": {
-        "dimension": "rtx_pro_6000",
-        "sentence": "b12x provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs (RTX Pro 6000/5000, RTX 5090, DGX Spark GB10), installed with pip install vllm[b12x]."
-      },
-      "reverse_hits": [],
-      "cohort": [
-        {
-          "file": "models/Google/diffusiongemma-26B-A4B-it.yaml",
-          "why": "hardware dgx_spark_gb10; traits match; quant nvfp4",
-          "architecture": "moe",
-          "precisions": [
-            "bf16",
-            "fp8",
-            "nvfp4"
-          ],
-          "matched_hardware": [
-            "dgx_spark_gb10"
-          ],
-          "matched_quant": [
-            "nvfp4"
-          ],
-          "conflicts": [],
-          "hardware_keys": [
-            "h100",
-            "h200",
-            "dgx_spark_gb10",
-            "xeon6",
-            "cpu"
-          ],
-          "floor": "0.24.0"
-        },
-        {
-          "file": "models/Google/gemma-4-26B-A4B-it.yaml",
-          "why": "hardware rtx_pro_6000,rtx_5090,dgx_spark_gb10; traits match; quant nvfp4",
-          "architecture": "moe",
-          "precisions": [
-            "bf16",
-            "fp8",
-            "nvfp4"
-          ],
-          "matched_hardware": [
-            "dgx_spark_gb10",
-            "rtx_pro_6000",
-            "rtx_5090"
-          ],
-          "matched_quant": [
-            "nvfp4"
-          ],
-          "conflicts": [],
-          "hardware_keys": [
-            "h100",
-            "h200",
-            "mi300x",
-            "mi325x",
-            "mi355x",
-            "trillium",
-            "ironwood",
-            "xeon6",
-            "dgx_spark_gb10",
-            "dgx_station_gb300",
-            "rtx_pro_6000",
-            "rtx_5090"
-          ],
-          "floor": "0.25.0"
-        },
-        {
-          "file": "models/MiniMaxAI/MiniMax-M2.7.yaml",
-          "why": "hardware rtx_pro_6000_2x; traits match; quant nvfp4",
-          "architecture": "moe",
-          "precisions": [
-            "fp8",
-            "nvfp4"
-          ],
-          "matched_hardware": [
-            "rtx_pro_6000_2x"
-          ],
-          "matched_quant": [
-            "nvfp4"
-          ],
-          "conflicts": [],
-          "hardware_keys": [
-            "h100",
-            "h200",
-            "mi300x",
-            "mi325x",
-            "mi355x",
-            "dgx_station_gb300",
-            "rtx_pro_6000_2x",
-            "amd"
-          ],
-          "floor": "0.20.0"
-        },
-        {
-          "file": "models/Qwen/Qwen3.6-35B-A3B.yaml",
-          "why": "hardware rtx_pro_6000,rtx_5090,dgx_spark_gb10; traits match; quant nvfp4",
-          "architecture": "moe",
-          "precisions": [
-            "bf16",
-            "fp8",
-            "nvfp4"
-          ],
-          "matched_hardware": [
-            "dgx_spark_gb10",
-            "rtx_pro_6000",
-            "rtx_5090"
-          ],
-          "matched_quant": [
-            "nvfp4"
-          ],
-          "conflicts": [],
-          "hardware_keys": [
-            "dgx_spark_gb10",
-            "h100",
-            "h200",
-            "mi300x",
-            "mi325x",
-            "mi355x",
-            "rtx_pro_6000",
-            "dgx_station_gb300",
-            "rtx_5090",
-            "arc_pro_b60",
-            "arc_pro_b70",
-            "amd",
-            "xpu"
-          ],
-          "floor": "0.17.0"
-        },
-        {
-          "file": "models/Qwen/Qwen3.8-Flash-Next.yaml",
-          "why": "hardware rtx_pro_6000_4x; traits match; quant nvfp4",
-          "architecture": "moe",
-          "precisions": [
-            "nvfp4",
-            "fp8",
-            "bf16"
-          ],
-          "matched_hardware": [
-            "rtx_pro_6000_4x"
-          ],
-          "matched_quant": [
-            "nvfp4"
-          ],
-          "conflicts": [],
-          "hardware_keys": [
-            "h200",
-            "h100",
-            "gb200",
-            "gb300",
-            "mi355x",
-            "rtx_pro_6000_4x",
-            "dgx_station_gb300",
-            "hopper"
-          ],
-          "floor": "0.29.0"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
-          "why": "hardware rtx_pro_6000_8x,dgx_spark_gb10; traits match; quant nvfp4",
-          "architecture": "moe",
-          "precisions": [
-            "fp8",
-            "nvfp4"
-          ],
-          "matched_hardware": [
-            "dgx_spark_gb10",
-            "rtx_pro_6000_8x"
-          ],
-          "matched_quant": [
-            "nvfp4"
-          ],
-          "conflicts": [],
-          "hardware_keys": [
-            "h200",
-            "b200",
-            "gb200",
-            "b300",
-            "gb300",
-            "dgx_station_gb300",
-            "dgx_spark_gb10",
-            "rtx_pro_6000_8x",
-            "mi300x",
-            "mi325x",
-            "mi355x",
-            "ascend_950dt_8x",
-            "ascend_950pr_8x",
-            "blackwell",
-            "amd",
-            "npu"
-          ],
-          "floor": "0.20.0"
-        },
-        {
-          "file": "models/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16.yaml",
-          "why": "hardware rtx_pro_6000,dgx_spark_gb10; traits match; quant nvfp4",
-          "architecture": "moe",
-          "precisions": [
-            "bf16",
-            "fp8",
-            "nvfp4"
-          ],
-          "matched_hardware": [
-            "dgx_spark_gb10",
-            "rtx_pro_6000"
-          ],
-          "matched_quant": [
-            "nvfp4"
-          ],
-          "conflicts": [],
-          "hardware_keys": [
-            "h100",
-            "h200",
-            "b200",
-            "dgx_station_gb300",
-            "dgx_spark_gb10",
-            "rtx_pro_6000"
-          ],
-          "floor": "0.17.1"
-        },
-        {
-          "file": "models/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16.yaml",
-          "why": "hardware rtx_pro_6000,dgx_spark_gb10; traits match; quant nvfp4",
-          "architecture": "moe",
-          "precisions": [
-            "nvfp4",
-            "bf16"
-          ],
-          "matched_hardware": [
-            "dgx_spark_gb10",
-            "rtx_pro_6000"
-          ],
-          "matched_quant": [
-            "nvfp4"
-          ],
-          "conflicts": [],
-          "hardware_keys": [
-            "h100",
-            "dgx_spark_gb10",
-            "rtx_pro_6000",
-            "dgx_station_gb300",
-            "hopper"
-          ],
-          "floor": "0.27.1"
-        }
-      ],
-      "excluded_already_using": []
-    },
-    {
       "id": "trace-replay-enable-trace-replay",
       "title": "Trace Replay: --enable-trace-replay",
-      "concept": "attention_backend",
+      "concept": "runtime",
       "kind": "out_of_scope",
       "cohort": [],
       "skipped": "benchmark/profiling/serving-infra tooling, not a recipe capability"
     },
     {
-      "id": "sharded-rdt-engine",
-      "title": "Sharded RDT Engine",
-      "concept": "moe_backend",
-      "effect": "usability",
-      "confidence": "high",
-      "how_enabled": {
-        "mode": "explicit",
-        "flags": [
-          "--distributed-executor-backend",
-          "--weight-transfer-config"
-        ],
-        "envs": [],
-        "enum_values": []
-      },
-      "applies_to": {
-        "hardware": [],
-        "model_traits": {
-          "architecture": "moe"
-        },
-        "quant": []
-      },
-      "evidence": {
-        "source": "docs-diff",
-        "section": "docs/training/weight_transfer/sharded_rdt.md",
-        "prs": [],
-        "text": "# Sharded RDT Engine\n\nThe sharded RDT weight transfer engine moves weights point-to-point over [NIXL](https://github.com/ai-dynamo/nixl) using Ray Direct Transport (RDT), Ray's zero-copy tensor transport between actors. It is **pull-based**: the inference workers initiate every transfer and each one asks only for the *slice* it consumes under tensor and expert parallelism. A large MoE model therefore moves roughly `total_bytes / num_workers` per worker instead of the `total_bytes` a broadcast costs.\n\n## When to Use Sharded RDT\n\n- Very large models where broadcasting whole parameters is the bot",
-        "also": []
-      },
-      "supporting_sentence": {
-        "dimension": "moe",
-        "sentence": "It is **pull-based**: the inference workers initiate every transfer and each one asks only for the *slice* it consumes under tensor and expert parallelism."
-      },
-      "reverse_hits": [],
-      "cohort": [],
-      "excluded_already_using": [
-        {
-          "file": "models/Qwen/Qwen3.5-397B-A17B.yaml",
-          "reason": "already passes --distributed-executor-backend"
-        },
-        {
-          "file": "models/Qwen/Qwen3.8-Flash-Next.yaml",
-          "reason": "already passes --distributed-executor-backend"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
-          "reason": "already passes --distributed-executor-backend"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4-Pro.yaml",
-          "reason": "already passes --distributed-executor-backend"
-        }
-      ],
-      "skipped": "cohort of 87 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
-      "cohort_sample": [
-        "models/Google/diffusiongemma-26B-A4B-it.yaml",
-        "models/Google/gemma-4-26B-A4B-it.yaml",
-        "models/IFM/K2-Horizon-375B-A23B.yaml",
-        "models/IFM/K2-Horizon-MoVA-36B-A4B.yaml",
-        "models/JetBrains/Mellum2-12B-A2.5B-Instruct.yaml"
-      ]
-    },
-    {
       "id": "security-vllm-max-media-download-size-mb",
       "title": "Security: VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB",
-      "concept": "uncategorized",
+      "concept": "other",
       "kind": "out_of_scope",
       "cohort": [],
-      "skipped": "outside the concept vocabulary"
+      "skipped": "benchmark/profiling/serving-infra tooling, not a recipe capability"
     }
   ]
 }
