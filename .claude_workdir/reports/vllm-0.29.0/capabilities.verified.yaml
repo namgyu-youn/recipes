@@ -3,7 +3,7 @@ target: v0.29.0
 capabilities:
 - id: model-runner-v2-is-now-the-default-for-all-model
   kind: capability
-  concept: default_change
+  concept: compilation
   title: 'Model Runner V2 is now the default for all models: completing the rollout that began with pooling
     models'
   since: v0.29.0
@@ -13,6 +13,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: true
+  drop_reason: null
   reverse_markers:
     now_default:
     - VLLM_USE_V2_MODEL_RUNNER
@@ -46,7 +47,49 @@ capabilities:
     also:
     - section: Breaking Changes & Deprecations
       source: release-notes
-  curated: true
+  verified: []
+  confidence: medium
+- id: hy4-preview-tencent-s-770b-49b-active-moe-with-g
+  kind: out_of_scope
+  concept: spec_decoding
+  title: Hy4-preview, Tencent's 770B/49B-active MoE with Gated DeepSeek Sparse Attention and native MTP
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: false
+  drop_reason: new model support — not a serving capability
+  reverse_markers:
+    now_default: []
+    obsolete: []
+  applies_to:
+    hardware: []
+    model_traits:
+      architecture: moe
+      features:
+      - spec_decoding
+    quant:
+    - nvfp4
+    - fp8
+    - bf16
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Highlights
+    prs:
+    - '52706'
+    - '52929'
+    - '53121'
+    - '53132'
+    - '53896'
+    - '54160'
+    text: '**New models**: Hy4-preview, Tencent''s 770B/49B-active MoE with Gated DeepSeek Sparse Attention
+      and native MTP (#54160); Qwen3.8-Flash-Next with BF16/FP8/NVFP4 and MTP (#53896); GraniteSWA and
+      GraniteMoeSWA (#52706); NemotronH_Omni_Reasoning_V3 with MTP (#52929, #53121); Kimi K3 NVFP4 checkpoints
+      (#53132).'
+    also: []
   verified: []
   confidence: medium
 - id: kimi-k3-and-deepseek-v4-performance-fused-mxfp4-
@@ -61,6 +104,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
+  drop_reason: null
   reverse_markers:
     now_default: []
     obsolete: []
@@ -93,7 +137,6 @@ capabilities:
       cache hits (#50493); DeepSeek V4 shared experts fused into MegaMoE (#53040), adaptive top-k width
       re-landed (#'
     also: []
-  curated: true
   verified: []
   confidence: medium
 - id: per-request-acceptance-stats-in-openai-api-respo
@@ -108,6 +151,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
+  drop_reason: null
   reverse_markers:
     now_default: []
     obsolete: []
@@ -137,13 +181,50 @@ capabilities:
       source: docs-diff
     - section: docs/features/speculative_decoding/acceptance_metrics.md
       source: docs-diff
-  curated: true
   verified:
   - --per-request-spec-decode-metrics exists at v0.29.0
   confidence: high
+- id: a-new-sharded-rdt-p2p-backend-where-each-worker-
+  kind: capability
+  concept: parallelism
+  title: a new sharded_rdt P2P backend where each worker pulls only its TP/EP slice over NIXL or Ray Direct
+    Transport, rank-local IPC weight updates
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: false
+  drop_reason: null
+  reverse_markers:
+    now_default: []
+    obsolete: []
+  applies_to:
+    hardware: []
+    model_traits:
+      architecture: moe
+    quant: []
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Highlights
+    prs:
+    - '43375'
+    - '50723'
+    - '52209'
+    - '52497'
+    - '53751'
+    text: '**RL weight sync**: a new `sharded_rdt` P2P backend where each worker pulls only its TP/EP
+      slice over NIXL or Ray Direct Transport (#43375), rank-local IPC weight updates (#52497), sparse
+      checkpoint-coordinate updates through native weight loaders (#50723, #53751), and routed expert
+      loading for gpt-oss (#52209).'
+    also: []
+  verified: []
+  confidence: medium
 - id: internal-prefill-checkpoints-deliver-a-9-25-ttft
   kind: capability
-  concept: kv_cache
+  concept: spec_decoding
   title: 'Mamba prefix caching: internal prefill checkpoints (9-25% TTFT)'
   since: v0.29.0
   how_enabled:
@@ -152,6 +233,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: true
+  drop_reason: null
   reverse_markers:
     now_default: []
     obsolete: []
@@ -175,7 +257,6 @@ capabilities:
       `prefix_cache_retention_interval` is now a CLI argument defaulting to 0 (#52216), with dense retention
       automatically restored for hybrid models using EAGLE/MTP (#55760, #55861).'
     also: []
-  curated: true
   verified: []
   confidence: medium
 - id: flashinfer-all-reduce-enabled-by-default-for-tp-
@@ -190,6 +271,7 @@ capabilities:
     - VLLM_ALLREDUCE_USE_FLASHINFER
     enum_values: []
   default_on: true
+  drop_reason: null
   reverse_markers:
     now_default:
     - VLLM_ALLREDUCE_USE_FLASHINFER
@@ -210,7 +292,6 @@ capabilities:
     also:
     - section: Breaking Changes & Deprecations
       source: release-notes
-  curated: true
   verified:
   - VLLM_ALLREDUCE_USE_FLASHINFER exists at v0.29.0
   confidence: medium
@@ -226,6 +307,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: true
+  drop_reason: null
   reverse_markers:
     now_default: []
     obsolete:
@@ -244,7 +326,6 @@ capabilities:
     text: prefix-cache `NONE_HASH` is deterministic by default so distributed KV cache users no longer
       need to pin `PYTHONHASHSEED` (#51875)
     also: []
-  curated: true
   verified: []
   confidence: medium
 - id: new-max-num-queued-reqs-max-num-queued-tokens-ad
@@ -260,6 +341,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
+  drop_reason: null
   reverse_markers:
     now_default: []
     obsolete: []
@@ -275,11 +357,42 @@ capabilities:
     - '49445'
     text: new `--max-num-queued-reqs` / `--max-num-queued-tokens` admission-control flags (#49445).
     also: []
-  curated: true
   verified:
   - --max-num-queued-reqs exists at v0.29.0
   - --max-num-queued-tokens exists at v0.29.0
   confidence: high
+- id: flexolmo-olmo3-hunyuan-v1-and-hunyuan-vl-are-now
+  kind: out_of_scope
+  concept: uncategorized
+  title: FlexOlmo, Olmo3, Hunyuan V1 and Hunyuan VL are now served through the Transformers modeling backend
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: false
+  drop_reason: outside the concept vocabulary
+  reverse_markers:
+    now_default: []
+    obsolete: []
+  applies_to:
+    hardware: []
+    model_traits:
+      tasks:
+      - multimodal
+    quant: []
+  effect: usability
+  evidence:
+    source: release-notes
+    section: Breaking Changes & Deprecations
+    prs:
+    - '53615'
+    text: FlexOlmo, Olmo3, Hunyuan V1 and Hunyuan VL are now served through the Transformers modeling
+      backend (#53615).
+    also: []
+  verified: []
+  confidence: medium
 - id: pyav-video-decoder-backend-removed
   kind: breaking
   concept: uncategorized
@@ -291,6 +404,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
+  drop_reason: outside the concept vocabulary
   reverse_markers:
     now_default: []
     obsolete: []
@@ -308,12 +422,11 @@ capabilities:
     - '54231'
     text: PyAV video decoder backend removed; use OpenCV or Torchcodec (#54231).
     also: []
-  curated: true
   verified: []
   confidence: medium
 - id: python-m-vllm-entrypoints-openai-api-server-is-d
   kind: breaking
-  concept: frontend
+  concept: uncategorized
   title: python -m vllm.entrypoints.openai.api_server is deprecated
   since: v0.29.0
   how_enabled:
@@ -322,6 +435,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
+  drop_reason: outside the concept vocabulary
   reverse_markers:
     now_default: []
     obsolete: []
@@ -337,12 +451,11 @@ capabilities:
     - '52131'
     text: '`python -m vllm.entrypoints.openai.api_server` is deprecated; use `vllm serve` (#52131).'
     also: []
-  curated: true
   verified: []
   confidence: medium
 - id: prefix-cache-retention-interval-default-changed-
   kind: breaking
-  concept: default_change
+  concept: kv_cache
   title: prefix_cache_retention_interval default changed from dense to 0 for SWA/SSM models
   since: v0.29.0
   how_enabled:
@@ -350,7 +463,8 @@ capabilities:
     flags: []
     envs: []
     enum_values: []
-  default_on: false
+  default_on: true
+  drop_reason: null
   reverse_markers:
     now_default: []
     obsolete: []
@@ -368,7 +482,6 @@ capabilities:
     text: '`prefix_cache_retention_interval` default changed from dense to 0 for SWA/SSM models; the env
       var is deprecated in favor of the argument (#52216).'
     also: []
-  curated: true
   verified: []
   confidence: medium
 - id: vllm-test-force-fp8-marlin-removed-in-favor-of-l
@@ -385,6 +498,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
+  drop_reason: null
   reverse_markers:
     now_default: []
     obsolete: []
@@ -407,7 +521,6 @@ capabilities:
       `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` removed (#53141); dead `--attention-config.use_prefill_decode_attention`
       removed (#52557); other long-deprecated parameters cleaned up (#53559).'
     also: []
-  curated: true
   verified:
   - --attention-config exists at v0.29.0
   - --linear-backend exists at v0.29.0
@@ -431,9 +544,15 @@ capabilities:
     - flag: --moe-backend
       value: b12x
   default_on: false
+  drop_reason: null
   reverse_markers:
     now_default: []
-    obsolete: []
+    obsolete:
+    - VLLM_USE_B12X_WO_PROJECTION
+    - VLLM_USE_B12X_MHC
+    - VLLM_USE_B12X_FP8_GEMM
+    - VLLM_USE_B12X_MOE
+    - VLLM_USE_B12X_SPARSE_INDEXER
   applies_to:
     hardware:
     - rtx_pro_6000
@@ -450,19 +569,84 @@ capabilities:
     - nvfp4
     - mxfp4
     - mxfp8
+    - fp8
   effect: perf
   evidence:
     source: docs-diff
     section: docs/features/quantization/b12x.md
     prs: []
     text: b12x provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs (RTX Pro 6000/5000, RTX
-      5090, DGX Spark GB10), installed with `pip install vllm[b12x]`. Select them with --linear-backend
-      b12x and --moe-backend b12x. Only pass --moe-backend b12x for a compatible NVFP4 or MXFP4 MoE model.
-      b12x uses MXFP8 activations by default for MXFP4 MoE and the checkpoint's activation format for
-      NVFP4 MoE; set VLLM_B12X_MOE_FP4_FORCE_A16=1 to force BF16 activations. The b12x MoE backend does
-      not support expert parallelism, expert maps, EXL3, or NF3.
+      5090, DGX Spark GB10), installed with pip install vllm[b12x]. b12x linear kernels participate in
+      automatic selection after established optimized backends and before emulation; select them explicitly
+      with --linear-backend b12x and --moe-backend b12x. Only pass --moe-backend b12x for a compatible
+      NVFP4 or MXFP4 MoE model. b12x uses MXFP8 activations by default for MXFP4 MoE and the checkpoint's
+      activation format for NVFP4 MoE; set VLLM_B12X_MOE_FP4_FORCE_A16=1 to force BF16 activations for
+      either FP4 weight format. Linear supports per-tensor FP8, 128x128 block FP8, MXFP8, NVFP4 and MXFP4.
+      The b12x MoE backend does not support expert parallelism, expert maps, EXL3, or NF3.
     also: []
-  curated: true
+  install:
+    command: uv pip install "vllm[b12x]"
+    note: b12x kernels ship as an extra, not in the base wheel
+  min_vllm_version: 0.29.0
+  parts:
+  - id: linear
+    kind: primary
+    title: linear backend
+    how_enabled:
+      mode: explicit
+      flags:
+      - --linear-backend
+      envs: []
+      enum_values:
+      - flag: --linear-backend
+        value: b12x
+    applies_to:
+      quant:
+      - nvfp4
+      - mxfp4
+      - mxfp8
+      - fp8
+      model_traits: {}
+  - id: moe
+    kind: primary
+    title: MoE backend (MoE models only)
+    how_enabled:
+      mode: explicit
+      flags:
+      - --moe-backend
+      envs: []
+      enum_values:
+      - flag: --moe-backend
+        value: b12x
+    applies_to:
+      quant:
+      - nvfp4
+      - mxfp4
+      model_traits:
+        architecture: moe
+  - id: fp4-force-a16
+    kind: tuning
+    title: force BF16 activations for FP4 MoE
+    how_enabled:
+      mode: explicit
+      flags: []
+      envs:
+      - VLLM_B12X_MOE_FP4_FORCE_A16
+      enum_values: []
+    applies_to:
+      quant:
+      - nvfp4
+      model_traits:
+        architecture: moe
+  supersedes:
+    VLLM_USE_B12X_MOE: --moe-backend b12x
+    VLLM_USE_B12X_FP8_GEMM: --linear-backend b12x
+    VLLM_USE_B12X_WO_PROJECTION: no upstream equivalent documented
+    VLLM_USE_B12X_MHC: no upstream equivalent documented
+    VLLM_USE_B12X_SPARSE_INDEXER: no upstream equivalent documented
+    note: upstream ships b12x linear/MoE kernels in-tree since v0.29.0 and exposes them through --linear-backend/--moe-backend
+      plus VLLM_B12X_MOE_FP4_FORCE_A16; the VLLM_USE_B12X_* switches exist at no upstream tag, the newest
+      rc or main
   verified:
   - --linear-backend exists at v0.29.0
   - --moe-backend exists at v0.29.0
@@ -471,8 +655,8 @@ capabilities:
   - --moe-backend=b12x is an accepted value at v0.29.0
   confidence: high
 - id: trace-replay-enable-trace-replay
-  kind: capability
-  concept: scheduling
+  kind: out_of_scope
+  concept: attention_backend
   title: 'Trace Replay: --enable-trace-replay'
   since: v0.29.0
   how_enabled:
@@ -482,6 +666,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
+  drop_reason: benchmark/profiling/serving-infra tooling, not a recipe capability
   reverse_markers:
     now_default: []
     obsolete: []
@@ -508,14 +693,59 @@ capabilities:
       - **Train vs inference diff**: replay a training-time token sequence through the inference engine
       to detect logprob divergence caused by numerical differences between trainin'
     also: []
-  curated: true
   verified:
   - --enable-trace-replay exists at v0.29.0
   confidence: high
-- id: security-vllm-max-media-download-size-mb
+- id: sharded-rdt-engine
   kind: capability
-  concept: frontend
-  title: Media download size limits for multimodal serving
+  concept: moe_backend
+  title: Sharded RDT Engine
+  since: v0.29.0
+  how_enabled:
+    mode: explicit
+    flags:
+    - --distributed-executor-backend
+    - --weight-transfer-config
+    envs: []
+    enum_values: []
+  default_on: false
+  drop_reason: null
+  reverse_markers:
+    now_default: []
+    obsolete: []
+  applies_to:
+    hardware: []
+    model_traits:
+      architecture: moe
+    quant: []
+  effect: usability
+  evidence:
+    source: docs-diff
+    section: docs/training/weight_transfer/sharded_rdt.md
+    prs: []
+    text: '# Sharded RDT Engine
+
+
+      The sharded RDT weight transfer engine moves weights point-to-point over [NIXL](https://github.com/ai-dynamo/nixl)
+      using Ray Direct Transport (RDT), Ray''s zero-copy tensor transport between actors. It is **pull-based**:
+      the inference workers initiate every transfer and each one asks only for the *slice* it consumes
+      under tensor and expert parallelism. A large MoE model therefore moves roughly `total_bytes / num_workers`
+      per worker instead of the `total_bytes` a broadcast costs.
+
+
+      ## When to Use Sharded RDT
+
+
+      - Very large models where broadcasting whole parameters is the bot'
+    also: []
+  verified:
+  - --distributed-executor-backend exists at v0.29.0
+  - --weight-transfer-config exists at v0.29.0
+  confidence: high
+- id: security-vllm-max-media-download-size-mb
+  kind: out_of_scope
+  concept: uncategorized
+  title: 'Security: VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB'
   since: v0.29.0
   how_enabled:
     mode: explicit
@@ -524,6 +754,7 @@ capabilities:
     - VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB
     enum_values: []
   default_on: false
+  drop_reason: outside the concept vocabulary
   reverse_markers:
     now_default: []
     obsolete: []
@@ -553,7 +784,6 @@ capabilities:
       | `VLLM_MAX_AUDIO_CLIP_FILESIZE_MB` | `25` | Maximum compressed filesize in MB for a single audio
       file. Enforced on all audio inputs (multimodal chat URLs, speech-to-text'
     also: []
-  curated: true
   verified:
   - VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB exists at v0.29.0
   confidence: high
@@ -570,6 +800,7 @@ dropped:
     envs: []
     enum_values: []
   default_on: false
+  drop_reason: null
   reverse_markers:
     now_default: []
     obsolete: []
@@ -599,6 +830,5 @@ dropped:
     also:
     - section: Breaking Changes & Deprecations
       source: release-notes
-  curated: true
   dropped_because:
   - claims an explicit enabling flag/env but names none that exists

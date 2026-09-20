@@ -36,16 +36,36 @@ const REPO = join(HERE, "..", "..");
 const CLONE = join(REPO, ".claude_workdir", "vllm");
 
 /**
- * Known plugin and vendor namespaces. A flag matching one of these is
- * registered by something other than vLLM — vllm-omni, vllm-ascend, a vendor
- * image — and this tool has no way to verify it.
+ * Where an unknown flag comes from, judged by the recipe context rather than
+ * by how the flag is spelled.
+ *
+ * A name-based list is a guess that ages badly: it has to be extended for every
+ * new plugin and it mislabels anything whose author did not use the expected
+ * prefix. The recipe itself says more — an omni recipe's unknown flags come
+ * from vllm-omni, a block pinned to a vendor image gets its flags from that
+ * image, and a flag sharing a block with several other unknowns belongs to
+ * whatever registered its neighbours.
  */
-const PLUGIN_PATTERNS = [
-  /^--omni$/, /^--deploy-config$/, /^--task-type$/, /^--model-class-name$/,
-  /^--diffusion-/, /^--vae-/, /^--text-encoder-/, /^--ulysses-/, /^--usp$/, /^--ring$/,
-  /^--hsdp-/, /^--use-hsdp$/, /^--dlo-/, /^--engram-config$/, /^--num-gpus$/,
-  /^VLLM_OMNI_/, /^VLLM_ASCEND_/, /^VLLM_MINDIE/, /^VLLM_NPU_/,
-];
+function classifyUnknown(members) {
+  const ctx = members.find((m) => m.context)?.context || {};
+  const images = [...new Set(members.map((m) => m.context?.image).filter(Boolean))];
+  if (ctx.omni_recipe) {
+    return { namespace: "vllm-omni", why: "recipe declares an omni task section" };
+  }
+  if (ctx.ascend_image) {
+    return { namespace: "vllm-ascend", why: `block pins ${images[0]}` };
+  }
+  if (ctx.vendor_image) {
+    return { namespace: "vendor-image", why: `block pins ${images[0]}` };
+  }
+  if (ctx.block_siblings) {
+    return {
+      namespace: "plugin-block",
+      why: `shares a block with ${ctx.block_siblings} other unknown flag(s)`,
+    };
+  }
+  return { namespace: "unclassified", why: "no plugin, vendor image or sibling context" };
+}
 
 function pythonRaw(script, args) {
   return execFileSync("python3", [join(HERE, script), ...args], { encoding: "utf8" }).trim();
@@ -119,10 +139,6 @@ function blockKind(path, conditionality) {
                 ? "guide text"
                 : path.split(".")[0] || "unknown";
   return { unconditional: conditionality === "unconditional", scope };
-}
-
-function isPlugin(token) {
-  return PLUGIN_PATTERNS.some((re) => re.test(token));
 }
 
 function main() {
@@ -201,13 +217,9 @@ function main() {
     const first = members[0];
     const { category, token, kind } = first;
 
-    if (category === "unknown-upstream" || isPlugin(token)) {
+    if (category === "unknown-upstream") {
       const files = [...new Set(members.map((m) => m.file))];
-      if (isPlugin(token)) {
-        plugin.set(token, { token, kind, recipes: files, lines: members.length, namespace: "plugin" });
-        continue;
-      }
-      // Core-looking: is it simply newer than the target's stable release?
+      // First: is it simply newer than the target's stable release?
       const inRc = ahead.rc && (kind === "flag" ? token in ahead.rc.flags : token in ahead.rc.envs);
       const inHead = ahead.head && (kind === "flag" ? token in ahead.head.flags : token in ahead.head.envs);
       if (inRc || inHead) {
@@ -225,7 +237,7 @@ function main() {
           kind,
           recipes: files,
           lines: members.length,
-          namespace: "vendor-or-out-of-tree",
+          ...classifyUnknown(members),
         });
       }
       continue;
@@ -246,6 +258,13 @@ function main() {
     } else if (category === "wrong-dash") {
       ok = !presentNow;
       recheck = `${token} is not a registered flag at ${target}`;
+    } else if (category === "default-changed") {
+      // A changed default only matters if the recipe leaves it to the default.
+      const setsExplicitly = members.some((m) => m.tier === "structured");
+      recheck = setsExplicitly
+        ? "the recipe sets this flag explicitly, so the changed default does not reach it"
+        : "the recipe relies on the default, which changed upstream";
+      ok = true;
     } else {
       recheck = "no independent upstream re-check for this category";
     }

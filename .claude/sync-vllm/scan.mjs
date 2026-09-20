@@ -247,6 +247,46 @@ function valueAfter(lines, i) {
   return value;
 }
 
+/**
+ * Line indexes inside a fenced code block within a block scalar.
+ *
+ * A guide is prose plus commands. Prose *mentions* flags in order to talk about
+ * them — "no `VLLM_USE_V1=1` export is needed" is documentation that the flag is
+ * gone, not a use of it. Only what is inside a fence is a command.
+ */
+function fencedLines(lines, paths) {
+  const inFence = new Set();
+  let open = false;
+  lines.forEach((line, i) => {
+    if (!/^guide\b/.test(paths[i] || "")) {
+      open = false;
+      return;
+    }
+    if (/^\s*```/.test(line)) {
+      open = !open;
+      return;
+    }
+    if (open) inFence.add(i);
+  });
+  return inFence;
+}
+
+/** The nearest enclosing block that pins a container image, if any. */
+function ancestorImage(doc, path) {
+  const parts = path.split(".");
+  let node = doc;
+  let found = null;
+  for (const part of parts) {
+    if (!node || typeof node !== "object") break;
+    if (typeof node.docker_image === "string") found = node.docker_image;
+    node = node[part];
+  }
+  if (node && typeof node === "object" && typeof node.docker_image === "string") {
+    found = node.docker_image;
+  }
+  return found;
+}
+
 function scanFile(file, upstream) {
   const text = readFileSync(file.path, "utf8");
   const lines = text.split("\n");
@@ -262,9 +302,12 @@ function scanFile(file, upstream) {
   }
   const rel = relative(REPO, file.path);
   const out = [];
+  const fenced = isYaml ? fencedLines(lines, paths) : new Set();
 
   lines.forEach((line, i) => {
     if (/^\s*#/.test(line)) return;
+    // guide prose is documentation about flags, not usage of them
+    if (isYaml && /^guide\b/.test(paths[i] || "") && !fenced.has(i)) return;
     for (const token of tokensOnLine(line)) {
       const path = paths[i] || "";
       // Tier A: a structured vLLM args/env block — every rule applies.
@@ -281,8 +324,18 @@ function scanFile(file, upstream) {
       const { floor, reason } = isYaml && doc ? effectiveFloor(doc, path) : {};
       const finding = classify(token, upstream, floor, valueAfter(lines, i), structured);
       if (!finding) continue;
-      if (finding.category === "unknown-upstream" && (doc?.meta?.tasks || []).includes("omni")) {
-        finding.plugin_hint = "vllm-omni";
+      if (finding.category === "unknown-upstream") {
+        // Classify by where the flag sits, not by how it is spelled: an
+        // unknown flag in an omni recipe, or in a block pinned to a vendor
+        // image, comes from that thing — the name is not the evidence.
+        const image = isYaml && doc ? ancestorImage(doc, path) : null;
+        finding.context = {
+          omni_recipe: Boolean(doc?.omni) || (doc?.meta?.tasks || []).includes("omni"),
+          image: image || null,
+          vendor_image: Boolean(image && !/^(vllm\/vllm-openai|quay\.io\/ascend\/vllm-ascend)/.test(image)),
+          ascend_image: Boolean(image && /ascend/i.test(image)),
+          block: path.split(".").slice(0, -1).join(".") || path,
+        };
       }
       out.push({
         file: rel,
@@ -435,8 +488,17 @@ function classify(token, upstream, floor, value, structured) {
   }
 
   if (value && token.kind === "flag" && structured && !aheadOfTarget) {
-    const choices = semantics[token.name]?.choices || semantics[base]?.choices;
-    if (Array.isArray(choices) && choices.length && !choices.includes(value)) {
+    const sem = semantics[token.name] || semantics[base] || {};
+    const choices = sem.choices;
+    // An Enum-backed choice set is looked up as `Enum[value.upper()]`, and
+    // "auto" is accepted everywhere, so the comparison is case-insensitive.
+    const enumBacked = Boolean(sem.choices_from);
+    const normalize = (v) => (enumBacked ? String(v).toUpperCase() : String(v));
+    const accepted =
+      Array.isArray(choices) && choices.length
+        ? new Set([...choices.map(normalize), ...(enumBacked ? ["AUTO"] : [])])
+        : null;
+    if (accepted && !accepted.has(normalize(value))) {
       return {
         category: "invalid-value",
         severity: "high",
@@ -517,6 +579,20 @@ function main() {
     const result = scanFile(file, upstream);
     if (file.editable) recipes.push(result);
     candidates.push(...result.candidates);
+  }
+
+  // A second pass over the unknowns: a flag sharing a block with flags already
+  // attributed to a plugin belongs to the same plugin.
+  const unknownByBlock = new Map();
+  for (const c of candidates) {
+    if (c.category !== "unknown-upstream") continue;
+    const key = `${c.file}::${c.context?.block}`;
+    if (!unknownByBlock.has(key)) unknownByBlock.set(key, []);
+    unknownByBlock.get(key).push(c);
+  }
+  for (const group of unknownByBlock.values()) {
+    if (group.length < 2) continue;
+    for (const c of group) c.context.block_siblings = group.length - 1;
   }
 
   const missed = missedImprovements(recipes, upstream.inventory);
