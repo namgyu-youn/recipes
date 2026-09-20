@@ -104,18 +104,38 @@ function envAssignments(doc) {
   return out;
 }
 
-/** Only the fenced command blocks of a guide — never its prose. */
-function fencedGuide(guide) {
+// Guide text that deliberately explains why a setting is there is not stale:
+// "required for DSpark", "can be enabled if needed".
+const GUIDE_INTENTIONAL_RE = /\brequired\b|\bif needed\b|can be enabled|\bonly if\b|\bnote:/i;
+
+const GUIDE_NEGATION_RE =
+  /\bno longer\b|\bnot needed\b|\bno\s+`|\bdon'?t\b|\bdo not\b|\bdeprecat\w*\b|\bremoved\b|\binstead of\b|\bis not\b|\bisn'?t\b|\bnever\b|\bavoid\b|\bunsupported\b/i;
+
+/**
+ * Guide lines that show a command, with their real line number in the file.
+ *
+ * Same rule as scan.mjs: fenced lines always, inline-code lines unless the
+ * sentence negates them. The line number matters because a reader has to be
+ * able to open the guide at that point and see the snippet.
+ */
+function guideCommandLines(filePath) {
+  const lines = readFileSync(filePath, "utf8").split("\n");
+  const start = lines.findIndex((l) => /^guide:\s*[|>]/.test(l));
+  if (start === -1) return [];
   const out = [];
   let open = false;
-  for (const line of guide.split("\n")) {
+  for (let i = start + 1; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (line.trim() && !/^\s/.test(line)) break; // dedented out of the block
     if (/^\s*```/.test(line)) {
       open = !open;
       continue;
     }
-    if (open) out.push(line);
+    if (open || (/`[^`]*`/.test(line) && !GUIDE_NEGATION_RE.test(line))) {
+      out.push({ line: i + 1, text: line.trim() });
+    }
   }
-  return out.join("\n");
+  return out;
 }
 
 function hardwareKeys(doc) {
@@ -180,8 +200,7 @@ function buildProfiles(taxonomy) {
       flag_values: values,
       envs_in_use: [...envs.keys()],
       env_assignments: envAssignments(doc),
-      guide: String(doc.guide || ""),
-      guide_fences: fencedGuide(String(doc.guide || "")),
+      guide_commands: guideCommandLines(file),
       min_vllm_version: doc.model.min_vllm_version || null,
       variant_floors: Object.fromEntries(
         Object.entries(doc.variants || {})
@@ -206,6 +225,13 @@ function matchesHardware(cap, profile) {
 
 function matchesTraits(cap, profile) {
   const traits = cap.applies_to?.model_traits || {};
+  // An omni recipe serves through vllm-omni, whose flag surface and defaults
+  // are its own. A core vLLM capability does not automatically reach it, so it
+  // stays out unless the capability's evidence actually mentions omni.
+  const omniRecipe = (profile.tasks || []).includes("omni");
+  if (omniRecipe && !/\bomni\b|diffusion/i.test(String(cap.evidence?.text || ""))) {
+    return { ok: false, why: "omni recipe — core-flag evidence does not cover vllm-omni" };
+  }
   if (traits.architecture && traits.architecture !== profile.architecture) {
     return { ok: false, why: `architecture ${profile.architecture} != ${traits.architecture}` };
   }
@@ -296,22 +322,27 @@ function reverseHits(cap, profile) {
       }
       if (!OPT_IN_VALUES.has(value)) continue;
       if (!floorCovers) {
+        // Not actionable: at this floor the env still does something, so
+        // removing it would change behaviour on the versions the recipe claims.
         hits.push({
           file: profile.file,
-          kind: "redundant-below-floor",
+          kind: "keep-below-floor",
+          actionable: false,
           name,
           value: assigned.value,
           floor,
-          detail: `${name}=${assigned.value} in ${assigned.path}; default only since ${cap.since}, recipe floor is ${floor || "unset"} — still load-bearing`,
+          detail: `${name}=${assigned.value} in ${assigned.path}; default only since ${cap.since}, recipe floor is ${floor || "unset"} — keep`,
         });
         continue;
       }
       hits.push({
         file: profile.file,
         kind: "redundant-explicit",
+        actionable: true,
         name,
         value: assigned.value,
         floor,
+        path: assigned.path,
         detail: `${name}=${assigned.value} in ${assigned.path}; default since ${cap.since}, recipe floor ${floor} — redundant`,
       });
     } else if (profile.flags_in_use.includes(name) && floorCovers) {
@@ -341,10 +372,21 @@ function reverseHits(cap, profile) {
     }
   }
   for (const name of [...(markers.now_default || []), ...(markers.obsolete || [])]) {
-    // Only a command in a fenced block counts; prose that merely mentions the
-    // name is usually documentation saying it is no longer needed.
-    if (profile.guide_fences.includes(name)) {
-      hits.push({ file: profile.file, kind: "stale-guide-text", name, detail: `guide mentions ${name}` });
+    for (const hit of profile.guide_commands || []) {
+      if (!hit.text.includes(name)) continue;
+      const value = (hit.text.match(new RegExp(`${name}\\s*=\\s*["']?([\\w.-]+)`)) || [])[1] || null;
+      const intentional = GUIDE_INTENTIONAL_RE.test(hit.text);
+      hits.push({
+        file: profile.file,
+        kind: intentional ? "guide-explains-why" : "stale-guide-text",
+        actionable: Boolean(floorCovers) && !intentional,
+        name,
+        value,
+        floor,
+        line: hit.line,
+        snippet: hit.text.slice(0, 120),
+        detail: `guide shows ${name} at line ${hit.line}`,
+      });
     }
   }
   // One recipe can set the same name in several blocks; that is one edit.
@@ -428,6 +470,11 @@ function expandParts(caps) {
         part: part.kind || "primary",
         how_enabled: part.how_enabled,
         applies_to: { ...cap.applies_to, ...(part.applies_to || {}) },
+        required_floor: part.required_floor || cap.min_vllm_version || null,
+        floor_note: part.floor_note || null,
+        evidence_sentence: part.evidence_sentence || null,
+        install: cap.install || null,
+        note: cap.note || null,
         parts: undefined,
       });
     }
@@ -481,6 +528,8 @@ function buildCohorts(allCaps, profiles) {
         confidence: cap.confidence,
         supporting_sentence: support,
         cohort: [],
+        since: cap.since,
+        caveat: cap.caveat || null,
         reverse_hits: hits,
         skipped: hits.length
           ? undefined
@@ -548,6 +597,13 @@ function buildCohorts(allCaps, profiles) {
       applies_to: cap.applies_to,
       evidence: cap.evidence,
       part: cap.part,
+      since: cap.since,
+      caveat: cap.caveat || null,
+      required_floor: cap.required_floor || null,
+      floor_note: cap.floor_note || null,
+      evidence_sentence: cap.evidence_sentence || null,
+      install: cap.install || null,
+      note: cap.note || null,
       supporting_sentence: support,
       reverse_hits: profiles.flatMap((p) => reverseHits(cap, p)),
       cohort,

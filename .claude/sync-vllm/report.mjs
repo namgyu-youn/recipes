@@ -144,6 +144,13 @@ function main() {
               `Add ${enablement(c.how_enabled)} to ${c.cohort.length} recipes${already}: ${shown}${more}.`
             );
             const conflicting = c.cohort.filter((r) => r.conflicts?.length);
+            if (c.required_floor) {
+              lines.push(
+                `Required floor for this edit: **${c.required_floor}**${c.floor_note ? ` (${c.floor_note})` : ""}.` +
+                  (c.install ? ` Install change: \`${c.install.command}\` — ${c.install.note}.` : "")
+              );
+            }
+            if (c.evidence_sentence) lines.push(`Evidence: "${c.evidence_sentence}"`);
             if (conflicting.length) {
               lines.push(
                 `⚠ ${conflicting.length} of them already set the same flag to a different value — ` +
@@ -154,21 +161,41 @@ function main() {
               );
             }
           }
-          if (c.reverse_hits?.length) {
+          const actionableHits = (c.reverse_hits || []).filter((h) => h.actionable !== false);
+          const keepHits = (c.reverse_hits || []).filter((h) => h.actionable === false);
+          if (actionableHits.length) {
             // Per row: what is set, to what value, and against which floor —
             // the three things that decide whether it is really redundant.
             lines.push("");
-            lines.push("| Recipe | Name | Value | Recipe floor | Verdict |");
-            lines.push("|---|---|---|---|---|");
-            for (const h of c.reverse_hits.slice(0, 12)) {
+            lines.push("| Where | Name | Value | Recipe floor | Evidence | Verdict |");
+            lines.push("|---|---|---|---|---|---|");
+            for (const h of actionableHits.slice(0, 12)) {
+              const where = h.line ? `${short(h.file)}:${h.line}` : short(h.file);
+              const what = h.snippet ? `\`${h.snippet.replace(/\|/g, "\\|")}\`` : `\`${h.path || "env"}\``;
               lines.push(
-                `| \`${short(h.file)}\` | \`${h.name}\` | ${h.value ? `\`${h.value}\`` : "—"} | ${
+                `| \`${where}\` | \`${h.name}\` | ${h.value ? `\`${h.value}\`` : "—"} | ${
                   h.floor || "unset"
-                } | ${h.kind.replace(/-/g, " ")}${h.replacement ? ` → \`${h.replacement}\`` : ""} |`
+                } | ${what} | ${h.kind.replace(/-/g, " ")} |`
               );
             }
-            if (c.reverse_hits.length > 12) lines.push(`| … | +${c.reverse_hits.length - 12} more in cohorts.json | | | |`);
+            if (actionableHits.length > 12) lines.push(`| … | +${actionableHits.length - 12} more in cohorts.json | | | | |`);
             lines.push("");
+            if (keepHits.length) {
+              const explained = keepHits.filter((h) => h.kind === "guide-explains-why").length;
+              if (explained) {
+                lines.push(
+                  `${explained} guide mention(s) explain why the setting is there (\"required for …\", ` +
+                    `\"can be enabled if needed\") — documentation, not staleness.`
+                );
+              }
+              lines.push(
+                `${keepHits.length - explained} further recipe(s) set it below the ${c.since || "release"} floor, where it is still ` +
+                  `load-bearing — keep: ${[...new Set(keepHits.map((h) => `${short(h.file)} (floor ${h.floor || "unset"})`))]
+                    .slice(0, 6)
+                    .join(", ")}.`
+              );
+            }
+            if (c.caveat) lines.push(`⚠ ${c.caveat}`);
           }
           // For a default change, quote the sentence that states the default —
           // not whichever sentence happened to mention the dimension.
@@ -200,6 +227,14 @@ function main() {
       f.recipes.every((r) => r.action === "per-block-floor-question")
   );
   const floorIds = new Set(floorQuestions.map((f) => f.id));
+  const detailFor = (f) => {
+    if (f.category === "invalid-value") {
+      const r = f.recipes[0];
+      return `${short(r.file)} sets \`${f.invalid_value || "?"}\`, not an accepted value`;
+    }
+    if (f.category === "default-changed") return f.upstream.recheck;
+    return "";
+  };
   const staleRows = findings
     .filter((f) => !floorIds.has(f.id))
     .map(
@@ -209,10 +244,10 @@ function main() {
           // the flag still exists; for a removed flag the removal tag is the fact.
           f.upstream.removed
             ? ` (gone in ${f.upstream.removed})`
-            : f.upstream.introduced
+            : f.upstream.introduced && !["default-changed", "invalid-value"].includes(f.category)
               ? ` (needs ${f.upstream.introduced})`
               : ""
-        } | ${f.recipe_count} | ${[
+        }${detailFor(f) ? ` — ${detailFor(f)}` : ""} | ${f.recipe_count} | ${[
           ...new Set(f.recipes.map((r) => ACTION_WORD[r.action] || r.action)),
         ].join(", ")} | ${f.confidence}${f.carried_over ? " · carried over" : ""} |`
     )
@@ -227,6 +262,21 @@ function main() {
   const knownPlugin = pluginFlags.filter((p) => p.namespace !== "vendor-image");
   const vendor = pluginFlags.filter((p) => p.namespace === "vendor-image");
   const notYetReleased = findingsDoc.not_yet_released || [];
+  // What upstream actually said, at the last tag where the flag existed.
+  const resolutions = findingsDoc.resolutions || {};
+  const removedEvidence = findings
+    .filter((f) => ["removed", "renamed"].includes(f.category) && resolutions[f.token])
+    .map((f) => {
+      const r = resolutions[f.token];
+      const verdict = r.replacement
+        ? `replace with \`${r.replacement}\``
+        : r.resolution === "remove"
+          ? "drop it — upstream says so"
+          : "no replacement documented";
+      return `- \`${f.token}\` → ${verdict}. ${r.why}${r.quote ? `\n  > ${r.quote.replace(/\n/g, " ").slice(0, 200)}` : ""}`;
+    })
+    .join("\n");
+
   const pluginTokens = pluginFlags.map((p) => p.token);
   const pluginRecipes = new Set(pluginFlags.flatMap((p) => p.recipes));
 
@@ -275,6 +325,7 @@ ${findings.length} root causes. ${autoEligible.length} have at least one recipe 
 |---|---|---|---|---|---|
 ${staleRows}
 
+${removedEvidence}
 ${
   breakingCaps.length
     ? `Also announced as breaking: ${breakingCaps.map((c) => c.title).join("; ")}.\n`
@@ -291,7 +342,21 @@ block should carry its own floor. One decision covers all of them: ${floorQuesti
 
 Per-recipe lines, blocks and floors: \`findings.json\`.
 
-## Unverifiable flags
+${
+  (findingsDoc.vendor_overlaps || []).length
+    ? `## Vendor image overlapping upstream\n\n${findingsDoc.vendor_overlaps
+        .map(
+          (o) =>
+            `**${o.id} — \`${o.image}\`** in ${o.recipes.map(short).join(", ")}. ${o.note || ""}\n\n` +
+            `| Vendor env | Upstream equivalent |\n|---|---|\n` +
+            Object.entries(o.mapping)
+              .map(([k, v]) => `| \`${k}\` | ${v.startsWith("--") ? `\`${v}\`` : v} |`)
+              .join("\n") +
+            `\n\n${o.risk} **Report-only: the decision is whether to migrate off the image, and that needs GB10 validation.**`
+        )
+        .join("\n\n")}\n\n`
+    : ""
+}## Unverifiable flags
 
 Not stale usage — vLLM never shipped these, so this tool has nothing to check them against.
 

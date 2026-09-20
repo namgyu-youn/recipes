@@ -250,12 +250,25 @@ function valueAfter(lines, i) {
 /**
  * Line indexes inside a fenced code block within a block scalar.
  *
- * A guide is prose plus commands. Prose *mentions* flags in order to talk about
- * them — "no `VLLM_USE_V1=1` export is needed" is documentation that the flag is
- * gone, not a use of it. Only what is inside a fence is a command.
+ * A guide is prose, fenced commands, and prose that quotes a command inline.
+ * All three matter differently:
+ *
+ *   fenced      always a command — scan it
+ *   inline code usually a recommendation ("Extend context with YaRN:
+ *               `--rope-scaling '{...}'`") — scan it, unless the sentence
+ *               negates it
+ *   bare prose  a flag named without backticks is being discussed, not used
+ *
+ * The negation test is what separates the two inline cases. "no
+ * `VLLM_USE_V1=1` export is needed" documents that the flag is gone; dropping
+ * inline code wholesale to avoid that false positive also drops the real
+ * `--rope-scaling` recommendation, which is a worse trade.
  */
-function fencedLines(lines, paths) {
-  const inFence = new Set();
+const GUIDE_NEGATION_RE =
+  /\bno longer\b|\bnot needed\b|\bno\s+`|\bdon'?t\b|\bdo not\b|\bdeprecat\w*\b|\bremoved\b|\binstead of\b|\bis not\b|\bisn'?t\b|\bnever\b|\bavoid\b|\bunsupported\b/i;
+
+function guideScannableLines(lines, paths) {
+  const scannable = new Set();
   let open = false;
   lines.forEach((line, i) => {
     if (!/^guide\b/.test(paths[i] || "")) {
@@ -266,9 +279,13 @@ function fencedLines(lines, paths) {
       open = !open;
       return;
     }
-    if (open) inFence.add(i);
+    if (open) {
+      scannable.add(i);
+      return;
+    }
+    if (/`[^`]*`/.test(line) && !GUIDE_NEGATION_RE.test(line)) scannable.add(i);
   });
-  return inFence;
+  return scannable;
 }
 
 /** The nearest enclosing block that pins a container image, if any. */
@@ -302,13 +319,17 @@ function scanFile(file, upstream) {
   }
   const rel = relative(REPO, file.path);
   const out = [];
-  const fenced = isYaml ? fencedLines(lines, paths) : new Set();
+  const fenced = isYaml ? guideScannableLines(lines, paths) : new Set();
 
   lines.forEach((line, i) => {
     if (/^\s*#/.test(line)) return;
     // guide prose is documentation about flags, not usage of them
     if (isYaml && /^guide\b/.test(paths[i] || "") && !fenced.has(i)) return;
-    for (const token of tokensOnLine(line)) {
+    // ...and inside an inline-code line, only the backticked spans count
+    const guideInline =
+      isYaml && /^guide\b/.test(paths[i] || "") && !/^\s*```/.test(line) && fenced.has(i);
+    const spans = guideInline ? (line.match(/`[^`]*`/g) || []).join(" ") : null;
+    for (const token of tokensOnLine(spans === null ? line : spans)) {
       const path = paths[i] || "";
       // Tier A: a structured vLLM args/env block — every rule applies.
       // Tier B: guide prose, strategy YAML, synthesis source. Only tokens vLLM

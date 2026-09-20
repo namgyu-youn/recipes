@@ -27,7 +27,8 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import yaml from "js-yaml";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -46,7 +47,20 @@ const CLONE = join(REPO, ".claude_workdir", "vllm");
  * image, and a flag sharing a block with several other unknowns belongs to
  * whatever registered its neighbours.
  */
-function classifyUnknown(members) {
+const NAME_NAMESPACES = [
+  [/^VLLM_ASCEND_|^--ascend-/, "vllm-ascend"],
+  [/^VLLM_OMNI_|^--omni$/, "vllm-omni"],
+  [/^VLLM_GAUDI_|^--gaudi-/, "vllm-gaudi"],
+  [/^VLLM_NPU_|^VLLM_MINDIE/, "vllm-ascend"],
+];
+
+function classifyUnknown(token, members) {
+  // Name prefix first — it is unambiguous when present — then context for
+  // everything else. Neither alone is enough: VLLM_ASCEND_ENABLE_PREFETCH_MLP
+  // sits in a block with no image pin, and --usp has no telling prefix.
+  for (const [pattern, namespace] of NAME_NAMESPACES) {
+    if (pattern.test(token)) return { namespace, why: "name is in that plugin's namespace" };
+  }
   const ctx = members.find((m) => m.context)?.context || {};
   const images = [...new Set(members.map((m) => m.context?.image).filter(Boolean))];
   if (ctx.omni_recipe) {
@@ -237,7 +251,7 @@ function main() {
           kind,
           recipes: files,
           lines: members.length,
-          ...classifyUnknown(members),
+          ...classifyUnknown(token, members),
         });
       }
       continue;
@@ -378,6 +392,45 @@ function main() {
     f.id = `R-${String(i + 1).padStart(2, "0")}`;
   });
 
+  // A vendor image whose env switches partly overlap an upstream capability is
+  // ONE decision — migrate off the image or not — not N unverifiable flags and
+  // N "obsolete workaround" rows in two different sections.
+  const overlaps = [];
+  const capsPath = join(reportDir, "capabilities.verified.yaml");
+  if (existsSync(capsPath)) {
+    const caps = yaml.load(readFileSync(capsPath, "utf8")).capabilities || [];
+    for (const cap of caps) {
+      const map = cap.supersedes;
+      if (!map) continue;
+      const names = Object.keys(map).filter((k) => !k.startsWith("_"));
+      const affected = [...plugin.values()].filter((p) => names.includes(p.token));
+      if (!affected.length) continue;
+      const recipes = [...new Set(affected.flatMap((p) => p.recipes))];
+      const mapped = affected.filter((p) => map[p.token]);
+      overlaps.push({
+        id: `V-${overlaps.length + 1}`,
+        capability: cap.id,
+        image: map._image || affected[0].why,
+        recipes,
+        note: map._note || null,
+        mapping: Object.fromEntries(
+          affected.map((p) => [
+            p.token,
+            map[p.token] || "no upstream equivalent documented — cannot be dropped",
+          ])
+        ),
+        status: "needs decision",
+        confidence: "medium",
+        risk:
+          `${mapped.length} of ${affected.length} switches map to upstream flags the recipe already passes; ` +
+          `the rest have no documented equivalent. Migrating off the image is a hardware-validated ` +
+          `decision (GB10), not a mechanical edit.`,
+      });
+      // Reported once, here — not again as loose unverifiable flags.
+      for (const p of affected) plugin.delete(p.token);
+    }
+  }
+
   const pluginBucket = [...plugin.values()].sort((a, b) => b.recipes.length - a.recipes.length);
 
   writeFileSync(
@@ -388,6 +441,7 @@ function main() {
         generated: new Date().toISOString(),
         findings,
         plugin_flags: pluginBucket,
+        vendor_overlaps: overlaps,
         not_yet_released: [...notYetReleased.values()].sort((a, b) => b.recipes.length - a.recipes.length),
         resolutions,
         dropped,
@@ -405,6 +459,11 @@ function main() {
   console.log(
     `plugin/vendor flags: ${pluginBucket.length} distinct across ${new Set(pluginBucket.flatMap((p) => p.recipes)).size} recipes`
   );
+  for (const o of overlaps) {
+    console.log(
+      `vendor overlap ${o.id}: ${Object.keys(o.mapping).length} envs from ${o.image} in ${o.recipes.length} recipe(s)`
+    );
+  }
   console.log(`newer than ${target} (in ${newestRc} or main): ${notYetReleased.size}`);
   for (const n of notYetReleased.values()) {
     console.log(`    ${n.token.padEnd(36)} ${n.where} — ${n.recipes.length} recipes`);
