@@ -44,6 +44,17 @@ function main() {
   const has = (token, file) =>
     doc.findings.some((f) => f.token === token && f.recipes.some((r) => r.file === file));
 
+  // A finding can be present and still wrong: these must never come back as
+  // mechanically appliable, because the block they live in runs no wheel.
+  const findingFor = (token, file) =>
+    doc.findings.find((f) => f.token === token && f.recipes.some((r) => r.file === file));
+  const wronglyActionable = (golden.expected_report_only || []).filter((e) => {
+    const f = findingFor(e.token, e.file);
+    if (!f) return false;
+    const recipe = f.recipes.find((r) => r.file === e.file);
+    return ["raise-floor", "raise-variant-floor", "replace", "remove"].includes(recipe.action);
+  });
+
   const misses = golden.expected.filter((e) => !has(e.token, e.file));
   const invented = (golden.expected_absent || []).filter((e) => has(e.token, e.file));
 
@@ -52,18 +63,34 @@ function main() {
     console.log(`  ${ok ? "✓" : "✗"} ${e.token.padEnd(38)} ${e.file.replace(/^models\//, "")}`);
     if (!ok) console.log(`      expected because: ${e.source}`);
   }
+  for (const e of golden.expected_report_only || []) {
+    const f = findingFor(e.token, e.file);
+    const recipe = f?.recipes.find((r) => r.file === e.file);
+    const ok = !recipe || !["raise-floor", "raise-variant-floor", "replace", "remove"].includes(recipe.action);
+    console.log(
+      `  ${ok ? "✓" : "✗"} report-only ${e.token.padEnd(30)} ${e.file.replace(/^models\//, "")}` +
+        (recipe ? ` (${recipe.action})` : " (not reported at all)")
+    );
+    if (!ok) console.log(`      must stay report-only: ${e.why}`);
+  }
   for (const e of invented) {
     console.log(`  ✗ UNEXPECTED ${e.token} in ${e.file} — ${e.why}`);
   }
 
-  if (misses.length || invented.length) {
+  if (misses.length || invented.length || wronglyActionable.length) {
     console.error(
       `\nGOLDEN FIXTURES FAILED: ${misses.length} expected finding(s) missing, ` +
-        `${invented.length} known-false finding(s) reported. The scan regressed — do not trust this report.`
+        `${invented.length} known-false finding(s) reported, ` +
+        `${wronglyActionable.length} report-only finding(s) marked appliable. ` +
+        `The scan regressed — do not trust this report.`
     );
     process.exit(1);
   }
-  console.log(`\ngolden fixtures: ${golden.expected.length} present, ${(golden.expected_absent || []).length} correctly absent`);
+  console.log(
+    `\ngolden fixtures: ${golden.expected.length} present, ` +
+      `${(golden.expected_absent || []).length} correctly absent, ` +
+      `${(golden.expected_report_only || []).length} correctly report-only`
+  );
 }
 
 main();

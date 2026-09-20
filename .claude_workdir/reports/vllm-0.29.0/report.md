@@ -56,7 +56,7 @@ Tier: **report-only — needs an edit template and review before applying.**
 
 ## Breaking & stale, by root cause
 
-20 root causes. 3 have at least one recipe where the edit is mechanical; 12 are per-block floor questions (a newer flag inside `features.*` or `hardware_overrides.*` does not make the recipe's baseline wrong).
+20 root causes. 1 have at least one recipe where the edit is mechanical; 13 are per-block floor questions (a newer flag inside `features.*` or `hardware_overrides.*` does not make the recipe's baseline wrong).
 
 | ID | Flag / env | What | Recipes | Action | Confidence |
 |---|---|---|---|---|---|
@@ -64,8 +64,7 @@ Tier: **report-only — needs an edit template and review before applying.**
 | R-09 | `--task` | removed upstream (gone in v0.13.0) | 1 | decide: drop or re-spell | high |
 | R-11 | `--rope-scaling` | removed upstream (gone in v0.11.1) | 1 | decide: drop or re-spell | high |
 | R-12 | `--attention-backend` | invalid-value — deepseek-ai/DeepSeek-V4-Flash sets `B12X_MLA_SPARSE`, not accepted at the target tag (accepted: AMX_MLA, CPU_ATTN, CPU_MLA, CUSTOM, …) | 1 | report only | high |
-| R-13 | `--linear-backend` | used below its introducing release (needs v0.22.0) | 1 | raise variant pin | high |
-| R-14 | `VLLM_USE_BREAKABLE_CUDAGRAPH` | used below its introducing release (needs v0.22.0) | 1 | raise variant pin | high |
+| R-14 | `VLLM_USE_BREAKABLE_CUDAGRAPH` | used below its introducing release (needs v0.22.0) | 1 | vendor-image block — cannot move a pin | high |
 | R-17 | `--disable-log-requests` | removed upstream (gone in v0.17.0) | 1 | decide: drop or re-spell | high |
 | R-18 | `--dcp-comm-backend` | upstream default changed — the recipe sets this flag explicitly, so the changed default does not reach it | 1 | report only | medium |
 | R-20 | `--cc.pass_config.fuse_allreduce_rms` | wrong dash — argparse rejects it | 1 | replace | high |
@@ -78,10 +77,10 @@ Tier: **report-only — needs an edit template and review before applying.**
   > parser.add_argument('--disable-log-requests', action=argparse.BooleanOptionalAction, default=not AsyncEngineArgs.enable_log_requests, help='[DEPRECATED] Disable logging requests.', deprecated=True)
 Also announced as breaking: PyAV video decoder backend removed; python -m vllm.entrypoints.openai.api_server is deprecated; prefix_cache_retention_interval default changed from dense to 0 for SWA/SSM models; VLLM_TEST_FORCE_FP8_MARLIN removed in favor of --linear-backend / --moe-backend.
 
-**Per-block floor policy (11 flags, 33 recipes).** Each of these is a flag used below its introducing release, but only inside
+**Per-block floor policy (12 flags, 34 recipes).** Each of these is a flag used below its introducing release, but only inside
 `features.*` (opt-in), `hardware_overrides.*` or `strategy_overrides.*`. The recipe's
 unconditional command is unaffected, so the model floor is not wrong — the question is whether the
-block should carry its own floor. One decision covers all of them: `--language-model-only` (22), `--attention-backend` (5), `--moe-backend` (4), `VLLM_ROCM_SHUFFLE_KV_CACHE_LAYOUT` (3), `VLLM_ROCM_USE_AITER` (3), `VLLM_SSM_CONV_STATE_LAYOUT` (2), `VLLM_ENGINE_READY_TIMEOUT_S` (2), `--disable-chunked-mm-input` (1), `--prefill-schedule-interval` (1), `--speculative-config` (1), `--quantization-config.moe.activation` (1). Full list in `findings.json`.
+block should carry its own floor. One decision covers all of them: `--language-model-only` (22), `--attention-backend` (5), `--moe-backend` (4), `VLLM_ROCM_SHUFFLE_KV_CACHE_LAYOUT` (3), `VLLM_ROCM_USE_AITER` (3), `VLLM_SSM_CONV_STATE_LAYOUT` (2), `VLLM_ENGINE_READY_TIMEOUT_S` (2), `--disable-chunked-mm-input` (1), `--linear-backend` (1), `--prefill-schedule-interval` (1), `--speculative-config` (1), `--quantization-config.moe.activation` (1). Full list in `findings.json`.
 
 Per-recipe lines, blocks and floors: `findings.json`.
 

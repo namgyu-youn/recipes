@@ -308,14 +308,29 @@ function main() {
         path: h.path,
         tier: h.tier,
         conditionality: h.conditionality,
+        vendor_block: h.vendor_block || null,
       }));
-      const unconditional = blocks.filter((b) => b.unconditional);
+      // Vendor-image blocks are excluded from the decision entirely, not just
+      // when they are the only ones: a flag that appears in a wheel-less block
+      // AND in a conditional block must still not move a pin.
+      const usable = blocks.filter((b) => !b.vendor_block);
+      const unconditional = usable.filter((b) => b.unconditional);
       const floor = hits.find((h) => h.floor)?.floor || null;
       let action = "report";
       let why = "";
       if (category === "below-introducing-version") {
-        const variantScoped = blocks.find((b) => b.scope.startsWith("variants."));
-        if (unconditional.length) {
+        const variantScoped = usable.find((b) => b.scope.startsWith("variants."));
+        const vendorOnly = blocks.length > 0 && usable.length === 0;
+        if (vendorOnly) {
+          // The block declares install.pip: false — it runs a pinned image, not
+          // a wheel. Raising any pin because of it would overstate what the
+          // recipe needs everywhere else.
+          const image = blocks.find((b) => b.vendor_block)?.vendor_block?.docker_image;
+          action = "vendor-block-floor-question";
+          why =
+            `used only in a block that pins ${image || "a vendor image"} with install.pip: false — ` +
+            `no wheel runs there, so this cannot move the model or variant pin`;
+        } else if (unconditional.length) {
           action = "raise-floor";
           why = `used in the unconditional command (${unconditional[0].path})`;
         } else if (variantScoped) {
@@ -323,7 +338,12 @@ function main() {
           why = `used only in ${variantScoped.scope}, which carries its own pin`;
         } else {
           action = "per-block-floor-question";
-          why = `used only in ${[...new Set(blocks.map((b) => b.scope))].join(", ")} — opt-in or hardware-conditional, so the model floor may be right as it is`;
+          const scopes = [...new Set(usable.map((b) => b.scope))];
+          const vendorCount = blocks.length - usable.length;
+          why =
+            `used only in ${scopes.join(", ")} — opt-in or hardware-conditional, so the model floor ` +
+            `may be right as it is` +
+            (vendorCount ? `; ${vendorCount} further use(s) sit in a wheel-less vendor-image block` : "");
         }
       } else if (category === "removed" || category === "renamed") {
         const replacement = resolutions[token]?.replacement || inv?.replacement || null;
