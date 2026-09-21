@@ -29,27 +29,48 @@ import index_models as MODELS
 HF_CONFIG = "https://huggingface.co/{model_id}/raw/main/config.json"
 
 
+# A config.json that could not be read is cached as {UNREADABLE: <http status>}
+# so a re-run doesn't refetch it. The status is what separates a gated repo
+# (401/403, the architecture is unknowable without a token) from a checkpoint
+# that ships no config.json at all (404, e.g. Mistral's params.json format).
+UNREADABLE = "__unreadable_http_status__"
+
+
 def fetch_config(model_id: str, cache_dir: Path, allow_fetch: bool) -> dict | None:
     cached = cache_dir / f"{model_id.replace('/', '__')}.json"
     if cached.is_file():
         try:
-            return json.loads(cached.read_text())
+            data = json.loads(cached.read_text())
         except json.JSONDecodeError:
-            return None
+            data = {}
+        # `{}` is the pre-status cache format for a failed read: refetch it
+        # when allowed so it gains a status, else report it as unknown.
+        if data or not allow_fetch:
+            return data or {UNREADABLE: None}
     if not allow_fetch:
         return None
     proc = subprocess.run(
-        ["curl", "-sL", "--max-time", "25", HF_CONFIG.format(model_id=model_id)],
+        ["curl", "-sL", "--max-time", "25", "-w", "\n%{http_code}", HF_CONFIG.format(model_id=model_id)],
         capture_output=True,
         text=True,
     )
+    body, _, status = proc.stdout.rpartition("\n")
     try:
-        data = json.loads(proc.stdout)
-    except json.JSONDecodeError:
-        cached.write_text("{}")  # gated or missing: remember, don't refetch
-        return None
+        data = json.loads(body)
+        if not isinstance(data, dict) or status != "200":
+            raise ValueError
+    except ValueError:  # JSONDecodeError is a ValueError
+        data = {UNREADABLE: int(status) if status.isdigit() else None}
     cached.write_text(json.dumps(data))
     return data
+
+
+def unreadable_why(status: int | None) -> str:
+    if status in (401, 403):
+        return "gated — config.json needs an authorized token"
+    if status == 404:
+        return "no config.json in the repo (e.g. params.json-only format)"
+    return f"config.json unreadable (HTTP {status or 'unknown'})"
 
 
 def architectures(config: dict | None) -> list[str]:
@@ -61,6 +82,34 @@ def architectures(config: dict | None) -> list[str]:
         if isinstance(nested, dict):
             archs += nested.get("architectures") or []
     return sorted({a for a in archs if isinstance(a, str)})
+
+
+# vLLM's ModelRegistry._normalize_arch: an architecture that is not a registry
+# key is matched by its first default suffix, which is then swapped for each
+# suffix in turn until a registered sibling is found — so jina's `Qwen3Model`
+# config serves as `Qwen3ForCausalLM`. Mirrors _SUFFIX_TO_DEFAULTS in
+# vllm/config/model.py (order matters: bare "Model" is the last resort).
+ARCH_SUFFIXES = [
+    "ForCausalLM", "ForConditionalGeneration", "ChatModel", "LMHeadModel",
+    "ForTextEncoding", "EmbeddingModel", "ForSequenceClassification",
+    "ForTokenClassification", "ForAudioClassification", "ForImageClassification",
+    "ForVideoClassification", "ClassificationModel", "ForRewardModeling",
+    "RewardModel", "Model",
+]
+
+
+def resolve_arch(arch: str, registered) -> str | None:
+    """The registry key vLLM would serve `arch` as, or None."""
+    if arch in registered:
+        return arch
+    suffix = next((s for s in ARCH_SUFFIXES if arch.endswith(s)), None)
+    if suffix is None:
+        return None
+    for repl in ARCH_SUFFIXES:
+        base = arch.replace(suffix, repl)
+        if base in registered:
+            return base
+    return None
 
 
 # Signals that a recipe's documented serving path is not the in-tree vLLM
@@ -133,6 +182,14 @@ SELF_TEST = [
     ("models/openai/gpt-oss-120b.yaml", "guide_line", "0.10.0"),
 ]
 
+# resolve_arch mirrors vLLM's suffix fallback; before it, jina's Qwen3Model
+# embeddings read as "not in the registry at any tag".
+ARCH_TEST = [
+    ("Qwen3Model", {"Qwen3ForCausalLM"}, "Qwen3ForCausalLM"),
+    ("Qwen3ForCausalLM", {"Qwen3ForCausalLM"}, "Qwen3ForCausalLM"),
+    ("K2HorizonForCausalLM", {"Qwen3ForCausalLM"}, None),
+]
+
 
 def self_test() -> int:
     ok = True
@@ -155,6 +212,11 @@ def self_test() -> int:
             good = bool(line) and expected in line
             detail = line or "no prerequisite line found"
         print(f"  {'ok  ' if good else 'FAIL'} {rel[7:]:46} {kind:10} {detail[:72]}")
+        ok = ok and good
+    for arch, registered, expected in ARCH_TEST:
+        got = resolve_arch(arch, registered)
+        good = got == expected
+        print(f"  {'ok  ' if good else 'FAIL'} {arch:46} resolve    {got}")
         ok = ok and good
     print(f"model-floors self-test {'PASS' if ok else 'FAIL'}")
     return 0 if ok else 1
@@ -209,16 +271,49 @@ def main() -> int:
         for future in concurrent.futures.as_completed(futures):
             configs[futures[future]] = future.result()
 
-    below, unknown_arch, no_floor, removed_arch = [], [], [], []
+    # Registered on vLLM main but not at the target: a floor at or below the
+    # target cannot serve these, so only nightly/main is a correct floor.
+    # origin/main, not HEAD: /find-outdated checks the clone out at a tag.
+    on_main = set(MODELS.archs_at("origin/main")[0])
+
+    below, no_floor, removed_arch = [], [], []
+    unreadable, unregistered = [], []
     for rel, scope, model_id, floor, guide_line in jobs:
-        archs = architectures(configs.get(model_id))
+        config = configs.get(model_id)
+        archs = architectures(config)
         if not archs:
-            unknown_arch.append({"file": rel, "scope": scope, "model_id": model_id})
+            if config is None or UNREADABLE in config:
+                status = (config or {}).get(UNREADABLE)
+                why = unreadable_why(status)
+            else:
+                status, why = None, "config.json has no architectures field"
+            unreadable.append(
+                {"file": rel, "scope": scope, "model_id": model_id, "http_status": status, "why": why}
+            )
             continue
-        known = [a for a in archs if a in idx]
+        known = [k for k in (resolve_arch(a, idx) for a in archs) if k]
         if not known:
-            unknown_arch.append(
-                {"file": rel, "scope": scope, "model_id": model_id, "architectures": archs}
+            landed = sorted({a for a in archs if resolve_arch(a, on_main)})
+            unregistered.append(
+                {
+                    "file": rel,
+                    "scope": scope,
+                    "model_id": model_id,
+                    "architectures": archs,
+                    "floor": floor,
+                    "on_main": bool(landed),
+                    # Absent or at/below the target is wrong here: the arch
+                    # landed after it. A later release or nightly is right.
+                    # Unregistered on main too is plugin/out-of-tree.
+                    "floor_predates_support": bool(landed)
+                    and (
+                        floor is None
+                        or (
+                            str(floor).lower() not in {"nightly", "main"}
+                            and F.version_key(floor) <= F.version_key(args.target)
+                        )
+                    ),
+                }
             )
             continue
         # the architecture that landed latest is what gates the recipe
@@ -257,7 +352,8 @@ def main() -> int:
         "floor_below_model_support": below,
         "no_floor_declared": no_floor,
         "architecture_removed_upstream": removed_arch,
-        "architecture_unknown": unknown_arch,
+        "config_unreadable": unreadable,
+        "architecture_unregistered": unregistered,
     }
     (report_dir / "model-floors.json").write_text(json.dumps(out, indent=2, sort_keys=True))
 
@@ -278,7 +374,19 @@ def main() -> int:
     print(f"  architecture no longer supported upstream: {len(removed_arch)}")
     for e in removed_arch[:10]:
         print(f"    {e['file'][7:]:52} {e['architecture']} last supported {e['last_supported']}")
-    print(f"  architecture not in the registry (plugin/out-of-tree/gated): {len(unknown_arch)}")
+    print(f"  config.json unreadable, architecture unknown: {len(unreadable)}")
+    whys: dict[str, int] = {}
+    for e in unreadable:
+        whys[e["why"]] = whys.get(e["why"], 0) + 1
+    for why, n in sorted(whys.items(), key=lambda kv: -kv[1]):
+        print(f"    {n:3}  {why}")
+    after = [e for e in unregistered if e["on_main"]]
+    print(f"  architecture not registered at {args.target}: {len(unregistered)}")
+    print(f"    {len(after):3}  registered on vLLM main since (floor must be nightly or a later release)")
+    for e in sorted(after, key=lambda e: e["file"]):
+        flag = "  <- floor predates support" if e["floor_predates_support"] else ""
+        print(f"         {e['file'][7:]:52} {e['scope']:18} floor {e['floor']}{flag}")
+    print(f"    {len(unregistered) - len(after):3}  not on main either (plugin/out-of-tree)")
     print(f"  -> {report_dir / 'model-floors.json'}")
     return 0
 

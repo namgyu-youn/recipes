@@ -158,7 +158,7 @@ Per-recipe lines, blocks and floors: `findings.json`.
 - `OpenMOSS-Team/MOSS-TTSD-v1.0` — omni recipe — served through vllm-omni, which registers the architecture itself
 - …32 more in `model-floors.json`.
 
-0 recipes declare no floor at all and 0 use an architecture upstream has dropped. Per-recipe detail: `model-floors.json`.
+0 recipes declare no floor at all and 0 use an architecture upstream has dropped. 23 checkpoints could not be checked because their `config.json` is unreadable (18 gated, 5 with no `config.json`). 12 name an architecture the v0.29.0 registry lacks: 11 registered on main since, of which 6 declare a floor at or below v0.29.0 or none at all (`IFM/K2-Horizon-0.9B`, `IFM/K2-Horizon-3.7B`, `IFM/K2-Horizon-32B`, `IFM/K2-Horizon-375B-A23B`, `IFM/K2-Horizon-7B`, `IFM/K2-Horizon-MoVA-36B-A4B`), and 1 unregistered on main too (plugin, out-of-tree, or a `params.json` architecture). Per-recipe detail: `model-floors.json`.
 
 ## Unverifiable flags
 
