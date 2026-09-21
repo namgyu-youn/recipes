@@ -17,3 +17,6 @@ public/providers/
 public/hf-dates.json
 public/*/
 !public/platform-logos/
+
+# Python bytecode (sync-vllm tooling)
+__pycache__/
