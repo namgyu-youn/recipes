@@ -3,6 +3,8 @@
 Report-only: nothing was edited or committed. 41 capabilities shipped (14 breaking changes are in section 3);
 21 stale-usage root causes; 4 adoption opportunities with a bounded cohort.
 
+**Since `vllm-0.28.0`:** 2 new root causes (`--long-prefill-token-threshold` default-changed, `--dcp-comm-backend` default-changed), 19 carried over unchanged, 1 no longer reported (`--moe-backend` invalid-value). A finding can stop being reported because the recipe changed or because upstream did — the category says which to check.
+
 ## What shipped
 
 | Concept | Capability | How enabled | Effect | Confidence |
@@ -90,15 +92,15 @@ Tier: **report-only — needs an edit template and review before applying.**
 
 | ID | Flag / env | What | Recipes | Action | Confidence |
 |---|---|---|---|---|---|
-| R-03 | `--mm-encoder-tp-mode` | used below its introducing release (needs v0.10.2) | 5 | raise model floor, per-block floor question | high |
-| R-09 | `--task` | removed upstream (gone in v0.13.0) | 1 | decide: drop or re-spell | high |
-| R-11 | `--rope-scaling` | removed upstream (gone in v0.11.1) | 1 | decide: drop or re-spell | high |
-| R-12 | `--attention-backend` | invalid-value — deepseek-ai/DeepSeek-V4-Flash sets `B12X_MLA_SPARSE`, not accepted at the target tag (accepted: AMX_MLA, CPU_ATTN, CPU_MLA, CUSTOM, …) | 1 | report only | low |
-| R-14 | `VLLM_USE_BREAKABLE_CUDAGRAPH` | used below its introducing release (needs v0.22.0) | 1 | vendor-image block — cannot move a pin | high |
+| R-03 | `--mm-encoder-tp-mode` | used below its introducing release (needs v0.10.2) | 5 | raise model floor, per-block floor question | high · carried over |
+| R-09 | `--task` | removed upstream (gone in v0.13.0) | 1 | decide: drop or re-spell | high · carried over |
+| R-11 | `--rope-scaling` | removed upstream (gone in v0.11.1) | 1 | decide: drop or re-spell | high · carried over |
+| R-12 | `--attention-backend` | invalid-value — deepseek-ai/DeepSeek-V4-Flash sets `B12X_MLA_SPARSE`, not accepted at the target tag (accepted: AMX_MLA, CPU_ATTN, CPU_MLA, CUSTOM, …) | 1 | report only | low · carried over |
+| R-14 | `VLLM_USE_BREAKABLE_CUDAGRAPH` | used below its introducing release (needs v0.22.0) | 1 | vendor-image block — cannot move a pin | high · carried over |
 | R-16 | `--long-prefill-token-threshold` | upstream default changed — the recipe relies on the default, which changed upstream | 1 | report only | medium |
-| R-18 | `--disable-log-requests` | removed upstream (gone in v0.17.0) | 1 | decide: drop or re-spell | high |
+| R-18 | `--disable-log-requests` | removed upstream (gone in v0.17.0) | 1 | decide: drop or re-spell | high · carried over |
 | R-19 | `--dcp-comm-backend` | upstream default changed — the recipe sets this flag explicitly, so the changed default does not reach it | 1 | report only | medium |
-| R-21 | `--cc.pass_config.fuse_allreduce_rms` | wrong dash — argparse rejects it | 1 | replace | high |
+| R-21 | `--cc.pass_config.fuse_allreduce_rms` | wrong dash — argparse rejects it | 1 | replace | high · carried over |
 
 - `--task` → no replacement documented. read the argparse help, the config field docstring and every deprecation line mentioning it at v0.12.0; none names a replacement
   > model_group.add_argument('--task', **model_kwargs['task'], deprecated=True)
@@ -114,6 +116,49 @@ unconditional command is unaffected, so the model floor is not wrong — the que
 block should carry its own floor. One decision covers all of them: `--language-model-only` (22), `--attention-backend` (5), `--moe-backend` (4), `VLLM_ROCM_SHUFFLE_KV_CACHE_LAYOUT` (3), `VLLM_ROCM_USE_AITER` (3), `VLLM_SSM_CONV_STATE_LAYOUT` (2), `VLLM_ENGINE_READY_TIMEOUT_S` (2), `--disable-chunked-mm-input` (1), `--linear-backend` (1), `--prefill-schedule-interval` (1), `--speculative-config` (1), `--quantization-config.moe.activation` (1). Full list in `findings.json`.
 
 Per-recipe lines, blocks and floors: `findings.json`.
+
+## Model-support floors
+
+328 checkpoints checked across the recipes that the in-tree wheel serves. 22 pin a vLLM release older than the one that first registered their architecture, so the version the recipe claims to support cannot serve the model at all.
+
+| Recipe | Scope | Architecture | Pins | Needs | Guide line |
+|---|---|---|---|---|---|
+| `deepseek-ai/DeepSeek-OCR-2` | model | DeepseekOCR2ForCausalLM | 0.12.0 | v0.16.0 | — |
+| `internlm/Intern-S1` | model | InternS1ForConditionalGeneration | 0.10.0 | v0.10.1 | `- vLLM >= 0.10.0` — update too |
+| `internlm/Intern-S1` | variants.fp8 | InternS1ForConditionalGeneration | 0.10.0 | v0.10.1 | `- vLLM >= 0.10.0` — update too |
+| `jinaai/jina-reranker-m0` | model | JinaVLForRanking | 0.8.0 | v0.10.0 | `- vLLM >= 0.8.0` — update too |
+| `microsoft/Phi-4-mini-instruct` | variants.multimodal | Phi4MMForCausalLM | 0.7.0 | v0.8.0 | `- vLLM >= 0.7.0` — update too |
+| `MiniMaxAI/MiniMax-M2.1` | model | MiniMaxM2ForCausalLM | 0.11.0 | v0.11.1 | — |
+| `MiniMaxAI/MiniMax-M2` | model | MiniMaxM2ForCausalLM | 0.11.0 | v0.11.1 | — |
+| `openai/gpt-oss-120b` | model | GptOssForCausalLM | 0.10.0 | v0.10.1 | `- vLLM >= 0.10.0` — update too |
+| `openai/gpt-oss-120b` | variants.amd_fp8 | GptOssForCausalLM | 0.10.0 | v0.10.1 | `- vLLM >= 0.10.0` — update too |
+| `openai/gpt-oss-20b` | model | GptOssForCausalLM | 0.10.0 | v0.10.1 | `- vLLM >= 0.10.0.` — update too |
+| `Qwen/Qwen2.5-VL-72B-Instruct` | model | Qwen2_5_VLForConditionalGeneration | 0.7.0 | v0.7.2 | — |
+| `Qwen/Qwen2.5-VL-72B-Instruct` | variants.awq | Qwen2_5_VLForConditionalGeneration | 0.7.0 | v0.7.2 | — |
+| `Qwen/Qwen2.5-VL-7B-Instruct` | model | Qwen2_5_VLForConditionalGeneration | 0.7.0 | v0.7.2 | — |
+| `Qwen/Qwen2.5-VL-7B-Instruct` | variants.awq | Qwen2_5_VLForConditionalGeneration | 0.7.0 | v0.7.2 | — |
+| `Qwen/Qwen3-ASR-1.7B` | model | Qwen3ASRForConditionalGeneration | 0.12.0 | v0.16.0 | — |
+| `stepfun-ai/Step-3.5-Flash` | model | Step3p5ForCausalLM | 0.11.0 | v0.15.1 | — |
+| `stepfun-ai/Step-3.5-Flash` | variants.fp8 | Step3p5ForCausalLM | 0.11.0 | v0.15.1 | — |
+| `stepfun-ai/Step-3.5-Flash` | variants.int4 | Step3p5ForCausalLM | 0.11.0 | v0.15.1 | — |
+| `tencent/HunyuanOCR` | model | HunYuanVLForConditionalGeneration | 0.11.0 | v0.12.0 | — |
+| `XiaomiMiMo/MiMo-V2-Flash` | model | MiMoV2FlashForCausalLM | 0.11.0 | v0.14.0 | `- vLLM >= 0.11.0` — update too |
+| `zai-org/glm-4-9b-hf` | model | GlmForCausalLM | 0.6.4 | v0.6.5 | `- vLLM >= 0.6.4` — update too |
+| `zai-org/GLM-OCR` | model | GlmOcrForConditionalGeneration | 0.12.0 | v0.16.0 | — |
+
+**40 recipes were skipped, not cleared.** Their documented serving path is not the in-tree wheel — an omni recipe, a non-first-party image, a `vllm==` pin in the guide, or an architecture selected via `--hf-overrides` — so the plugin or image registers the architecture itself and `registry.py` says nothing about their floor. Raising one from the registry would contradict the recipe's own release-tested pin. Never auto-apply to these.
+
+- `Google/gemma-4-26B-A4B-it` — pins a non-first-party image (eugr/spark-vllm:nightly-20260704) that may register the architecture
+- `IndexTeam/IndexTTS-2.5` — omni recipe — served through vllm-omni, which registers the architecture itself
+- `Lightricks/LTX-2.5-Diffusers` — omni recipe — served through vllm-omni, which registers the architecture itself
+- `MiniMaxAI/MiniMax-H3` — omni recipe — served through vllm-omni, which registers the architecture itself
+- `OpenMOSS-Team/MOSS-SoundEffect` — omni recipe — served through vllm-omni, which registers the architecture itself
+- `OpenMOSS-Team/MOSS-TTS-Realtime` — omni recipe — served through vllm-omni, which registers the architecture itself
+- `OpenMOSS-Team/MOSS-TTS` — omni recipe — served through vllm-omni, which registers the architecture itself
+- `OpenMOSS-Team/MOSS-TTSD-v1.0` — omni recipe — served through vllm-omni, which registers the architecture itself
+- …32 more in `model-floors.json`.
+
+0 recipes declare no floor at all and 0 use an architecture upstream has dropped. Per-recipe detail: `model-floors.json`.
 
 ## Unverifiable flags
 

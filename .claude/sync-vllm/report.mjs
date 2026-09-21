@@ -98,9 +98,32 @@ function main() {
   const modelFloors = existsSync(floorsPath) ? JSON.parse(readFileSync(floorsPath, "utf8")) : null;
   const { target, findings, plugin_flags: pluginFlags } = findingsDoc;
 
+  // Between-release tracking. Three states matter to a reader coming back after
+  // a release: what is new, what is unchanged (and can be skimmed), and what
+  // disappeared — the last being the only evidence that earlier runs led
+  // anywhere. The result is written back to findings.json, because a carry-over
+  // marking that lives only in the rendered report cannot be acted on.
   const prev = previousRun(target);
-  const prevKeys = new Set((prev?.data.findings || []).map((f) => `${f.category}::${f.token}`));
-  for (const f of findings) f.carried_over = prevKeys.has(`${f.category}::${f.token}`);
+  const key = (f) => `${f.category}::${f.token}`;
+  const prevByKey = new Map((prev?.data.findings || []).map((f) => [key(f), f]));
+  const currentKeys = new Set(findings.map(key));
+  for (const f of findings) {
+    const before = prevByKey.get(key(f));
+    f.carried_over = Boolean(before);
+    f.first_seen = before ? before.first_seen || prev.dir.replace("vllm-", "") : target.replace(/^v/, "");
+  }
+  const resolved = [...prevByKey.values()].filter((f) => !currentKeys.has(key(f)));
+  const fresh = findings.filter((f) => !f.carried_over);
+  if (prev) {
+    findingsDoc.compared_against = prev.dir;
+    findingsDoc.resolved_since_previous = resolved.map((f) => ({
+      id: f.id,
+      category: f.category,
+      token: f.token,
+      recipe_count: f.recipe_count,
+    }));
+    writeFileSync(join(reportDir, "findings.json"), JSON.stringify(findingsDoc, null, 2));
+  }
 
   // A capability with no cohort but with reverse hits is still actionable —
   // the edit is subtractive (drop a now-default env, fix stale guide text).
@@ -343,6 +366,19 @@ ${findings.length} stale-usage root causes; ${actionable.length} adoption opport
     actionable.length === 1 ? "y" : "ies"
   } with a bounded cohort.
 
+${
+  prev
+    ? `**Since \`${prev.dir}\`:** ${fresh.length} new root cause${fresh.length === 1 ? "" : "s"}${
+        fresh.length
+          ? ` (${fresh.map((f) => `\`${f.token}\` ${f.category}`).join(", ")})`
+          : ""
+      }, ${findings.length - fresh.length} carried over unchanged, ${resolved.length} no longer reported${
+        resolved.length
+          ? ` (${resolved.map((f) => `\`${f.token}\` ${f.category}`).join(", ")})`
+          : ""
+      }. A finding can stop being reported because the recipe changed or because upstream did — the category says which to check.\n`
+    : ""
+}
 ## What shipped
 
 | Concept | Capability | How enabled | Effect | Confidence |
