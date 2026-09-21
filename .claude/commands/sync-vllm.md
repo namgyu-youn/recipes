@@ -136,6 +136,39 @@ node .claude/sync-vllm/verify.mjs --target <target> --report-dir $REPORT
 count and list, not one per recipe. Flags vLLM never shipped go to the
 unverifiable-plugin bucket and are never called stale.
 
+### 7b. Model-support floor scan
+
+Step 7 asks whether a recipe's *flags* exist at its floor. This asks the prior
+question: was the *model* servable at that version at all?
+
+```bash
+python3 .claude/sync-vllm/index_models.py --target <target>                      # arch -> introducing tag
+python3 .claude/sync-vllm/model_floors.py --target <target> --report-dir $REPORT # [--no-fetch]
+```
+
+`index_models.py` reads `vllm/model_executor/models/registry.py` at each tag;
+`model_floors.py` resolves each checkpoint's architecture from its HF
+`config.json` (cached under `$REPORT/hf-configs/`) and compares the introducing
+tag with the declared floor. Output `model-floors.json`, rendered by `report.mjs`.
+
+**The registry is only evidence for recipes the in-tree wheel serves.** A recipe
+whose documented path is an out-of-tree plugin or a pinned image registers its
+own architecture and legitimately runs on a vLLM older than the in-tree landing —
+`registry.py` says nothing about its floor, and raising it would contradict the
+recipe's own release-tested pin. `plugin_served()` skips those recipes on four
+signals: an `omni` recipe, a non-first-party `docker_image`, a `vllm==` pin in
+the guide, or an architecture selected via `--hf-overrides`. They land in
+`plugin_served_skipped` — **skipped, not cleared**. Never edit a floor there, and
+never widen the check to "fix" them: on those recipes the guide's pin is right
+and the registry is wrong.
+
+A floor is also repeated in the guide's `- vLLM >= X` Prerequisites line.
+`model_floors.py` returns it as `guide_prerequisite`; a floor commit that leaves
+it behind makes the recipe contradict itself, so the two edits belong in the
+same commit.
+
+`--self-test` checks both behaviours offline against known recipes.
+
 ### 8. Apply (skip entirely under `--report-only`)
 
 ```bash
@@ -165,10 +198,13 @@ Then per logical change, in its own commit:
 node .claude/sync-vllm/report.mjs --report-dir $REPORT [--branch sync/vllm-<target>] [--report-only]
 ```
 
-`report.md` is four sections and about two screens: **What shipped** /
+`report.md` is five sections and about two screens: **What shipped** /
 **Adoption opportunities** / **Breaking & stale, by root cause** /
-**Unverifiable plugin flags**. Per-recipe detail belongs in `findings.json` and
-`cohorts.json`, never in the report. Then **stop** — no push, no PR.
+**Model-support floors** / **Unverifiable plugin flags**. The floors section is
+rendered only when step 7b has run, and always states how many recipes were
+skipped as plugin-served so the skip never reads as clean coverage. Per-recipe
+detail belongs in `findings.json`, `cohorts.json` and `model-floors.json`, never
+in the report. Then **stop** — no push, no PR.
 
 `--check-images` (opt-in, network, strictly report-only):
 
@@ -190,6 +226,9 @@ node .claude/sync-vllm/check_images.mjs --target <target> --report-dir $REPORT
 | Same, in a non-default variant that carries its own pin | — | raise **that variant's** pin, own commit |
 | Same, in `features.*`, `hardware_overrides.*`, `strategy_overrides.*` or the guide | — | **per-block floor question — report only.** An optional block using a newer flag does not make the recipe's baseline wrong; raising the model floor would overstate the requirement for every other user |
 | `default-changed` | — | report only, `medium` confidence at best |
+| Floor below the release that registered the architecture, recipe served by the in-tree wheel | the recipe is absent from `plugin_served_skipped` | raise the floor to exactly that release, **own commit**, and update the guide's `- vLLM >= X` line in the same commit |
+| Same, but the recipe is in `plugin_served_skipped` | — | **never edited.** The plugin or pinned image registers the architecture; the registry is not evidence about this recipe |
+| Architecture not in the registry at any tag | — | report only — out-of-tree, gated or plugin-registered, not a floor error |
 | Plugin/unverifiable flag | — | the plugin bucket, never "stale", never edited |
 | Anything `low` confidence | — | report only |
 

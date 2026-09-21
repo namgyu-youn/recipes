@@ -162,7 +162,7 @@ def self_test() -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--target", required=True)
+    ap.add_argument("--target")  # not required under --self-test, which is offline
     ap.add_argument("--report-dir")
     ap.add_argument("--no-fetch", action="store_true", help="use cached configs only")
     ap.add_argument("--only", help="substring filter on the recipe path")
