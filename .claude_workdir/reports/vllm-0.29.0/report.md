@@ -1,7 +1,7 @@
 # vLLM sync — v0.24.0 → v0.29.0
 
 Report-only: nothing was edited or committed. 41 capabilities shipped (14 breaking changes are in section 3);
-21 stale-usage root causes; 7 adoption opportunities with a bounded cohort.
+21 stale-usage root causes; 4 adoption opportunities with a bounded cohort.
 
 ## What shipped
 
@@ -14,8 +14,8 @@ Report-only: nothing was edited or committed. 41 capabilities shipped (14 breaki
 | spec_decoding | Speculative decoding advances: DFlash2 with local convolution and a candidate selector, DSpark confidence-scheduled verification, and async scheduling auto-enabled for draft models | no flag — automatic | usability | medium |
 | spec_decoding | Per-Request Acceptance Metrics | `--per-request-spec-decode-metrics` | usability | high |
 | spec_decoding | internal prefill checkpoints deliver a 9%-25% TTFT improvement | no flag — automatic | perf | medium |
-| attention_backend | FLASH_ATTN_MLA_SPARSE: Hopper sparse-MLA attention backend | `--attention-backend FLASH_ATTN_MLA_SPARSE` | usability | high |
-| attention_backend | ROCM_AITER_FA: AITER FlashAttention MLA prefill backend on ROCm | `--attention-backend ROCM_AITER_FA` | usability | high |
+| attention_backend | FLASH_ATTN_MLA_SPARSE Hopper sparse-MLA backend, DCP + FP8 KV cache in MLA decode, XQA decode kernels | `--attention-backend FLASH_ATTN_MLA_SPARSE` | usability | high |
+| attention_backend | AITER FlashAttention MLA prefill backend ROCM_AITER_FA | `--attention-backend ROCM_AITER_FA` | usability | high |
 | attention_backend | Flexible attention backends: the attention backend can now be selected per KV-cache group | no flag — automatic | usability | medium |
 | attention_backend | FlashAttention 4 integration deepens on SM100: FP8 KV cache support and headdim-256 support | no flag — automatic | usability | medium |
 | attention_backend | DeepSeek-V4 performance push: sequence parallelism, ~2x kernel improvement by skipping empty c128 launches, 3.4% E2E TTFT from skipping unneeded topk/router | no flag — automatic | memory | medium |
@@ -45,30 +45,18 @@ Report-only: nothing was edited or committed. 41 capabilities shipped (14 breaki
 | runtime | Adaptive Verification: --enforce-eager, --speculative-config, --tokenizer-mode | `--enforce-eager`, `--speculative-config`, `--tokenizer-mode`, `--trust-remote-code`, `VLLM_ADAPTIVE_VERIFICATION_PROFILE_CONTEXT_LEN` | memory | high |
 | runtime | Sampling Mask (Distribution Replay) | `--logits-processors`, `--logprobs-mode`, `--return-sampling-mask` | usability | high |
 | kernel | --linear-backend honored for ModelOpt W4A16 | `--linear-backend flashinfer_cutedsl` | usability | high |
-| kernel | b12x linear and MoE backends for SM120/SM121 | `--linear-backend b12x`, `--moe-backend b12x`, `VLLM_B12X_MOE_FP4_FORCE_A16` | perf | high |
+| kernel | b12x Linear and MoE Backends | `--linear-backend b12x`, `--moe-backend b12x`, `VLLM_B12X_MOE_FP4_FORCE_A16` | perf | high |
 | scheduling | New endpoints & options: --max-num-queued-reqs / --max-num-queued-tokens | `--max-num-queued-reqs`, `--max-num-queued-tokens` | usability | high |
 | quantization | Kimi-K3 and DeepSeek V4 performance: fused MXFP4 top-k finalization in the K3 latent tail (about 5% E2E latency, #53152) | no flag — automatic | perf | medium |
 
-34 of these need no recipe edit: on by default with nothing to remove, or with no hardware/model dimension to bound a cohort.
+37 of these need no recipe edit: on by default with nothing to remove, or with no hardware/model dimension to bound a cohort.
 
 ## Adoption opportunities
 
-**FLASH_ATTN_MLA_SPARSE: Hopper sparse-MLA attention backend** — attention_backend, confidence high
-Add `--attention-backend FLASH_ATTN_MLA_SPARSE` to 4 recipes: deepseek-ai/DeepSeek-V4-Flash, inclusionAI/Ling-3.0-flash, moonshotai/Kimi-K3, zai-org/GLM-5.3-Flash.
-⚠ 4 of them already set the same flag to a different value — that is a backend swap with a behaviour change, not an addition: deepseek-ai/DeepSeek-V4-Flash (--attention-backend B12X_MLA_SPARSE → FLASH_ATTN_MLA_SPARSE), inclusionAI/Ling-3.0-flash (--attention-backend TRITON_MLA → FLASH_ATTN_MLA_SPARSE), moonshotai/Kimi-K3 (--attention-backend TOKENSPEED_MLA → FLASH_ATTN_MLA_SPARSE), zai-org/GLM-5.3-Flash (--attention-backend ROCM_AITER_MLA_SPARSE → FLASH_ATTN_MLA_SPARSE).
-Why it applies (hopper): "`FLASH_ATTN_MLA_SPARSE` Hopper sparse-MLA backend (#46189), DCP + FP8 KV cache in MLA decode (#44044), XQA decode kernels (#43232)."
-Tier: **report-only — needs an edit template and review before applying.**
-
-**ROCM_AITER_FA: AITER FlashAttention MLA prefill backend on ROCm** — attention_backend, confidence high
-Add `--attention-backend ROCM_AITER_FA` to 5 recipes: deepseek-ai/DeepSeek-V4-Flash, inclusionAI/Ling-3.0-flash, moonshotai/Kimi-K3, tencent/Hy4-preview, zai-org/GLM-5.3-Flash.
-⚠ 5 of them already set the same flag to a different value — that is a backend swap with a behaviour change, not an addition: deepseek-ai/DeepSeek-V4-Flash (--attention-backend B12X_MLA_SPARSE → ROCM_AITER_FA), inclusionAI/Ling-3.0-flash (--attention-backend TRITON_MLA → ROCM_AITER_FA), moonshotai/Kimi-K3 (--attention-backend TOKENSPEED_MLA → ROCM_AITER_FA), tencent/Hy4-preview (--attention-backend FLASHMLA_SPARSE → ROCM_AITER_FA), ….
-
-| Where | Name | Value | Recipe floor | Evidence | Verdict |
-|---|---|---|---|---|---|
-| `meta-models/Muse-Glimmer-30B:235` | `ROCM_AITER_FA` | — | 0.28.0 | `--attention-backend ROCM_AITER_FA` | stale guide text |
-
-2 further recipe(s) set it below the v0.25.0 floor, where it is still load-bearing — keep: MiniMaxAI/MiniMax-M3 (floor 0.24.0), Qwen/Qwen3-VL-235B-A22B-Instruct (floor 0.11.0).
-Why it applies (mla): "AITER FlashAttention MLA prefill backend `ROCM_AITER_FA` (#45033)"
+**FLASH_ATTN_MLA_SPARSE Hopper sparse-MLA backend, DCP + FP8 KV cache in MLA decode, XQA decode kernels** — attention_backend, confidence high
+Add `--attention-backend FLASH_ATTN_MLA_SPARSE` to 3 recipes: deepseek-ai/DeepSeek-V4-Flash, inclusionAI/Ling-3.0-flash, zai-org/GLM-5.3-Flash.
+⚠ 3 of them already set the same flag to a different value — that is a backend swap with a behaviour change, not an addition: deepseek-ai/DeepSeek-V4-Flash (--attention-backend B12X_MLA_SPARSE → FLASH_ATTN_MLA_SPARSE), inclusionAI/Ling-3.0-flash (--attention-backend TRITON_MLA → FLASH_ATTN_MLA_SPARSE), zai-org/GLM-5.3-Flash (--attention-backend ROCM_AITER_MLA_SPARSE → FLASH_ATTN_MLA_SPARSE).
+Why it applies (fp8): "`FLASH_ATTN_MLA_SPARSE` Hopper sparse-MLA backend (#46189), DCP + FP8 KV cache in MLA decode (#44044), XQA decode kernels (#43232)."
 Tier: **report-only — needs an edit template and review before applying.**
 
 **MoE communication: DeepEP v2 receiver CPU overhead and MXFP8 activation scale dispatch, FlashInfer one-sided All2All refinements** — runtime, confidence high
@@ -76,35 +64,16 @@ Add `--enforce-eager` to 2 recipes: MiniMaxAI/MiniMax-M3, tencent/Hy4-preview.
 Why it applies (cpu): "**MoE communication**: DeepEP v2 receiver CPU overhead (#51114) and MXFP8 activation scale dispatch (#51398), FlashInfer one-sided All2All refinements (#51924), DeepEP v2 fixes for `--enforce-eager` startup (#51824) and the decode/cudagraph"
 Tier: **report-only — needs an edit template and review before applying.**
 
-**Model Runner V2 is now the default for all models: completing the rollout that began with pooling models** — compilation, confidence medium
+**b12x Linear and MoE Backends** — kernel, confidence high
+Add `--linear-backend b12x`, `--moe-backend b12x`, `VLLM_B12X_MOE_FP4_FORCE_A16` to 8 recipes (1 already using it, excluded): Google/diffusiongemma-26B-A4B-it, Google/gemma-4-26B-A4B-it, MiniMaxAI/MiniMax-M2.7, Qwen/Qwen3.6-35B-A3B, Qwen/Qwen3.8-Flash-Next, inclusionAI/Ling-3.0-flash, nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16, nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16.
+⚠ 3 of them already set the same flag to a different value — that is a backend swap with a behaviour change, not an addition: Qwen/Qwen3.6-35B-A3B (--moe-backend marlin → b12x), Qwen/Qwen3.8-Flash-Next (--moe-backend marlin → b12x), nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16 (--linear-backend humming → b12x).
 
 | Where | Name | Value | Recipe floor | Evidence | Verdict |
 |---|---|---|---|---|---|
-| `deepseek-ai/DeepSeek-V4-Flash-Vision-Exp` | `VLLM_USE_V2_MODEL_RUNNER` | `1` | 0.29.0 | `hardware_overrides.amd.extra_env` | redundant explicit |
-| `deepseek-ai/DeepSeek-V4-Flash-Vision-Exp:316` | `VLLM_USE_V2_MODEL_RUNNER` | `1` | 0.29.0 | `-e VLLM_USE_V2_MODEL_RUNNER=1 \` | stale guide text |
-| `deepseek-ai/DeepSeek-V4.1-Flash` | `VLLM_USE_V2_MODEL_RUNNER` | `1` | 0.30.0 | `variants.default.hardware_overrides.h100.extra_env` | redundant explicit |
-| `moonshotai/Kimi-K3` | `VLLM_USE_V2_MODEL_RUNNER` | `1` | 0.29.0 | `hardware_overrides.blackwell.extra_env` | redundant explicit |
+| `deepseek-ai/DeepSeek-V4.1-Flash:385` | `NVIDIA` | — | 0.30.0 | `only offers Docker. On NVIDIA that is `vllm/vllm-openai:nightly`: the architecture` | stale guide text |
 
-2 guide mention(s) explain why the setting is there ("required for …", "can be enabled if needed") — documentation, not staleness.
-9 further recipe(s) set it below the v0.29.0 floor, where it is still load-bearing — keep: Google/gemma-4-26B-A4B-it (floor 0.25.0), deepseek-ai/DeepSeek-V4-Flash-Vision-Exp (floor 0.29.0), deepseek-ai/DeepSeek-V4-Flash (floor 0.20.0), moonshotai/Kimi-K3 (floor 0.29.0), thinkingmachines/Inkling-Small (floor 0.26.0), thinkingmachines/Inkling (floor 0.26.0).
-⚠ MRV1 remains in use for a few ROCm models and for features MRV2 does not yet support — confirm the model class is on MRV2 before removing an explicit enable.
-Why it applies (spec_decoding): "MRV2 also gained CUDA graph memory profiling for KV cache auto-sizing (#53306), batch-sharded sampling that cuts per-step logits memory by 1/TP (#50465), prompt embeds (#42963), `extract_hidden_states` speculation (#49811), padded FULL cuda"
-Tier: **report-only — needs an edit template and review before applying.**
-
-**b12x linear and MoE backends for SM120/SM121 — linear backend** — kernel, confidence high
-Add `--linear-backend b12x` to 11 recipes (1 already using it, excluded): Google/diffusiongemma-26B-A4B-it, Google/gemma-4-26B-A4B-it, MiniMaxAI/MiniMax-M2.7, Qwen/Qwen3.6-27B, Qwen/Qwen3.6-35B-A3B, Qwen/Qwen3.8-27B, Qwen/Qwen3.8-Flash-Next, inclusionAI/Ling-3.0-flash, +3 more.
-Required floor for this edit: **0.29.0** (--linear-backend exists since 0.22.0; the b12x value is new in 0.29.0). Install change: `uv pip install "vllm[b12x]"` — b12x kernels ship as a wheel extra, not in the base wheel.
-Evidence: "b12x linear kernels participate in automatic selection after established optimized backends and before emulation; select them explicitly with --linear-backend b12x."
-⚠ 1 of them already set the same flag to a different value — that is a backend swap with a behaviour change, not an addition: nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16 (--linear-backend humming → b12x).
-Why it applies (rtx_pro_6000): "b12x provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs (RTX Pro 6000/5000, RTX 5090, DGX Spark GB10), installed with pip install vllm[b12x]."
-Tier: **report-only — needs an edit template and review before applying.**
-
-**b12x linear and MoE backends for SM120/SM121 — MoE backend (MoE models only)** — kernel, confidence high
-Add `--moe-backend b12x` to 7 recipes (1 already using it, excluded): Google/diffusiongemma-26B-A4B-it, Google/gemma-4-26B-A4B-it, MiniMaxAI/MiniMax-M2.7, Qwen/Qwen3.6-35B-A3B, Qwen/Qwen3.8-Flash-Next, nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16, nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16.
-Required floor for this edit: **0.29.0** (--moe-backend exists since 0.17.0; the b12x value is new in 0.29.0). Install change: `uv pip install "vllm[b12x]"` — b12x kernels ship as a wheel extra, not in the base wheel.
-Evidence: "Only pass --moe-backend b12x for a compatible NVFP4 or MXFP4 MoE model. The b12x MoE backend does not support expert parallelism, expert maps, EXL3, or NF3."
-⚠ 3 of them already set the same flag to a different value — that is a backend swap with a behaviour change, not an addition: Qwen/Qwen3.6-35B-A3B (--moe-backend marlin → b12x), Qwen/Qwen3.8-Flash-Next (--moe-backend marlin → b12x), nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16 (--moe-backend marlin → b12x).
-Why it applies (rtx_pro_6000): "b12x provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs (RTX Pro 6000/5000, RTX 5090, DGX Spark GB10), installed with pip install vllm[b12x]."
+21 further recipe(s) set it below the v0.29.0 floor, where it is still load-bearing — keep: Google/gemma-4-12B-it (floor 0.23.0), Google/gemma-4-26B-A4B-it (floor 0.25.0), Google/gemma-4-31B-it (floor 0.19.1), Google/gemma-4-E2B-it (floor 0.19.1), Google/gemma-4-E4B-it (floor 0.19.1), MiniMaxAI/MiniMax-M3 (floor 0.24.0).
+Why it applies (dgx_spark_gb10): "# b12x Linear and MoE Backends [b12x](https://pypi.org/project/b12x/) provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs."
 Tier: **report-only — needs an edit template and review before applying.**
 
 **Adaptive Verification: --enforce-eager, --speculative-config, --tokenizer-mode** — runtime, confidence high
@@ -113,7 +82,7 @@ Why it applies (spec_decoding): "# Adaptive Verification Speculative decoding bu
 Tier: **report-only — needs an edit template and review before applying.**
 
 
-2 further capabilities matched more than 30 recipes, which means `applies_to` is not narrow enough to be evidence: tuned LL BF16 router GEMM with warmup skipped for non-MoE models, Triton tensor-descriptor path for fused MoE via VLLM_TRITON_USE_TD; Per-Request Acceptance Metrics. Narrow hardware/quant/traits in `capabilities.yaml` and re-run before judging these.
+3 further capabilities matched more than 30 recipes, which means `applies_to` is not narrow enough to be evidence: AITER FlashAttention MLA prefill backend ROCM_AITER_FA; tuned LL BF16 router GEMM with warmup skipped for non-MoE models, Triton tensor-descriptor path for fused MoE via VLLM_TRITON_USE_TD; Per-Request Acceptance Metrics. Narrow hardware/quant/traits in `capabilities.yaml` and re-run before judging these.
 
 ## Breaking & stale, by root cause
 
@@ -146,20 +115,6 @@ block should carry its own floor. One decision covers all of them: `--language-m
 
 Per-recipe lines, blocks and floors: `findings.json`.
 
-## Vendor image overlapping upstream
-
-**V-1 — `eugr/spark-vllm-b12x:latest`** in deepseek-ai/DeepSeek-V4-Flash. upstream ships b12x linear/MoE kernels in-tree since v0.29.0 behind --linear-backend/--moe-backend; the VLLM_USE_B12X_* switches exist at no upstream tag, the newest rc or main
-
-| Vendor env | Upstream equivalent |
-|---|---|
-| `VLLM_USE_B12X_WO_PROJECTION` | no upstream equivalent documented — cannot be dropped |
-| `VLLM_USE_B12X_MHC` | no upstream equivalent documented — cannot be dropped |
-| `VLLM_USE_B12X_FP8_GEMM` | `--linear-backend b12x` |
-| `VLLM_USE_B12X_MOE` | `--moe-backend b12x` |
-| `VLLM_USE_B12X_SPARSE_INDEXER` | no upstream equivalent documented — cannot be dropped |
-
-2 of 5 switches map to upstream flags the recipe already passes; the rest have no documented equivalent. Migrating off the image is a hardware-validated decision (GB10), not a mechanical edit. **Report-only: the decision is whether to migrate off the image, and that needs GB10 validation.**
-
 ## Unverifiable flags
 
 Not stale usage — vLLM never shipped these, so this tool has nothing to check them against.
@@ -167,8 +122,8 @@ Not stale usage — vLLM never shipped these, so this tool has nothing to check 
 Each is classified by the recipe context it sits in — an omni task section, a pinned image, or the company its neighbours keep — not by how the name is spelled.
 
 - **vllm-omni** (24 flags across 20 recipes) — name is in that plugin's namespace: `--omni`, `--init-timeout`, `--deploy-config`, `--cfg-parallel-size`, `--ulysses-degree`, `--use-hsdp`, `--hsdp-shard-size`, `--diffusion-attention-backend`, +16 more.
+- **vendor-image** (6 flags across 1 recipes) — block pins eugr/spark-vllm-b12x:latest: `VLLM_MEMORY_PROFILE_INCLUDE_ATTN`, `VLLM_USE_B12X_WO_PROJECTION`, `VLLM_USE_B12X_MHC`, `VLLM_USE_B12X_FP8_GEMM`, `VLLM_USE_B12X_MOE`, `VLLM_USE_B12X_SPARSE_INDEXER`.
 - **vllm-ascend** (1 flags across 1 recipes) — name is in that plugin's namespace: `VLLM_ASCEND_ENABLE_PREFETCH_MLP`.
-- **vendor-image** (1 flags across 1 recipes) — block pins eugr/spark-vllm-b12x:latest: `VLLM_MEMORY_PROFILE_INCLUDE_ATTN`.
 - **Newer than v0.29.0** (2) — present in the clone but not in a stable release yet, so the recipe is ahead of its pin: `VLLM_PLE_CPU_OFFLOAD` (present at v0.30.0rc2, 1 recipe), `VLLM_ROCM_USE_AITER_MOE_SITUV2` (present at main (HEAD of the clone), 1 recipe).
 
 21 release items were out of the capability vocabulary (new model support, packaging) and are recorded in `capabilities.yaml` rather than shown above.

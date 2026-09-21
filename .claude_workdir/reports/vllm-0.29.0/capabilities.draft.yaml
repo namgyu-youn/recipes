@@ -22,10 +22,25 @@ capabilities:
     - FLASH_ATTN_MLA_SPARSE
   applies_to:
     hardware:
-    - hopper
-    model_traits: {}
+    - h100
+    - h200
+    model_traits:
+      attention: mla
     quant:
     - fp8
+    support_evidence:
+    - value: FLASH_ATTN_MLA_SPARSE
+      modules:
+      - vllm/v1/attention/backends/mla/flashattn_mla_sparse.py
+      evidence:
+      - file: vllm/v1/attention/backends/mla/flashattn_mla_sparse.py
+        capability: 90
+        why: compute capability 90
+      limits:
+      - FlashAttention MLA not supported on this device
+      - FlashAttention MLA Sparse does not support DCP for now
+      - FlashAttention MLA Sparse requires model with index_topk
+      - 'FlashAttnMLASparseImpl does not support alibi, sliding window, '
   effect: usability
   evidence:
     source: release-notes-area
@@ -86,9 +101,25 @@ capabilities:
     - ROCM_AITER_FA
   applies_to:
     hardware:
-    - amd
+    - mi300x
+    - mi325x
+    - mi350x
+    - mi355x
     model_traits: {}
     quant: []
+    support_evidence:
+    - value: ROCM_AITER_FA
+      modules:
+      - vllm/v1/attention/backends/rocm_aiter_fa.py
+      evidence:
+      - file: vllm/v1/attention/backends/rocm_aiter_fa.py
+        line: 70
+        why: current_platform.is_rocm()
+      limits:
+      - kv_cache_layout only supports NHD, SHUFFLE
+      - 'Currently, we only support '
+      - Aiter Flash ATTENTION can only support one valid sliding window!
+      - Separate K/V head slots require symmetric K/V head sizes.
   effect: usability
   evidence:
     source: release-notes-area
@@ -2474,13 +2505,71 @@ capabilities:
     - NVIDIA
   applies_to:
     hardware:
-    - nvidia
-    - blackwell
+    - dgx_spark_gb10
+    - rtx_5090
+    - rtx_5090_2x
+    - rtx_pro_5000
+    - rtx_pro_5000_4x
+    - rtx_pro_6000
+    - rtx_pro_6000_2x
+    - rtx_pro_6000_4x
+    - rtx_pro_6000_8x
     model_traits:
       architecture: moe
     quant:
-    - nvfp4
+    - fp8
     - mxfp4
+    - mxfp8
+    - nvfp4
+    support_evidence:
+    - value: b12x
+      modules:
+      - vllm/model_executor/kernels/linear/mxfp4/b12x.py
+      - vllm/model_executor/kernels/linear/mxfp8/b12x.py
+      - vllm/model_executor/kernels/linear/nvfp4/b12x.py
+      - vllm/model_executor/kernels/linear/scaled_mm/b12x.py
+      evidence:
+      - file: vllm/model_executor/kernels/linear/mxfp4/b12x.py
+        capability: 120
+        why: compute capability 120
+      - file: vllm/model_executor/kernels/linear/mxfp4/b12x.py
+        line: 57
+        why: current_platform.is_cuda()
+      - file: vllm/model_executor/kernels/linear/mxfp8/b12x.py
+        capability: 120
+        why: compute capability 120
+      - file: vllm/model_executor/kernels/linear/mxfp8/b12x.py
+        line: 54
+        why: current_platform.is_cuda()
+      limits:
+      - B12X MXFP4 kernels require a Blackwell 12x device
+      - b12x native MXFP4 GEMM is not supported
+      - B12X MXFP4 GEMM requires dynamic MXFP4 activations
+      - b12x MXFP8 kernels require a Blackwell 12x device
+    - value: b12x
+      modules:
+      - vllm/model_executor/kernels/linear/mxfp4/b12x.py
+      - vllm/model_executor/kernels/linear/mxfp8/b12x.py
+      - vllm/model_executor/kernels/linear/nvfp4/b12x.py
+      - vllm/model_executor/kernels/linear/scaled_mm/b12x.py
+      evidence:
+      - file: vllm/model_executor/kernels/linear/mxfp4/b12x.py
+        capability: 120
+        why: compute capability 120
+      - file: vllm/model_executor/kernels/linear/mxfp4/b12x.py
+        line: 57
+        why: current_platform.is_cuda()
+      - file: vllm/model_executor/kernels/linear/mxfp8/b12x.py
+        capability: 120
+        why: compute capability 120
+      - file: vllm/model_executor/kernels/linear/mxfp8/b12x.py
+        line: 54
+        why: current_platform.is_cuda()
+      limits:
+      - B12X MXFP4 kernels require a Blackwell 12x device
+      - b12x native MXFP4 GEMM is not supported
+      - B12X MXFP4 GEMM requires dynamic MXFP4 activations
+      - b12x MXFP8 kernels require a Blackwell 12x device
   effect: perf
   evidence:
     source: docs-diff

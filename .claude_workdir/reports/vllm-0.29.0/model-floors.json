@@ -1,0 +1,630 @@
+{
+  "architecture_removed_upstream": [],
+  "architecture_unknown": [
+    {
+      "file": "models/Google/gemma-4-E2B-it.yaml",
+      "model_id": "RedHatAI/gemma-4-E2B-it-FP8-dynamic",
+      "scope": "variants.fp8"
+    },
+    {
+      "file": "models/Google/gemma-4-E4B-it.yaml",
+      "model_id": "RedHatAI/gemma-4-E4B-it-FP8-dynamic",
+      "scope": "variants.fp8"
+    },
+    {
+      "file": "models/Google/translategemma-27b-it.yaml",
+      "model_id": "google/translategemma-27b-it",
+      "scope": "model"
+    },
+    {
+      "file": "models/Google/translategemma-27b-it.yaml",
+      "model_id": "google/translategemma-4b-it",
+      "scope": "variants.small_4b"
+    },
+    {
+      "architectures": [
+        "K2HorizonForCausalLM"
+      ],
+      "file": "models/IFM/K2-Horizon-0.9B.yaml",
+      "model_id": "IFM/K2-Horizon-0.9B",
+      "scope": "model"
+    },
+    {
+      "architectures": [
+        "K2HorizonForCausalLM"
+      ],
+      "file": "models/IFM/K2-Horizon-3.7B.yaml",
+      "model_id": "IFM/K2-Horizon-3.7B",
+      "scope": "model"
+    },
+    {
+      "architectures": [
+        "K2HorizonForCausalLM"
+      ],
+      "file": "models/IFM/K2-Horizon-32B.yaml",
+      "model_id": "IFM/K2-Horizon-32B",
+      "scope": "model"
+    },
+    {
+      "architectures": [
+        "K2HorizonForCausalLM"
+      ],
+      "file": "models/IFM/K2-Horizon-375B-A23B.yaml",
+      "model_id": "IFM/K2-Horizon-375B-A23B",
+      "scope": "model"
+    },
+    {
+      "architectures": [
+        "K2HorizonForCausalLM"
+      ],
+      "file": "models/IFM/K2-Horizon-7B.yaml",
+      "model_id": "IFM/K2-Horizon-7B",
+      "scope": "model"
+    },
+    {
+      "architectures": [
+        "K2HorizonForCausalLM"
+      ],
+      "file": "models/IFM/K2-Horizon-MoVA-36B-A4B.yaml",
+      "model_id": "IFM/K2-Horizon-MoVA-36B-A4B",
+      "scope": "model"
+    },
+    {
+      "file": "models/IndexTeam/IndexTTS-2.5.yaml",
+      "model_id": "IndexTeam/IndexTTS-2.5",
+      "scope": "model"
+    },
+    {
+      "file": "models/Lightricks/LTX-2.5-Diffusers.yaml",
+      "model_id": "Lightricks/LTX-2.5-Diffusers",
+      "scope": "model"
+    },
+    {
+      "file": "models/MiniMaxAI/MiniMax-H3.yaml",
+      "model_id": "MiniMaxAI/MiniMax-H3",
+      "scope": "model"
+    },
+    {
+      "file": "models/MiniMaxAI/MiniMax-M2.yaml",
+      "model_id": "RedHatAI/MiniMax-M2-NVFP4",
+      "scope": "variants.nvfp4"
+    },
+    {
+      "file": "models/Qwen/Qwen-Image.yaml",
+      "model_id": "Qwen/Qwen-Image",
+      "scope": "model"
+    },
+    {
+      "architectures": [
+        "Qwen3TTSForConditionalGeneration"
+      ],
+      "file": "models/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice.yaml",
+      "model_id": "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+      "scope": "model"
+    },
+    {
+      "architectures": [
+        "Qwen3TTSForConditionalGeneration"
+      ],
+      "file": "models/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice.yaml",
+      "model_id": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "scope": "variants.voicedesign-1.7b"
+    },
+    {
+      "architectures": [
+        "Qwen3TTSForConditionalGeneration"
+      ],
+      "file": "models/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice.yaml",
+      "model_id": "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+      "scope": "variants.base-1.7b"
+    },
+    {
+      "architectures": [
+        "Qwen3TTSForConditionalGeneration"
+      ],
+      "file": "models/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice.yaml",
+      "model_id": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+      "scope": "variants.customvoice-0.6b"
+    },
+    {
+      "architectures": [
+        "Qwen3TTSForConditionalGeneration"
+      ],
+      "file": "models/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice.yaml",
+      "model_id": "Qwen/Qwen3-TTS-12Hz-0.6B-Base",
+      "scope": "variants.base-0.6b"
+    },
+    {
+      "file": "models/Qwen/Qwen3.5-397B-A17B.yaml",
+      "model_id": "Eco-Tech/Qwen3.5-397B-A17B-w8a8-mtp",
+      "scope": "variants.ascend_w8a8_mtp"
+    },
+    {
+      "file": "models/Qwen/Qwen3.5-397B-A17B.yaml",
+      "model_id": "Eco-Tech/Qwen3.5-397B-A17B-w4a4-mxfp4",
+      "scope": "variants.ascend_w4a4_mxfp4"
+    },
+    {
+      "file": "models/Qwen/Qwen3.6-27B.yaml",
+      "model_id": "Eco-Tech/Qwen3.6-27B-w8a8-mxfp8",
+      "scope": "variants.ascend_w8a8_mxfp8"
+    },
+    {
+      "file": "models/Qwen/Qwen3.6-27B.yaml",
+      "model_id": "Eco-Tech/Qwen3.6-27B-w8a8",
+      "scope": "variants.ascend_w8a8"
+    },
+    {
+      "file": "models/Qwen/Qwen3.8-27B.yaml",
+      "model_id": "Eco-Tech/Qwen3.8-27B-w8a8",
+      "scope": "variants.ascend_w8a8"
+    },
+    {
+      "file": "models/Wan-AI/Wan2.2-T2V-A14B-Diffusers.yaml",
+      "model_id": "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+      "scope": "model"
+    },
+    {
+      "file": "models/deepseek-ai/DeepSeek-V3.yaml",
+      "model_id": "nvidia/DeepSeek-V3-FP4",
+      "scope": "variants.fp4"
+    },
+    {
+      "architectures": [
+        "DeepseekV41ForCausalLM"
+      ],
+      "file": "models/deepseek-ai/DeepSeek-V4.1-Flash.yaml",
+      "model_id": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "scope": "model"
+    },
+    {
+      "file": "models/fishaudio/s2-pro.yaml",
+      "model_id": "fishaudio/s2-pro",
+      "scope": "model"
+    },
+    {
+      "architectures": [
+        "BailingMoeV3VLForConditionalGeneration"
+      ],
+      "file": "models/inclusionAI/Ling-3.0-flash-VL.yaml",
+      "model_id": "inclusionAI/Ling-3.0-flash-VL",
+      "scope": "model"
+    },
+    {
+      "architectures": [
+        "BailingMoeV3VLForConditionalGeneration"
+      ],
+      "file": "models/inclusionAI/Ling-3.0-flash-VL.yaml",
+      "model_id": "inclusionAI/Ling-3.0-flash-VL-fp8",
+      "scope": "variants.fp8"
+    },
+    {
+      "architectures": [
+        "BailingMoeV3VLForConditionalGeneration"
+      ],
+      "file": "models/inclusionAI/Ling-3.0-flash-VL.yaml",
+      "model_id": "inclusionAI/Ling-3.0-flash-VL-fp4",
+      "scope": "variants.fp4"
+    },
+    {
+      "architectures": [
+        "BailingMoeV3VLForConditionalGeneration"
+      ],
+      "file": "models/inclusionAI/Ling-3.0-flash-VL.yaml",
+      "model_id": "inclusionAI/Ling-3.0-flash-VL-int4",
+      "scope": "variants.int4"
+    },
+    {
+      "file": "models/inclusionAI/Ring-1T-FP8.yaml",
+      "model_id": "inclusionAI/Ring-1T-FP8",
+      "scope": "model"
+    },
+    {
+      "architectures": [
+        "Qwen3Model"
+      ],
+      "file": "models/jinaai/jina-embeddings-v5-text-small.yaml",
+      "model_id": "jinaai/jina-embeddings-v5-text-small-retrieval",
+      "scope": "variants.default"
+    },
+    {
+      "architectures": [
+        "Qwen3Model"
+      ],
+      "file": "models/jinaai/jina-embeddings-v5-text-small.yaml",
+      "model_id": "jinaai/jina-embeddings-v5-text-small-text-matching",
+      "scope": "variants.text_matching"
+    },
+    {
+      "architectures": [
+        "Qwen3Model"
+      ],
+      "file": "models/jinaai/jina-embeddings-v5-text-small.yaml",
+      "model_id": "jinaai/jina-embeddings-v5-text-small-classification",
+      "scope": "variants.classification"
+    },
+    {
+      "architectures": [
+        "Qwen3Model"
+      ],
+      "file": "models/jinaai/jina-embeddings-v5-text-small.yaml",
+      "model_id": "jinaai/jina-embeddings-v5-text-small-clustering",
+      "scope": "variants.clustering"
+    },
+    {
+      "file": "models/meituan-longcat/LongCat-Image-Edit.yaml",
+      "model_id": "meituan-longcat/LongCat-Image-Edit",
+      "scope": "model"
+    },
+    {
+      "file": "models/meta-llama/Llama-3.1-8B-Instruct.yaml",
+      "model_id": "meta-llama/Llama-3.1-8B-Instruct",
+      "scope": "model"
+    },
+    {
+      "file": "models/meta-llama/Llama-3.1-8B.yaml",
+      "model_id": "meta-llama/Llama-3.1-8B",
+      "scope": "model"
+    },
+    {
+      "file": "models/meta-llama/Llama-3.2-1B-Instruct.yaml",
+      "model_id": "meta-llama/Llama-3.2-1B-Instruct",
+      "scope": "model"
+    },
+    {
+      "file": "models/meta-llama/Llama-3.2-1B.yaml",
+      "model_id": "meta-llama/Llama-3.2-1B",
+      "scope": "model"
+    },
+    {
+      "file": "models/meta-llama/Llama-3.2-3B-Instruct.yaml",
+      "model_id": "meta-llama/Llama-3.2-3B-Instruct",
+      "scope": "model"
+    },
+    {
+      "file": "models/meta-llama/Llama-3.3-70B-Instruct.yaml",
+      "model_id": "meta-llama/Llama-3.3-70B-Instruct",
+      "scope": "model"
+    },
+    {
+      "file": "models/meta-llama/Llama-4-Scout-17B-16E-Instruct.yaml",
+      "model_id": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+      "scope": "model"
+    },
+    {
+      "file": "models/meta-llama/Llama-4-Scout-17B-16E-Instruct.yaml",
+      "model_id": "nvidia/Llama-4-Scout-17B-16E-Instruct-FP8",
+      "scope": "variants.fp8"
+    },
+    {
+      "file": "models/meta-llama/Llama-4-Scout-17B-16E-Instruct.yaml",
+      "model_id": "nvidia/Llama-4-Scout-17B-16E-Instruct-NVFP4",
+      "scope": "variants.nvfp4"
+    },
+    {
+      "file": "models/mistralai/Mistral-Large-3-675B-Instruct-2512.yaml",
+      "model_id": "mistralai/Mistral-Large-3-675B-Instruct-2512",
+      "scope": "model"
+    },
+    {
+      "file": "models/mistralai/Mistral-Large-3-675B-Instruct-2512.yaml",
+      "model_id": "mistralai/Mistral-Large-3-675B-Instruct-2512-NVFP4",
+      "scope": "variants.nvfp4"
+    },
+    {
+      "file": "models/mistralai/Mistral-Large-3-675B-Instruct-2512.yaml",
+      "model_id": "mistralai/Mistral-Large-3-675B-Instruct-2512-FP8",
+      "scope": "variants.fp8"
+    },
+    {
+      "file": "models/mistralai/Mistral-Small-4-119B-2603.yaml",
+      "model_id": "mistralai/Mistral-Small-4-119B-2603-NVFP4",
+      "scope": "variants.nvfp4"
+    },
+    {
+      "file": "models/mistralai/Voxtral-4B-TTS-2603.yaml",
+      "model_id": "mistralai/Voxtral-4B-TTS-2603",
+      "scope": "model"
+    },
+    {
+      "architectures": [
+        "VoxtralRealtimeForConditionalGeneration"
+      ],
+      "file": "models/mistralai/Voxtral-Mini-4B-Realtime-2602.yaml",
+      "model_id": "mistralai/Voxtral-Mini-4B-Realtime-2602",
+      "scope": "model"
+    },
+    {
+      "file": "models/moonshotai/Kimi-K3.yaml",
+      "model_id": "Eco-Tech/Kimi-K3-w4a8",
+      "scope": "variants.ascend_w4a8"
+    },
+    {
+      "file": "models/openbmb/VoxCPM2.yaml",
+      "model_id": "openbmb/VoxCPM2",
+      "scope": "model"
+    },
+    {
+      "file": "models/pfnet/plamo-3-nict-31b-base.yaml",
+      "model_id": "pfnet/plamo-3-nict-31b-base",
+      "scope": "model"
+    },
+    {
+      "file": "models/stabilityai/stable-audio-open-1.0.yaml",
+      "model_id": "stabilityai/stable-audio-open-1.0",
+      "scope": "model"
+    },
+    {
+      "file": "models/stabilityai/stable-diffusion-3.5-medium.yaml",
+      "model_id": "stabilityai/stable-diffusion-3.5-medium",
+      "scope": "model"
+    },
+    {
+      "file": "models/stabilityai/stable-diffusion-3.5-medium.yaml",
+      "model_id": "stabilityai/stable-diffusion-3.5-large",
+      "scope": "variants.large"
+    },
+    {
+      "file": "models/stabilityai/stable-diffusion-3.5-medium.yaml",
+      "model_id": "stabilityai/stable-diffusion-3.5-large-turbo",
+      "scope": "variants.large_turbo"
+    },
+    {
+      "file": "models/stepfun-ai/Step-3.5-Flash.yaml",
+      "model_id": "stepfun-ai/Step-3.5-Flash-INT8",
+      "scope": "variants.int8"
+    },
+    {
+      "architectures": [
+        "Glm5NextForConditionalGeneration"
+      ],
+      "file": "models/zai-org/GLM-5.3-Flash.yaml",
+      "model_id": "zai-org/GLM-5.3-Flash",
+      "scope": "model"
+    },
+    {
+      "architectures": [
+        "Glm5NextForConditionalGeneration"
+      ],
+      "file": "models/zai-org/GLM-5.3-Flash.yaml",
+      "model_id": "RedHatAI/GLM-5.3-Flash-NVFP4",
+      "scope": "variants.nvfp4"
+    },
+    {
+      "architectures": [
+        "Glm5NextForConditionalGeneration"
+      ],
+      "file": "models/zai-org/GLM-5.3-Flash.yaml",
+      "model_id": "zai-org/GLM-5.3-Flash-BF16",
+      "scope": "variants.bf16"
+    },
+    {
+      "file": "models/zai-org/GLM-GA.yaml",
+      "model_id": "zai-org/GLM-GA",
+      "scope": "model"
+    },
+    {
+      "file": "models/zai-org/GLM-Image.yaml",
+      "model_id": "zai-org/GLM-Image",
+      "scope": "model"
+    },
+    {
+      "file": "models/zai-org/GLM-TTS.yaml",
+      "model_id": "zai-org/GLM-TTS",
+      "scope": "model"
+    }
+  ],
+  "checked": 410,
+  "floor_below_model_support": [
+    {
+      "architecture": "MiniMaxM2ForCausalLM",
+      "file": "models/MiniMaxAI/MiniMax-M2.1.yaml",
+      "floor": "0.11.0",
+      "introduced": "v0.11.1",
+      "model_id": "MiniMaxAI/MiniMax-M2.1",
+      "scope": "model"
+    },
+    {
+      "architecture": "MiniMaxM2ForCausalLM",
+      "file": "models/MiniMaxAI/MiniMax-M2.yaml",
+      "floor": "0.11.0",
+      "introduced": "v0.11.1",
+      "model_id": "MiniMaxAI/MiniMax-M2",
+      "scope": "model"
+    },
+    {
+      "architecture": "Qwen2_5_VLForConditionalGeneration",
+      "file": "models/Qwen/Qwen2.5-VL-72B-Instruct.yaml",
+      "floor": "0.7.0",
+      "introduced": "v0.7.2",
+      "model_id": "Qwen/Qwen2.5-VL-72B-Instruct",
+      "scope": "model"
+    },
+    {
+      "architecture": "Qwen2_5_VLForConditionalGeneration",
+      "file": "models/Qwen/Qwen2.5-VL-72B-Instruct.yaml",
+      "floor": "0.7.0",
+      "introduced": "v0.7.2",
+      "model_id": "Qwen/Qwen2.5-VL-72B-Instruct-AWQ",
+      "scope": "variants.awq"
+    },
+    {
+      "architecture": "Qwen2_5_VLForConditionalGeneration",
+      "file": "models/Qwen/Qwen2.5-VL-7B-Instruct.yaml",
+      "floor": "0.7.0",
+      "introduced": "v0.7.2",
+      "model_id": "Qwen/Qwen2.5-VL-7B-Instruct",
+      "scope": "model"
+    },
+    {
+      "architecture": "Qwen2_5_VLForConditionalGeneration",
+      "file": "models/Qwen/Qwen2.5-VL-7B-Instruct.yaml",
+      "floor": "0.7.0",
+      "introduced": "v0.7.2",
+      "model_id": "Qwen/Qwen2.5-VL-7B-Instruct-AWQ",
+      "scope": "variants.awq"
+    },
+    {
+      "architecture": "Qwen3ASRForConditionalGeneration",
+      "file": "models/Qwen/Qwen3-ASR-1.7B.yaml",
+      "floor": "0.12.0",
+      "introduced": "v0.16.0",
+      "model_id": "Qwen/Qwen3-ASR-1.7B",
+      "scope": "model"
+    },
+    {
+      "architecture": "MiMoV2FlashForCausalLM",
+      "file": "models/XiaomiMiMo/MiMo-V2-Flash.yaml",
+      "floor": "0.11.0",
+      "introduced": "v0.14.0",
+      "model_id": "XiaomiMiMo/MiMo-V2-Flash",
+      "scope": "model"
+    },
+    {
+      "architecture": "DeepseekOCR2ForCausalLM",
+      "file": "models/deepseek-ai/DeepSeek-OCR-2.yaml",
+      "floor": "0.12.0",
+      "introduced": "v0.16.0",
+      "model_id": "deepseek-ai/DeepSeek-OCR-2",
+      "scope": "model"
+    },
+    {
+      "architecture": "InternS1ForConditionalGeneration",
+      "file": "models/internlm/Intern-S1.yaml",
+      "floor": "0.10.0",
+      "introduced": "v0.10.1",
+      "model_id": "internlm/Intern-S1",
+      "scope": "model"
+    },
+    {
+      "architecture": "InternS1ForConditionalGeneration",
+      "file": "models/internlm/Intern-S1.yaml",
+      "floor": "0.10.0",
+      "introduced": "v0.10.1",
+      "model_id": "internlm/Intern-S1-FP8",
+      "scope": "variants.fp8"
+    },
+    {
+      "architecture": "JinaVLForRanking",
+      "file": "models/jinaai/jina-reranker-m0.yaml",
+      "floor": "0.8.0",
+      "introduced": "v0.10.0",
+      "model_id": "jinaai/jina-reranker-m0",
+      "scope": "model"
+    },
+    {
+      "architecture": "Phi4MMForCausalLM",
+      "file": "models/microsoft/Phi-4-mini-instruct.yaml",
+      "floor": "0.7.0",
+      "introduced": "v0.8.0",
+      "model_id": "microsoft/Phi-4-multimodal-instruct",
+      "scope": "variants.multimodal"
+    },
+    {
+      "architecture": "Cosmos3ForConditionalGeneration",
+      "file": "models/nvidia/Cosmos3-Nano.yaml",
+      "floor": "0.21.0",
+      "introduced": "v0.23.0",
+      "model_id": "nvidia/Cosmos3-Nano",
+      "scope": "model"
+    },
+    {
+      "architecture": "Cosmos3ForConditionalGeneration",
+      "file": "models/nvidia/Cosmos3-Super-Image2Video.yaml",
+      "floor": "0.21.0",
+      "introduced": "v0.23.0",
+      "model_id": "nvidia/Cosmos3-Super-Image2Video",
+      "scope": "model"
+    },
+    {
+      "architecture": "Cosmos3ForConditionalGeneration",
+      "file": "models/nvidia/Cosmos3-Super-Text2Image.yaml",
+      "floor": "0.21.0",
+      "introduced": "v0.23.0",
+      "model_id": "nvidia/Cosmos3-Super-Text2Image",
+      "scope": "model"
+    },
+    {
+      "architecture": "Cosmos3ForConditionalGeneration",
+      "file": "models/nvidia/Cosmos3-Super.yaml",
+      "floor": "0.21.0",
+      "introduced": "v0.23.0",
+      "model_id": "nvidia/Cosmos3-Super",
+      "scope": "model"
+    },
+    {
+      "architecture": "GptOssForCausalLM",
+      "file": "models/openai/gpt-oss-120b.yaml",
+      "floor": "0.10.0",
+      "introduced": "v0.10.1",
+      "model_id": "openai/gpt-oss-120b",
+      "scope": "model"
+    },
+    {
+      "architecture": "GptOssForCausalLM",
+      "file": "models/openai/gpt-oss-120b.yaml",
+      "floor": "0.10.0",
+      "introduced": "v0.10.1",
+      "model_id": "amd/gpt-oss-120b-w-mxfp4-a-fp8",
+      "scope": "variants.amd_fp8"
+    },
+    {
+      "architecture": "GptOssForCausalLM",
+      "file": "models/openai/gpt-oss-20b.yaml",
+      "floor": "0.10.0",
+      "introduced": "v0.10.1",
+      "model_id": "openai/gpt-oss-20b",
+      "scope": "model"
+    },
+    {
+      "architecture": "Step3p5ForCausalLM",
+      "file": "models/stepfun-ai/Step-3.5-Flash.yaml",
+      "floor": "0.11.0",
+      "introduced": "v0.15.1",
+      "model_id": "stepfun-ai/Step-3.5-Flash",
+      "scope": "model"
+    },
+    {
+      "architecture": "Step3p5ForCausalLM",
+      "file": "models/stepfun-ai/Step-3.5-Flash.yaml",
+      "floor": "0.11.0",
+      "introduced": "v0.15.1",
+      "model_id": "stepfun-ai/Step-3.5-Flash-FP8",
+      "scope": "variants.fp8"
+    },
+    {
+      "architecture": "Step3p5ForCausalLM",
+      "file": "models/stepfun-ai/Step-3.5-Flash.yaml",
+      "floor": "0.11.0",
+      "introduced": "v0.15.1",
+      "model_id": "stepfun-ai/Step-3.5-Flash-INT4",
+      "scope": "variants.int4"
+    },
+    {
+      "architecture": "HunYuanVLForConditionalGeneration",
+      "file": "models/tencent/HunyuanOCR.yaml",
+      "floor": "0.11.0",
+      "introduced": "v0.12.0",
+      "model_id": "tencent/HunyuanOCR",
+      "scope": "model"
+    },
+    {
+      "architecture": "GlmOcrForConditionalGeneration",
+      "file": "models/zai-org/GLM-OCR.yaml",
+      "floor": "0.12.0",
+      "introduced": "v0.16.0",
+      "model_id": "zai-org/GLM-OCR",
+      "scope": "model"
+    },
+    {
+      "architecture": "GlmForCausalLM",
+      "file": "models/zai-org/glm-4-9b-hf.yaml",
+      "floor": "0.6.4",
+      "introduced": "v0.6.5",
+      "model_id": "zai-org/glm-4-9b-hf",
+      "scope": "model"
+    }
+  ],
+  "no_floor_declared": [],
+  "target": "v0.29.0"
+}

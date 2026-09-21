@@ -4,7 +4,8 @@ capabilities:
 - id: flash-attn-mla-sparse-hopper-sparse-mla-backend-
   kind: capability
   concept: attention_backend
-  title: 'FLASH_ATTN_MLA_SPARSE: Hopper sparse-MLA attention backend'
+  title: FLASH_ATTN_MLA_SPARSE Hopper sparse-MLA backend, DCP + FP8 KV cache in MLA decode, XQA decode
+    kernels
   since: v0.25.0
   how_enabled:
     mode: explicit
@@ -23,10 +24,23 @@ capabilities:
     hardware:
     - h100
     - h200
-    - hopper
     model_traits:
       attention: mla
-    quant: []
+    quant:
+    - fp8
+    support_evidence:
+    - value: FLASH_ATTN_MLA_SPARSE
+      modules:
+      - vllm/v1/attention/backends/mla/flashattn_mla_sparse.py
+      evidence:
+      - file: vllm/v1/attention/backends/mla/flashattn_mla_sparse.py
+        capability: 90
+        why: compute capability 90
+      limits:
+      - FlashAttention MLA not supported on this device
+      - FlashAttention MLA Sparse does not support DCP for now
+      - FlashAttention MLA Sparse requires model with index_topk
+      - 'FlashAttnMLASparseImpl does not support alibi, sliding window, '
   effect: usability
   evidence:
     source: release-notes-area
@@ -76,7 +90,7 @@ capabilities:
 - id: aiter-flashattention-mla-prefill-backend-rocm-ai
   kind: capability
   concept: attention_backend
-  title: 'ROCM_AITER_FA: AITER FlashAttention MLA prefill backend on ROCm'
+  title: AITER FlashAttention MLA prefill backend ROCM_AITER_FA
   since: v0.25.0
   how_enabled:
     mode: explicit
@@ -93,13 +107,25 @@ capabilities:
     - ROCM_AITER_FA
   applies_to:
     hardware:
-    - amd
     - mi300x
     - mi325x
+    - mi350x
     - mi355x
-    model_traits:
-      attention: mla
+    model_traits: {}
     quant: []
+    support_evidence:
+    - value: ROCM_AITER_FA
+      modules:
+      - vllm/v1/attention/backends/rocm_aiter_fa.py
+      evidence:
+      - file: vllm/v1/attention/backends/rocm_aiter_fa.py
+        line: 70
+        why: current_platform.is_rocm()
+      limits:
+      - kv_cache_layout only supports NHD, SHUFFLE
+      - 'Currently, we only support '
+      - Aiter Flash ATTENTION can only support one valid sliding window!
+      - Separate K/V head slots require symmetric K/V head sizes.
   effect: usability
   evidence:
     source: release-notes-area
@@ -2061,10 +2087,8 @@ capabilities:
   default_on: true
   drop_reason: null
   reverse_markers:
-    now_default:
-    - VLLM_USE_V2_MODEL_RUNNER
-    obsolete:
-    - VLLM_USE_V1
+    now_default: []
+    obsolete: []
   applies_to:
     hardware:
     - amd
@@ -2091,8 +2115,6 @@ capabilities:
       decode under spec decode (#53407), and DP-sync skipping before EAGLE/MTP draft prefill (#53694).
       MRV1 remains in use for a few ROCm models and features MRV2 does not yet support.'
     also: []
-  caveat: MRV1 remains in use for a few ROCm models and for features MRV2 does not yet support — confirm
-    the model class is on MRV2 before removing an explicit enable.
   verified: []
   confidence: medium
 - id: hy4-preview-tencent-s-770b-49b-active-moe-with-g
@@ -2585,7 +2607,7 @@ capabilities:
 - id: b12x-linear-and-moe-backends
   kind: capability
   concept: kernel
-  title: b12x linear and MoE backends for SM120/SM121
+  title: b12x Linear and MoE Backends
   since: v0.29.0
   how_enabled:
     mode: explicit
@@ -2603,93 +2625,88 @@ capabilities:
   drop_reason: null
   reverse_markers:
     now_default: []
-    obsolete: []
+    obsolete:
+    - NVIDIA
   applies_to:
     hardware:
+    - dgx_spark_gb10
+    - rtx_5090
+    - rtx_5090_2x
+    - rtx_pro_5000
+    - rtx_pro_5000_4x
     - rtx_pro_6000
     - rtx_pro_6000_2x
     - rtx_pro_6000_4x
     - rtx_pro_6000_8x
-    - rtx_pro_5000
-    - rtx_pro_5000_4x
-    - rtx_5090
-    - rtx_5090_2x
-    - dgx_spark_gb10
-    model_traits: {}
+    model_traits:
+      architecture: moe
     quant:
-    - nvfp4
+    - fp8
     - mxfp4
     - mxfp8
-    - fp8
+    - nvfp4
+    support_evidence:
+    - value: b12x
+      modules:
+      - vllm/model_executor/kernels/linear/mxfp4/b12x.py
+      - vllm/model_executor/kernels/linear/mxfp8/b12x.py
+      - vllm/model_executor/kernels/linear/nvfp4/b12x.py
+      - vllm/model_executor/kernels/linear/scaled_mm/b12x.py
+      evidence:
+      - file: vllm/model_executor/kernels/linear/mxfp4/b12x.py
+        capability: 120
+        why: compute capability 120
+      - file: vllm/model_executor/kernels/linear/mxfp4/b12x.py
+        line: 57
+        why: current_platform.is_cuda()
+      - file: vllm/model_executor/kernels/linear/mxfp8/b12x.py
+        capability: 120
+        why: compute capability 120
+      - file: vllm/model_executor/kernels/linear/mxfp8/b12x.py
+        line: 54
+        why: current_platform.is_cuda()
+      limits:
+      - B12X MXFP4 kernels require a Blackwell 12x device
+      - b12x native MXFP4 GEMM is not supported
+      - B12X MXFP4 GEMM requires dynamic MXFP4 activations
+      - b12x MXFP8 kernels require a Blackwell 12x device
+    - value: b12x
+      modules:
+      - vllm/model_executor/kernels/linear/mxfp4/b12x.py
+      - vllm/model_executor/kernels/linear/mxfp8/b12x.py
+      - vllm/model_executor/kernels/linear/nvfp4/b12x.py
+      - vllm/model_executor/kernels/linear/scaled_mm/b12x.py
+      evidence:
+      - file: vllm/model_executor/kernels/linear/mxfp4/b12x.py
+        capability: 120
+        why: compute capability 120
+      - file: vllm/model_executor/kernels/linear/mxfp4/b12x.py
+        line: 57
+        why: current_platform.is_cuda()
+      - file: vllm/model_executor/kernels/linear/mxfp8/b12x.py
+        capability: 120
+        why: compute capability 120
+      - file: vllm/model_executor/kernels/linear/mxfp8/b12x.py
+        line: 54
+        why: current_platform.is_cuda()
+      limits:
+      - B12X MXFP4 kernels require a Blackwell 12x device
+      - b12x native MXFP4 GEMM is not supported
+      - B12X MXFP4 GEMM requires dynamic MXFP4 activations
+      - b12x MXFP8 kernels require a Blackwell 12x device
   effect: perf
   evidence:
     source: docs-diff
     section: docs/features/quantization/b12x.md
     prs: []
-    text: b12x provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs (RTX Pro 6000/5000, RTX
-      5090, DGX Spark GB10), installed with pip install vllm[b12x]. Select them with --linear-backend
-      b12x and --moe-backend b12x. Only pass --moe-backend b12x for a compatible NVFP4 or MXFP4 MoE model.
-      Linear supports per-tensor FP8, 128x128 block FP8, MXFP8, NVFP4 and MXFP4. The b12x MoE backend
-      does not support expert parallelism, expert maps, EXL3, or NF3.
+    text: "# b12x Linear and MoE Backends\n\n[b12x](https://pypi.org/project/b12x/) provides optional\
+      \ CUDA kernels for\nNVIDIA SM120 and SM121 GPUs. Install the dependency with:\n\n```bash\nuv pip\
+      \ install \"vllm[b12x]\"\n```\n\nb12x linear kernels participate in automatic selection after established\n\
+      optimized backends and before emulation. Select the linear and MoE backends\nexplicitly with:\n\n\
+      ```bash\nvllm serve <model> \\\n    --linear-backend b12x \\\n    --moe-backend b12x\n```\n\nOnly\
+      \ pass `--moe-backend b12x` for a compatible NVFP4 or MXFP4 MoE model. The\nlinear and MoE backends\
+      \ can be selected independently.\n\nb12x use"
     also: []
-  install:
-    command: uv pip install "vllm[b12x]"
-    note: b12x kernels ship as a wheel extra, not in the base wheel
-  note: VLLM_B12X_MOE_FP4_FORCE_A16=1 forces BF16 activations for FP4 MoE — an opt-in numerics knob, deliberately
-    excluded from adoption.
-  supersedes:
-    VLLM_USE_B12X_MOE: --moe-backend b12x
-    VLLM_USE_B12X_FP8_GEMM: --linear-backend b12x
-    VLLM_USE_B12X_WO_PROJECTION: null
-    VLLM_USE_B12X_MHC: null
-    VLLM_USE_B12X_SPARSE_INDEXER: null
-    _image: eugr/spark-vllm-b12x:latest
-    _note: upstream ships b12x linear/MoE kernels in-tree since v0.29.0 behind --linear-backend/--moe-backend;
-      the VLLM_USE_B12X_* switches exist at no upstream tag, the newest rc or main
-  parts:
-  - id: linear
-    kind: primary
-    title: linear backend
-    required_floor: 0.29.0
-    floor_note: --linear-backend exists since 0.22.0; the b12x value is new in 0.29.0
-    how_enabled:
-      mode: explicit
-      flags:
-      - --linear-backend
-      envs: []
-      enum_values:
-      - flag: --linear-backend
-        value: b12x
-    applies_to:
-      quant:
-      - nvfp4
-      - mxfp4
-      - mxfp8
-      - fp8
-      model_traits: {}
-    evidence_sentence: b12x linear kernels participate in automatic selection after established optimized
-      backends and before emulation; select them explicitly with --linear-backend b12x.
-  - id: moe
-    kind: primary
-    title: MoE backend (MoE models only)
-    required_floor: 0.29.0
-    floor_note: --moe-backend exists since 0.17.0; the b12x value is new in 0.29.0
-    how_enabled:
-      mode: explicit
-      flags:
-      - --moe-backend
-      envs: []
-      enum_values:
-      - flag: --moe-backend
-        value: b12x
-    applies_to:
-      quant:
-      - nvfp4
-      - mxfp4
-      model_traits:
-        architecture: moe
-    evidence_sentence: Only pass --moe-backend b12x for a compatible NVFP4 or MXFP4 MoE model. The b12x
-      MoE backend does not support expert parallelism, expert maps, EXL3, or NF3.
   verified:
   - --linear-backend exists at v0.29.0
   - --moe-backend exists at v0.29.0
@@ -2898,7 +2915,6 @@ capabilities:
   - --mm-hasher-algorithm exists at v0.29.0
   - VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB exists at v0.29.0
   confidence: high
-curated_from: capabilities.draft.yaml
 dropped:
 - id: ten-deprecated-model-architectures-removed
   kind: breaking
