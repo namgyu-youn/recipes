@@ -353,7 +353,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-02",
@@ -457,7 +459,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "low",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-03",
@@ -579,7 +583,9 @@
       ],
       "auto_apply_candidates": 3,
       "confidence": "high",
-      "status": "auto-apply-eligible"
+      "status": "auto-apply-eligible",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-04",
@@ -668,7 +674,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-05",
@@ -742,7 +750,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-06",
@@ -810,7 +820,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-07",
@@ -875,7 +887,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-08",
@@ -928,7 +942,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-09",
@@ -990,7 +1006,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-10",
@@ -1028,7 +1046,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-11",
@@ -1066,7 +1086,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-12",
@@ -1141,7 +1163,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "low",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-13",
@@ -1197,7 +1221,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-14",
@@ -1241,7 +1267,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-15",
@@ -1279,7 +1307,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-16",
@@ -1329,7 +1359,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "medium",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": false,
+      "first_seen": "0.29.0"
     },
     {
       "id": "R-17",
@@ -1373,7 +1405,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-18",
@@ -1411,7 +1445,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-19",
@@ -1461,7 +1497,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "medium",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": false,
+      "first_seen": "0.29.0"
     },
     {
       "id": "R-20",
@@ -1499,7 +1537,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     },
     {
       "id": "R-21",
@@ -1537,7 +1577,9 @@
       ],
       "auto_apply_candidates": 0,
       "confidence": "high",
-      "status": "needs decision"
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
     }
   ],
   "plugin_flags": [
@@ -1925,5 +1967,14 @@
       "why": "read the argparse help, the config field docstring and every deprecation line mentioning it at v0.12.0; none names a replacement"
     }
   },
-  "dropped": []
+  "dropped": [],
+  "compared_against": "vllm-0.28.0",
+  "resolved_since_previous": [
+    {
+      "id": "R-12",
+      "category": "invalid-value",
+      "token": "--moe-backend",
+      "recipe_count": 1
+    }
+  ]
 }

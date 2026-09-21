@@ -1,7 +1,7 @@
 # vLLM sync summary — v0.24.0 → v0.29.0
 
 Report-only run — no branch, no commits.
-No earlier run to compare against.
+Compared against `vllm-0.28.0`: 19 root causes carried over.
 
 - capabilities shipped: 41 — 4 actionable, 3 need a narrower `applies_to`, 34 need no recipe edit
 - breaking changes announced: 14
