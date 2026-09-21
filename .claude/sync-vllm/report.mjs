@@ -2,9 +2,9 @@
 /**
  * capabilities + cohorts + findings -> report.md (about two screens).
  *
- * Four sections, in the order a reader needs them: what shipped, what we could
- * adopt, what is broken or stale by root cause, and the flags this tool cannot
- * speak to. Per-recipe detail lives in findings.json and cohorts.json — the
+ * Five sections, in the order a reader needs them: what shipped, what we could
+ * adopt, what is broken or stale by root cause, which floors predate model support,
+ * and the flags this tool cannot speak to. Per-recipe detail lives in the JSON — the
  * report names counts and files, never 122 individual entries.
  */
 
@@ -93,6 +93,9 @@ function main() {
     yaml.load(readFileSync(join(reportDir, "capabilities.verified.yaml"), "utf8")).capabilities || [];
   const cohorts = JSON.parse(readFileSync(join(reportDir, "cohorts.json"), "utf8")).cohorts || [];
   const inventory = JSON.parse(readFileSync(join(reportDir, "inventory.json"), "utf8"));
+  // Optional: only present once model_floors.py has run for this target.
+  const floorsPath = join(reportDir, "model-floors.json");
+  const modelFloors = existsSync(floorsPath) ? JSON.parse(readFileSync(floorsPath, "utf8")) : null;
   const { target, findings, plugin_flags: pluginFlags } = findingsDoc;
 
   const prev = previousRun(target);
@@ -286,6 +289,51 @@ function main() {
   const autoEligible = findings.filter((f) => f.status === "auto-apply-eligible");
   const perBlock = findings.filter((f) => f.recipes.some((r) => r.action === "per-block-floor-question"));
 
+  // Floors below the release that first registered the architecture. Recipes
+  // whose serving path is a plugin or a pinned image are skipped upstream of
+  // here by model_floors.py; the count is surfaced so the skip stays visible
+  // rather than looking like clean coverage.
+  const below = modelFloors?.floor_below_model_support || [];
+  const pluginServed = modelFloors?.plugin_served_skipped || [];
+  const modelFloorSection = !modelFloors
+    ? ""
+    : `## Model-support floors
+
+${modelFloors.checked} checkpoints checked across the recipes that the in-tree wheel serves. ${below.length} pin a vLLM release older than the one that first registered their architecture, so the version the recipe claims to support cannot serve the model at all.
+
+${
+  below.length
+    ? `| Recipe | Scope | Architecture | Pins | Needs | Guide line |\n|---|---|---|---|---|---|\n` +
+      below
+        .slice()
+        .sort((a, b) => a.file.localeCompare(b.file))
+        .map(
+          (e) =>
+            `| \`${short(e.file)}\` | ${e.scope} | ${e.architecture} | ${e.floor} | ${e.introduced} | ${
+              e.guide_prerequisite ? `\`${e.guide_prerequisite}\` — update too` : "—"
+            } |`
+        )
+        .join("\n")
+    : "Nothing below its introducing release."
+}
+
+**${pluginServed.length} recipes were skipped, not cleared.** Their documented serving path is not the in-tree wheel — an omni recipe, a non-first-party image, a \`vllm==\` pin in the guide, or an architecture selected via \`--hf-overrides\` — so the plugin or image registers the architecture itself and \`registry.py\` says nothing about their floor. Raising one from the registry would contradict the recipe's own release-tested pin. Never auto-apply to these.${
+  pluginServed.length
+    ? `\n\n` +
+      pluginServed
+        .slice(0, 8)
+        .map((e) => `- \`${short(e.file)}\` — ${e.why}`)
+        .join("\n") +
+      (pluginServed.length > 8 ? `\n- …${pluginServed.length - 8} more in \`model-floors.json\`.` : "")
+    : ""
+}
+
+${modelFloors.no_floor_declared?.length || 0} recipes declare no floor at all and ${
+        modelFloors.architecture_removed_upstream?.length || 0
+      } use an architecture upstream has dropped. Per-recipe detail: \`model-floors.json\`.
+
+`;
+
   const md = `# vLLM sync — ${inventory.prev} → ${target}
 
 ${args.branch ? `Branch \`${args.branch}\`. ` : ""}${
@@ -359,7 +407,7 @@ ${
         )
         .join("\n\n")}\n\n`
     : ""
-}## Unverifiable flags
+}${modelFloorSection}## Unverifiable flags
 
 Not stale usage — vLLM never shipped these, so this tool has nothing to check them against.
 
