@@ -318,6 +318,9 @@ function main() {
   // rather than looking like clean coverage.
   const below = modelFloors?.floor_below_model_support || [];
   const pluginServed = modelFloors?.plugin_served_skipped || [];
+  const unreadable = modelFloors?.config_unreadable || [];
+  const unregistered = modelFloors?.architecture_unregistered || [];
+  const predates = unregistered.filter((e) => e.floor_predates_support);
   const modelFloorSection = !modelFloors
     ? ""
     : `## Model-support floors
@@ -353,7 +356,17 @@ ${
 
 ${modelFloors.no_floor_declared?.length || 0} recipes declare no floor at all and ${
         modelFloors.architecture_removed_upstream?.length || 0
-      } use an architecture upstream has dropped. Per-recipe detail: \`model-floors.json\`.
+      } use an architecture upstream has dropped. ${unreadable.length} checkpoints could not be checked because their \`config.json\` is unreadable (${
+        unreadable.filter((e) => [401, 403].includes(e.http_status)).length
+      } gated, ${unreadable.filter((e) => e.http_status === 404).length} with no \`config.json\`). ${
+        unregistered.length
+      } name an architecture the ${modelFloors.target} registry lacks: ${
+        unregistered.filter((e) => e.on_main).length
+      } registered on main since, of which ${predates.length} ${
+        predates.length === 1 ? "declares" : "declare"
+      } a floor at or below ${modelFloors.target} or none at all${
+        predates.length ? ` (${[...new Set(predates.map((e) => `\`${short(e.file)}\``))].join(", ")})` : ""
+      }, and ${unregistered.filter((e) => !e.on_main).length} unregistered on main too (plugin, out-of-tree, or a \`params.json\` architecture). Per-recipe detail: \`model-floors.json\`.
 
 `;
 

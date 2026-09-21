@@ -1,32 +1,15 @@
 {
   "architecture_removed_upstream": [],
-  "architecture_unknown": [
-    {
-      "file": "models/Google/gemma-4-E2B-it.yaml",
-      "model_id": "RedHatAI/gemma-4-E2B-it-FP8-dynamic",
-      "scope": "variants.fp8"
-    },
-    {
-      "file": "models/Google/gemma-4-E4B-it.yaml",
-      "model_id": "RedHatAI/gemma-4-E4B-it-FP8-dynamic",
-      "scope": "variants.fp8"
-    },
-    {
-      "file": "models/Google/translategemma-27b-it.yaml",
-      "model_id": "google/translategemma-27b-it",
-      "scope": "model"
-    },
-    {
-      "file": "models/Google/translategemma-27b-it.yaml",
-      "model_id": "google/translategemma-4b-it",
-      "scope": "variants.small_4b"
-    },
+  "architecture_unregistered": [
     {
       "architectures": [
         "K2HorizonForCausalLM"
       ],
       "file": "models/IFM/K2-Horizon-0.9B.yaml",
+      "floor": null,
+      "floor_predates_support": true,
       "model_id": "IFM/K2-Horizon-0.9B",
+      "on_main": true,
       "scope": "model"
     },
     {
@@ -34,7 +17,10 @@
         "K2HorizonForCausalLM"
       ],
       "file": "models/IFM/K2-Horizon-3.7B.yaml",
+      "floor": null,
+      "floor_predates_support": true,
       "model_id": "IFM/K2-Horizon-3.7B",
+      "on_main": true,
       "scope": "model"
     },
     {
@@ -42,7 +28,10 @@
         "K2HorizonForCausalLM"
       ],
       "file": "models/IFM/K2-Horizon-32B.yaml",
+      "floor": null,
+      "floor_predates_support": true,
       "model_id": "IFM/K2-Horizon-32B",
+      "on_main": true,
       "scope": "model"
     },
     {
@@ -50,7 +39,10 @@
         "K2HorizonForCausalLM"
       ],
       "file": "models/IFM/K2-Horizon-375B-A23B.yaml",
+      "floor": null,
+      "floor_predates_support": true,
       "model_id": "IFM/K2-Horizon-375B-A23B",
+      "on_main": true,
       "scope": "model"
     },
     {
@@ -58,7 +50,10 @@
         "K2HorizonForCausalLM"
       ],
       "file": "models/IFM/K2-Horizon-7B.yaml",
+      "floor": null,
+      "floor_predates_support": true,
       "model_id": "IFM/K2-Horizon-7B",
+      "on_main": true,
       "scope": "model"
     },
     {
@@ -66,25 +61,21 @@
         "K2HorizonForCausalLM"
       ],
       "file": "models/IFM/K2-Horizon-MoVA-36B-A4B.yaml",
+      "floor": null,
+      "floor_predates_support": true,
       "model_id": "IFM/K2-Horizon-MoVA-36B-A4B",
+      "on_main": true,
       "scope": "model"
-    },
-    {
-      "file": "models/MiniMaxAI/MiniMax-M2.yaml",
-      "model_id": "RedHatAI/MiniMax-M2-NVFP4",
-      "scope": "variants.nvfp4"
-    },
-    {
-      "file": "models/deepseek-ai/DeepSeek-V3.yaml",
-      "model_id": "nvidia/DeepSeek-V3-FP4",
-      "scope": "variants.fp4"
     },
     {
       "architectures": [
         "DeepseekV41ForCausalLM"
       ],
       "file": "models/deepseek-ai/DeepSeek-V4.1-Flash.yaml",
+      "floor": "0.30.0",
+      "floor_predates_support": false,
       "model_id": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "on_main": true,
       "scope": "model"
     },
     {
@@ -92,7 +83,10 @@
         "BailingMoeV3VLForConditionalGeneration"
       ],
       "file": "models/inclusionAI/Ling-3.0-flash-VL.yaml",
+      "floor": "nightly",
+      "floor_predates_support": false,
       "model_id": "inclusionAI/Ling-3.0-flash-VL",
+      "on_main": true,
       "scope": "model"
     },
     {
@@ -100,7 +94,10 @@
         "BailingMoeV3VLForConditionalGeneration"
       ],
       "file": "models/inclusionAI/Ling-3.0-flash-VL.yaml",
+      "floor": "nightly",
+      "floor_predates_support": false,
       "model_id": "inclusionAI/Ling-3.0-flash-VL-fp8",
+      "on_main": true,
       "scope": "variants.fp8"
     },
     {
@@ -108,7 +105,10 @@
         "BailingMoeV3VLForConditionalGeneration"
       ],
       "file": "models/inclusionAI/Ling-3.0-flash-VL.yaml",
+      "floor": "nightly",
+      "floor_predates_support": false,
       "model_id": "inclusionAI/Ling-3.0-flash-VL-fp4",
+      "on_main": true,
       "scope": "variants.fp4"
     },
     {
@@ -116,136 +116,188 @@
         "BailingMoeV3VLForConditionalGeneration"
       ],
       "file": "models/inclusionAI/Ling-3.0-flash-VL.yaml",
+      "floor": "nightly",
+      "floor_predates_support": false,
       "model_id": "inclusionAI/Ling-3.0-flash-VL-int4",
+      "on_main": true,
       "scope": "variants.int4"
-    },
-    {
-      "file": "models/inclusionAI/Ring-1T-FP8.yaml",
-      "model_id": "inclusionAI/Ring-1T-FP8",
-      "scope": "model"
-    },
-    {
-      "architectures": [
-        "Qwen3Model"
-      ],
-      "file": "models/jinaai/jina-embeddings-v5-text-small.yaml",
-      "model_id": "jinaai/jina-embeddings-v5-text-small-retrieval",
-      "scope": "variants.default"
-    },
-    {
-      "architectures": [
-        "Qwen3Model"
-      ],
-      "file": "models/jinaai/jina-embeddings-v5-text-small.yaml",
-      "model_id": "jinaai/jina-embeddings-v5-text-small-text-matching",
-      "scope": "variants.text_matching"
-    },
-    {
-      "architectures": [
-        "Qwen3Model"
-      ],
-      "file": "models/jinaai/jina-embeddings-v5-text-small.yaml",
-      "model_id": "jinaai/jina-embeddings-v5-text-small-classification",
-      "scope": "variants.classification"
-    },
-    {
-      "architectures": [
-        "Qwen3Model"
-      ],
-      "file": "models/jinaai/jina-embeddings-v5-text-small.yaml",
-      "model_id": "jinaai/jina-embeddings-v5-text-small-clustering",
-      "scope": "variants.clustering"
-    },
-    {
-      "file": "models/meta-llama/Llama-3.1-8B-Instruct.yaml",
-      "model_id": "meta-llama/Llama-3.1-8B-Instruct",
-      "scope": "model"
-    },
-    {
-      "file": "models/meta-llama/Llama-3.1-8B.yaml",
-      "model_id": "meta-llama/Llama-3.1-8B",
-      "scope": "model"
-    },
-    {
-      "file": "models/meta-llama/Llama-3.2-1B-Instruct.yaml",
-      "model_id": "meta-llama/Llama-3.2-1B-Instruct",
-      "scope": "model"
-    },
-    {
-      "file": "models/meta-llama/Llama-3.2-1B.yaml",
-      "model_id": "meta-llama/Llama-3.2-1B",
-      "scope": "model"
-    },
-    {
-      "file": "models/meta-llama/Llama-3.2-3B-Instruct.yaml",
-      "model_id": "meta-llama/Llama-3.2-3B-Instruct",
-      "scope": "model"
-    },
-    {
-      "file": "models/meta-llama/Llama-3.3-70B-Instruct.yaml",
-      "model_id": "meta-llama/Llama-3.3-70B-Instruct",
-      "scope": "model"
-    },
-    {
-      "file": "models/meta-llama/Llama-4-Scout-17B-16E-Instruct.yaml",
-      "model_id": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
-      "scope": "model"
-    },
-    {
-      "file": "models/meta-llama/Llama-4-Scout-17B-16E-Instruct.yaml",
-      "model_id": "nvidia/Llama-4-Scout-17B-16E-Instruct-FP8",
-      "scope": "variants.fp8"
-    },
-    {
-      "file": "models/meta-llama/Llama-4-Scout-17B-16E-Instruct.yaml",
-      "model_id": "nvidia/Llama-4-Scout-17B-16E-Instruct-NVFP4",
-      "scope": "variants.nvfp4"
-    },
-    {
-      "file": "models/mistralai/Mistral-Large-3-675B-Instruct-2512.yaml",
-      "model_id": "mistralai/Mistral-Large-3-675B-Instruct-2512",
-      "scope": "model"
-    },
-    {
-      "file": "models/mistralai/Mistral-Large-3-675B-Instruct-2512.yaml",
-      "model_id": "mistralai/Mistral-Large-3-675B-Instruct-2512-NVFP4",
-      "scope": "variants.nvfp4"
-    },
-    {
-      "file": "models/mistralai/Mistral-Large-3-675B-Instruct-2512.yaml",
-      "model_id": "mistralai/Mistral-Large-3-675B-Instruct-2512-FP8",
-      "scope": "variants.fp8"
-    },
-    {
-      "file": "models/mistralai/Mistral-Small-4-119B-2603.yaml",
-      "model_id": "mistralai/Mistral-Small-4-119B-2603-NVFP4",
-      "scope": "variants.nvfp4"
     },
     {
       "architectures": [
         "VoxtralRealtimeForConditionalGeneration"
       ],
       "file": "models/mistralai/Voxtral-Mini-4B-Realtime-2602.yaml",
+      "floor": "0.20.0",
+      "floor_predates_support": false,
       "model_id": "mistralai/Voxtral-Mini-4B-Realtime-2602",
-      "scope": "model"
-    },
-    {
-      "file": "models/pfnet/plamo-3-nict-31b-base.yaml",
-      "model_id": "pfnet/plamo-3-nict-31b-base",
-      "scope": "model"
-    },
-    {
-      "file": "models/stepfun-ai/Step-3.5-Flash.yaml",
-      "model_id": "stepfun-ai/Step-3.5-Flash-INT8",
-      "scope": "variants.int8"
-    },
-    {
-      "file": "models/zai-org/GLM-GA.yaml",
-      "model_id": "zai-org/GLM-GA",
+      "on_main": false,
       "scope": "model"
     }
   ],
   "checked": 328,
+  "config_unreadable": [
+    {
+      "file": "models/Google/gemma-4-E2B-it.yaml",
+      "http_status": 401,
+      "model_id": "RedHatAI/gemma-4-E2B-it-FP8-dynamic",
+      "scope": "variants.fp8",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/Google/gemma-4-E4B-it.yaml",
+      "http_status": 401,
+      "model_id": "RedHatAI/gemma-4-E4B-it-FP8-dynamic",
+      "scope": "variants.fp8",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/Google/translategemma-27b-it.yaml",
+      "http_status": 401,
+      "model_id": "google/translategemma-27b-it",
+      "scope": "model",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/Google/translategemma-27b-it.yaml",
+      "http_status": 401,
+      "model_id": "google/translategemma-4b-it",
+      "scope": "variants.small_4b",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/MiniMaxAI/MiniMax-M2.yaml",
+      "http_status": 401,
+      "model_id": "RedHatAI/MiniMax-M2-NVFP4",
+      "scope": "variants.nvfp4",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/deepseek-ai/DeepSeek-V3.yaml",
+      "http_status": 401,
+      "model_id": "nvidia/DeepSeek-V3-FP4",
+      "scope": "variants.fp4",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/inclusionAI/Ring-1T-FP8.yaml",
+      "http_status": 401,
+      "model_id": "inclusionAI/Ring-1T-FP8",
+      "scope": "model",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/meta-llama/Llama-3.1-8B-Instruct.yaml",
+      "http_status": 401,
+      "model_id": "meta-llama/Llama-3.1-8B-Instruct",
+      "scope": "model",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/meta-llama/Llama-3.1-8B.yaml",
+      "http_status": 401,
+      "model_id": "meta-llama/Llama-3.1-8B",
+      "scope": "model",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/meta-llama/Llama-3.2-1B-Instruct.yaml",
+      "http_status": 401,
+      "model_id": "meta-llama/Llama-3.2-1B-Instruct",
+      "scope": "model",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/meta-llama/Llama-3.2-1B.yaml",
+      "http_status": 401,
+      "model_id": "meta-llama/Llama-3.2-1B",
+      "scope": "model",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/meta-llama/Llama-3.2-3B-Instruct.yaml",
+      "http_status": 401,
+      "model_id": "meta-llama/Llama-3.2-3B-Instruct",
+      "scope": "model",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/meta-llama/Llama-3.3-70B-Instruct.yaml",
+      "http_status": 401,
+      "model_id": "meta-llama/Llama-3.3-70B-Instruct",
+      "scope": "model",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/meta-llama/Llama-4-Scout-17B-16E-Instruct.yaml",
+      "http_status": 401,
+      "model_id": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+      "scope": "model",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/meta-llama/Llama-4-Scout-17B-16E-Instruct.yaml",
+      "http_status": 401,
+      "model_id": "nvidia/Llama-4-Scout-17B-16E-Instruct-FP8",
+      "scope": "variants.fp8",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/meta-llama/Llama-4-Scout-17B-16E-Instruct.yaml",
+      "http_status": 401,
+      "model_id": "nvidia/Llama-4-Scout-17B-16E-Instruct-NVFP4",
+      "scope": "variants.nvfp4",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/mistralai/Mistral-Large-3-675B-Instruct-2512.yaml",
+      "http_status": 404,
+      "model_id": "mistralai/Mistral-Large-3-675B-Instruct-2512",
+      "scope": "model",
+      "why": "no config.json in the repo (e.g. params.json-only format)"
+    },
+    {
+      "file": "models/mistralai/Mistral-Large-3-675B-Instruct-2512.yaml",
+      "http_status": 404,
+      "model_id": "mistralai/Mistral-Large-3-675B-Instruct-2512-NVFP4",
+      "scope": "variants.nvfp4",
+      "why": "no config.json in the repo (e.g. params.json-only format)"
+    },
+    {
+      "file": "models/mistralai/Mistral-Large-3-675B-Instruct-2512.yaml",
+      "http_status": 404,
+      "model_id": "mistralai/Mistral-Large-3-675B-Instruct-2512-FP8",
+      "scope": "variants.fp8",
+      "why": "no config.json in the repo (e.g. params.json-only format)"
+    },
+    {
+      "file": "models/mistralai/Mistral-Small-4-119B-2603.yaml",
+      "http_status": 404,
+      "model_id": "mistralai/Mistral-Small-4-119B-2603-NVFP4",
+      "scope": "variants.nvfp4",
+      "why": "no config.json in the repo (e.g. params.json-only format)"
+    },
+    {
+      "file": "models/pfnet/plamo-3-nict-31b-base.yaml",
+      "http_status": 401,
+      "model_id": "pfnet/plamo-3-nict-31b-base",
+      "scope": "model",
+      "why": "gated \u2014 config.json needs an authorized token"
+    },
+    {
+      "file": "models/stepfun-ai/Step-3.5-Flash.yaml",
+      "http_status": 404,
+      "model_id": "stepfun-ai/Step-3.5-Flash-INT8",
+      "scope": "variants.int8",
+      "why": "no config.json in the repo (e.g. params.json-only format)"
+    },
+    {
+      "file": "models/zai-org/GLM-GA.yaml",
+      "http_status": 401,
+      "model_id": "zai-org/GLM-GA",
+      "scope": "model",
+      "why": "gated \u2014 config.json needs an authorized token"
+    }
+  ],
   "floor_below_model_support": [
     {
       "architecture": "MiniMaxM2ForCausalLM",

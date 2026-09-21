@@ -228,7 +228,9 @@ node .claude/sync-vllm/check_images.mjs --target <target> --report-dir $REPORT
 | `default-changed` | — | report only, `medium` confidence at best |
 | Floor below the release that registered the architecture, recipe served by the in-tree wheel | the recipe is absent from `plugin_served_skipped` | raise the floor to exactly that release, **own commit**, and update the guide's `- vLLM >= X` line in the same commit |
 | Same, but the recipe is in `plugin_served_skipped` | — | **never edited.** The plugin or pinned image registers the architecture; the registry is not evidence about this recipe |
-| Architecture not in the registry at any tag | — | report only — out-of-tree, gated or plugin-registered, not a floor error |
+| `config_unreadable` — gated (401/403) or no `config.json` (404) | — | report only: the architecture is unknowable from here, not a floor error |
+| `architecture_unregistered`, `floor_predates_support: true` — registered on main after the target, floor absent or ≤ target | — | report only: a floor *candidate* for `nightly`/the next release. Check by hand first — a `--trust-remote-code` recipe may already run on the Transformers backend |
+| `architecture_unregistered`, `on_main: false` | — | report only: plugin, out-of-tree, or a `params.json` (Mistral-format) architecture the HF config names differently |
 | Plugin/unverifiable flag | — | the plugin bucket, never "stale", never edited |
 | Anything `low` confidence | — | report only |
 
