@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -62,6 +63,54 @@ def architectures(config: dict | None) -> list[str]:
     return sorted({a for a in archs if isinstance(a, str)})
 
 
+# Signals that a recipe's documented serving path is not the in-tree vLLM
+# wheel. registry.py then says nothing about the floor: the plugin or the
+# pinned image registers the architecture itself, so the recipe legitimately
+# runs on a vLLM older than the in-tree landing.
+VLLM_PIN_RE = re.compile(r"vllm\s*==\s*([\d.]+)")
+ARCH_OVERRIDE_RE = re.compile(r"--hf-overrides[^\n]*architectures", re.I)
+FIRST_PARTY_IMAGE = re.compile(r"^vllm/vllm-(openai|tpu)")
+
+
+def plugin_served(doc: dict, guide: str) -> str | None:
+    """Why this recipe's floor cannot be derived from the in-tree registry."""
+    meta = doc.get("meta") or {}
+    if doc.get("omni") or "omni" in (meta.get("tasks") or []):
+        return "omni recipe — served through vllm-omni, which registers the architecture itself"
+
+    images = []
+    model = doc.get("model") or {}
+    image = model.get("docker_image")
+    if isinstance(image, str):
+        images.append(image)
+    elif isinstance(image, dict):
+        images += [v for v in image.values() if isinstance(v, str)]
+    for variant in (doc.get("variants") or {}).values():
+        if isinstance(variant, dict):
+            for hw in (variant.get("hardware_overrides") or {}).values():
+                if isinstance(hw, dict) and isinstance(hw.get("docker_image"), str):
+                    images.append(hw["docker_image"])
+    out_of_tree = [i for i in images if not FIRST_PARTY_IMAGE.match(i)]
+    if out_of_tree:
+        return f"pins a non-first-party image ({out_of_tree[0]}) that may register the architecture"
+
+    pin = VLLM_PIN_RE.search(guide)
+    if pin:
+        return f"guide pins vllm=={pin.group(1)} — a release-tested pin, not a floor to raise"
+    if ARCH_OVERRIDE_RE.search(guide):
+        return "guide selects an architecture via --hf-overrides, so registry.py names the wrong one"
+    return None
+
+
+def guide_floor_line(guide: str) -> str | None:
+    """The `- vLLM >= X` prerequisite a floor change also has to update."""
+    for line in guide.split("\n"):
+        m = re.match(r"\s*-\s*vLLM\s*>=\s*([\d.]+)", line, re.I)
+        if m:
+            return line.strip()
+    return None
+
+
 def checkpoints(doc: dict, path: str) -> list[tuple[str, str, str | None]]:
     """[(scope, model_id, declared floor)] for the recipe and each variant."""
     model = doc.get("model") or {}
@@ -74,14 +123,56 @@ def checkpoints(doc: dict, path: str) -> list[tuple[str, str, str | None]]:
     return [(scope, mid, floor) for scope, mid, floor in out if mid]
 
 
+# Both cases were caught in review of the first floor PR, not by this tool.
+# They are cheap to check offline because plugin_served() and guide_floor_line()
+# are pure functions of the recipe.
+SELF_TEST = [
+    ("models/nvidia/Cosmos3-Nano.yaml", "skipped", "omni"),
+    ("models/deepseek-ai/DeepSeek-V4-Flash.yaml", "skipped", "image"),
+    ("models/openai/gpt-oss-120b.yaml", "checked", None),
+    ("models/openai/gpt-oss-120b.yaml", "guide_line", "0.10.0"),
+]
+
+
+def self_test() -> int:
+    ok = True
+    for rel, kind, expected in SELF_TEST:
+        path = F.REPO_ROOT / rel
+        if not path.is_file():
+            print(f"  skip {rel}: not in this tree")
+            continue
+        doc = yaml.safe_load(path.read_text())
+        guide = str(doc.get("guide") or "")
+        reason = plugin_served(doc, guide)
+        if kind == "skipped":
+            good = bool(reason) and expected in (reason or "")
+            detail = reason or "not skipped"
+        elif kind == "checked":
+            good = reason is None
+            detail = reason or "checked, as expected"
+        else:
+            line = guide_floor_line(guide)
+            good = bool(line) and expected in line
+            detail = line or "no prerequisite line found"
+        print(f"  {'ok  ' if good else 'FAIL'} {rel[7:]:46} {kind:10} {detail[:72]}")
+        ok = ok and good
+    print(f"model-floors self-test {'PASS' if ok else 'FAIL'}")
+    return 0 if ok else 1
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--target", required=True)
-    ap.add_argument("--report-dir", required=True)
+    ap.add_argument("--report-dir")
     ap.add_argument("--no-fetch", action="store_true", help="use cached configs only")
     ap.add_argument("--only", help="substring filter on the recipe path")
+    ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args()
 
+    if args.self_test:
+        return self_test()
+    if not args.report_dir:
+        ap.error("--report-dir is required unless --self-test is given")
     report_dir = Path(args.report_dir)
     cache_dir = report_dir / "hf-configs"
     cache_dir.mkdir(parents=True, exist_ok=True)
@@ -91,7 +182,8 @@ def main() -> int:
     if args.only:
         recipes = [r for r in recipes if args.only in str(r)]
 
-    jobs = []
+    jobs: list[tuple] = []
+    plugin_skipped: list[dict] = []
     for path in recipes:
         try:
             doc = yaml.safe_load(path.read_text())
@@ -100,8 +192,13 @@ def main() -> int:
         if not isinstance(doc, dict):
             continue
         rel = str(path.relative_to(F.REPO_ROOT))
+        guide = str(doc.get("guide") or "")
+        reason = plugin_served(doc, guide)
+        if reason:
+            plugin_skipped.append({"file": rel, "why": reason})
+            continue
         for scope, model_id, floor in checkpoints(doc, rel):
-            jobs.append((rel, scope, model_id, floor))
+            jobs.append((rel, scope, model_id, floor, guide_floor_line(guide)))
 
     configs: dict[str, dict | None] = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:
@@ -113,7 +210,7 @@ def main() -> int:
             configs[futures[future]] = future.result()
 
     below, unknown_arch, no_floor, removed_arch = [], [], [], []
-    for rel, scope, model_id, floor in jobs:
+    for rel, scope, model_id, floor, guide_line in jobs:
         archs = architectures(configs.get(model_id))
         if not archs:
             unknown_arch.append({"file": rel, "scope": scope, "model_id": model_id})
@@ -134,6 +231,10 @@ def main() -> int:
             "architecture": gating,
             "introduced": introduced,
             "floor": floor,
+            # A floor change that leaves this line behind makes the recipe
+            # contradict itself: the Install block says one version, the guide
+            # prerequisites another.
+            "guide_prerequisite": guide_line,
         }
         if idx[gating].get("last_supported"):
             entry["last_supported"] = idx[gating]["last_supported"]
@@ -152,6 +253,7 @@ def main() -> int:
     out = {
         "target": args.target,
         "checked": len(jobs),
+        "plugin_served_skipped": plugin_skipped,
         "floor_below_model_support": below,
         "no_floor_declared": no_floor,
         "architecture_removed_upstream": removed_arch,
@@ -159,12 +261,16 @@ def main() -> int:
     }
     (report_dir / "model-floors.json").write_text(json.dumps(out, indent=2, sort_keys=True))
 
-    print(f"checked {len(jobs)} checkpoints across {len(recipes)} recipes")
+    print(f"checked {len(jobs)} checkpoints across {len(recipes) - len(plugin_skipped)} recipes")
+    print(f"  skipped, not served by the in-tree wheel: {len(plugin_skipped)}")
+    for e in plugin_skipped[:6]:
+        print(f"    {e['file'][7:]:52} {e['why'][:70]}")
     print(f"  floor below the model's introducing release: {len(below)}")
     for e in sorted(below, key=lambda e: e["file"])[:20]:
         print(
             f"    {e['file'][7:]:52} {e['scope']:18} pins {e['floor']:8} "
             f"needs {e['introduced']:9} ({e['architecture']})"
+            + (f"  [also update guide: {e['guide_prerequisite']}]" if e.get("guide_prerequisite") else "")
         )
     print(f"  no floor declared: {len(no_floor)}")
     for e in sorted(no_floor, key=lambda e: e["file"])[:10]:
