@@ -40,6 +40,7 @@ from pathlib import Path
 import flagset as F
 import index_flags as IDX
 import inventory as INV
+import support_guards as GUARDS
 
 # Concept vocabulary. Where the repo already names a concept (taxonomy.yaml's
 # kv_offload ids, strategies/*.yaml parallelism, the recipes' feature keys), the
@@ -290,12 +291,33 @@ VALUE_HARDWARE = [
 ]
 
 
-def applies_to(text: str, semantics: dict, how: dict | None = None) -> dict:
+def applies_to(text: str, semantics: dict, how: dict | None = None, tag: str | None = None) -> dict:
     hardware = [k for k, pattern in HARDWARE_TERMS.items() if re.search(pattern, text, re.I)]
+    quant_from_guards: list[str] = []
+    traits_from_guards: dict = {}
+    support_evidence: list[dict] = []
+
     for entry in (how or {}).get("enum_values", []):
         for pattern, hw in VALUE_HARDWARE:
             if pattern.search(entry["value"]) and hw not in hardware:
                 hardware.append(hw)
+        # Upstream states the constraint next to the kernel. Prefer it over the
+        # hardware words in the release-note prose, which are looser and often
+        # name the generation when the kernel wants a specific SM family.
+        if tag:
+            guards = GUARDS.guards_for(tag, entry["value"], entry.get("flag"))
+            if guards["hardware"]:
+                hardware = [h for h in guards["hardware"]]
+                support_evidence.append(
+                    {
+                        "value": entry["value"],
+                        "modules": guards["modules"],
+                        "evidence": guards["evidence"][:4],
+                        "limits": [n["text"] for n in guards["notes"][:4]],
+                    }
+                )
+            quant_from_guards += guards["quant"]
+            traits_from_guards.update(guards.get("model_traits") or {})
     quant = [q for q in QUANT_TERMS if re.search(rf"\b{q}\b", text, re.I)]
     traits = {}
     if re.search(r"\bmoe\b|expert|mixture", text, re.I):
@@ -306,7 +328,13 @@ def applies_to(text: str, semantics: dict, how: dict | None = None) -> dict:
         traits["tasks"] = ["multimodal"]
     if re.search(r"specul|eagle|\bmtp\b|dspark|dflash", text, re.I):
         traits.setdefault("features", []).append("spec_decoding")
-    return {"hardware": hardware, "model_traits": traits, "quant": quant}
+    if quant_from_guards:
+        quant = sorted({*quant, *quant_from_guards})
+    traits.update(traits_from_guards)
+    result = {"hardware": hardware, "model_traits": traits, "quant": quant}
+    if support_evidence:
+        result["support_evidence"] = support_evidence
+    return result
 
 
 def enum_pairs(text: str, named_flags: list[str], semantics: dict) -> list[dict]:
@@ -568,7 +596,7 @@ def draft(prev: str, target: str, report_dir: Path) -> dict:
                 "default_on": bool(AUTO_MARKERS.search(text) or DEFAULT_RE.search(text)) and not how["flags"],
                 "drop_reason": drop_reason,
                 "reverse_markers": reverse_markers(text, envs),
-                "applies_to": applies_to(text, semantics, how),
+                "applies_to": applies_to(text, semantics, how, target),
                 "effect": classify_effect(text),
                 "evidence": {
                     "source": item["source"],

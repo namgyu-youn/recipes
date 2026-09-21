@@ -1,6 +1,6 @@
 {
   "target": "v0.29.0",
-  "generated": "2026-09-20T18:38:08.910Z",
+  "generated": "2026-09-21T01:55:38.686Z",
   "findings": [
     {
       "id": "R-01",
@@ -1819,6 +1819,56 @@
       "why": "block pins eugr/spark-vllm-b12x:latest"
     },
     {
+      "token": "VLLM_USE_B12X_WO_PROJECTION",
+      "kind": "env",
+      "recipes": [
+        "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
+      ],
+      "lines": 4,
+      "namespace": "vendor-image",
+      "why": "block pins eugr/spark-vllm-b12x:latest"
+    },
+    {
+      "token": "VLLM_USE_B12X_MHC",
+      "kind": "env",
+      "recipes": [
+        "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
+      ],
+      "lines": 4,
+      "namespace": "vendor-image",
+      "why": "block pins eugr/spark-vllm-b12x:latest"
+    },
+    {
+      "token": "VLLM_USE_B12X_FP8_GEMM",
+      "kind": "env",
+      "recipes": [
+        "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
+      ],
+      "lines": 4,
+      "namespace": "vendor-image",
+      "why": "block pins eugr/spark-vllm-b12x:latest"
+    },
+    {
+      "token": "VLLM_USE_B12X_MOE",
+      "kind": "env",
+      "recipes": [
+        "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
+      ],
+      "lines": 4,
+      "namespace": "vendor-image",
+      "why": "block pins eugr/spark-vllm-b12x:latest"
+    },
+    {
+      "token": "VLLM_USE_B12X_SPARSE_INDEXER",
+      "kind": "env",
+      "recipes": [
+        "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
+      ],
+      "lines": 4,
+      "namespace": "vendor-image",
+      "why": "block pins eugr/spark-vllm-b12x:latest"
+    },
+    {
       "token": "VLLM_OMNI_TARGET_DEVICE",
       "kind": "env",
       "recipes": [
@@ -1829,27 +1879,7 @@
       "why": "name is in that plugin's namespace"
     }
   ],
-  "vendor_overlaps": [
-    {
-      "id": "V-1",
-      "capability": "b12x-linear-and-moe-backends",
-      "image": "eugr/spark-vllm-b12x:latest",
-      "recipes": [
-        "models/deepseek-ai/DeepSeek-V4-Flash.yaml"
-      ],
-      "note": "upstream ships b12x linear/MoE kernels in-tree since v0.29.0 behind --linear-backend/--moe-backend; the VLLM_USE_B12X_* switches exist at no upstream tag, the newest rc or main",
-      "mapping": {
-        "VLLM_USE_B12X_WO_PROJECTION": "no upstream equivalent documented — cannot be dropped",
-        "VLLM_USE_B12X_MHC": "no upstream equivalent documented — cannot be dropped",
-        "VLLM_USE_B12X_FP8_GEMM": "--linear-backend b12x",
-        "VLLM_USE_B12X_MOE": "--moe-backend b12x",
-        "VLLM_USE_B12X_SPARSE_INDEXER": "no upstream equivalent documented — cannot be dropped"
-      },
-      "status": "needs decision",
-      "confidence": "medium",
-      "risk": "2 of 5 switches map to upstream flags the recipe already passes; the rest have no documented equivalent. Migrating off the image is a hardware-validated decision (GB10), not a mechanical edit."
-    }
-  ],
+  "vendor_overlaps": [],
   "not_yet_released": [
     {
       "token": "VLLM_PLE_CPU_OFFLOAD",
