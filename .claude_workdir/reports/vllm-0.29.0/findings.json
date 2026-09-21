@@ -1,6 +1,6 @@
 {
   "target": "v0.29.0",
-  "generated": "2026-09-21T01:55:38.686Z",
+  "generated": "2026-09-21T02:52:00.379Z",
   "findings": [
     {
       "id": "R-01",
@@ -37,7 +37,7 @@
         },
         {
           "file": "models/deepseek-ai/DeepSeek-OCR-2.yaml",
-          "floor": "0.12.0",
+          "floor": "0.16.0",
           "blocks": [
             {
               "line": 35,
@@ -67,7 +67,7 @@
         },
         {
           "file": "models/internlm/Intern-S1.yaml",
-          "floor": "0.10.0",
+          "floor": "0.10.2",
           "blocks": [
             {
               "line": 44,
@@ -217,7 +217,7 @@
         },
         {
           "file": "models/Qwen/Qwen2.5-VL-72B-Instruct.yaml",
-          "floor": "0.7.0",
+          "floor": "0.10.2",
           "blocks": [
             {
               "line": 34,
@@ -232,7 +232,7 @@
         },
         {
           "file": "models/Qwen/Qwen2.5-VL-7B-Instruct.yaml",
-          "floor": "0.7.0",
+          "floor": "0.10.2",
           "blocks": [
             {
               "line": 33,
@@ -277,7 +277,7 @@
         },
         {
           "file": "models/tencent/HunyuanOCR.yaml",
-          "floor": "0.11.0",
+          "floor": "0.12.0",
           "blocks": [
             {
               "line": 31,
@@ -322,7 +322,7 @@
         },
         {
           "file": "models/zai-org/GLM-OCR.yaml",
-          "floor": "0.12.0",
+          "floor": "0.16.0",
           "blocks": [
             {
               "line": 41,
@@ -383,7 +383,7 @@
       "recipes": [
         {
           "file": "models/MiniMaxAI/MiniMax-M2.1.yaml",
-          "floor": "0.11.0",
+          "floor": "0.11.1",
           "blocks": [
             {
               "line": 70,
@@ -398,7 +398,7 @@
         },
         {
           "file": "models/MiniMaxAI/MiniMax-M2.yaml",
-          "floor": "0.11.0",
+          "floor": "0.11.1",
           "blocks": [
             {
               "line": 86,
@@ -413,7 +413,7 @@
         },
         {
           "file": "models/openai/gpt-oss-120b.yaml",
-          "floor": "0.10.0",
+          "floor": "0.10.1",
           "blocks": [
             {
               "line": 79,
@@ -428,7 +428,7 @@
         },
         {
           "file": "models/openai/gpt-oss-20b.yaml",
-          "floor": "0.10.0",
+          "floor": "0.10.1",
           "blocks": [
             {
               "line": 63,
@@ -465,130 +465,6 @@
     },
     {
       "id": "R-03",
-      "category": "below-introducing-version",
-      "token": "--mm-encoder-tp-mode",
-      "kind": "flag",
-      "invalid_value": null,
-      "accepted_sample": [],
-      "source": "source-only",
-      "upstream": {
-        "introduced": "v0.10.2",
-        "removed": null,
-        "recheck": "introduced v0.10.2, present at v0.29.0",
-        "cite": null,
-        "prs": []
-      },
-      "recipe_count": 5,
-      "line_count": 9,
-      "recipes": [
-        {
-          "file": "models/internlm/Intern-S1.yaml",
-          "floor": "0.10.0",
-          "blocks": [
-            {
-              "line": 48,
-              "path": "features.encoder_parallel.args",
-              "scope": "feature encoder_parallel",
-              "tier": "structured"
-            }
-          ],
-          "needed": "v0.10.2",
-          "action": "raise-floor",
-          "why": "used in the unconditional command (features.encoder_parallel.args)"
-        },
-        {
-          "file": "models/microsoft/Phi-4-mini-instruct.yaml",
-          "floor": "0.7.0",
-          "blocks": [
-            {
-              "line": 34,
-              "path": "features.encoder_parallel.args",
-              "scope": "feature encoder_parallel",
-              "tier": "structured"
-            }
-          ],
-          "needed": "v0.10.2",
-          "action": "per-block-floor-question",
-          "why": "used only in feature encoder_parallel — opt-in or hardware-conditional, so the model floor may be right as it is"
-        },
-        {
-          "file": "models/OpenGVLab/InternVL3_5-8B.yaml",
-          "floor": "0.10.0",
-          "blocks": [
-            {
-              "line": 38,
-              "path": "features.encoder_parallel.args",
-              "scope": "feature encoder_parallel",
-              "tier": "structured"
-            }
-          ],
-          "needed": "v0.10.2",
-          "action": "per-block-floor-question",
-          "why": "used only in feature encoder_parallel — opt-in or hardware-conditional, so the model floor may be right as it is"
-        },
-        {
-          "file": "models/Qwen/Qwen2.5-VL-72B-Instruct.yaml",
-          "floor": "0.7.0",
-          "blocks": [
-            {
-              "line": 38,
-              "path": "features.encoder_parallel.args",
-              "scope": "feature encoder_parallel",
-              "tier": "structured"
-            },
-            {
-              "line": 70,
-              "path": "hardware_overrides.hopper.extra_args",
-              "scope": "hardware override",
-              "tier": "structured"
-            },
-            {
-              "line": 75,
-              "path": "hardware_overrides.blackwell.extra_args",
-              "scope": "hardware override",
-              "tier": "structured"
-            },
-            {
-              "line": 81,
-              "path": "hardware_overrides.amd.extra_args",
-              "scope": "hardware override",
-              "tier": "structured"
-            },
-            {
-              "line": 157,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.10.2",
-          "action": "raise-floor",
-          "why": "used in the unconditional command (features.encoder_parallel.args)"
-        },
-        {
-          "file": "models/Qwen/Qwen2.5-VL-7B-Instruct.yaml",
-          "floor": "0.7.0",
-          "blocks": [
-            {
-              "line": 37,
-              "path": "features.encoder_parallel.args",
-              "scope": "feature encoder_parallel",
-              "tier": "structured"
-            }
-          ],
-          "needed": "v0.10.2",
-          "action": "raise-floor",
-          "why": "used in the unconditional command (features.encoder_parallel.args)"
-        }
-      ],
-      "auto_apply_candidates": 3,
-      "confidence": "high",
-      "status": "auto-apply-eligible",
-      "carried_over": true,
-      "first_seen": "0.28.0"
-    },
-    {
-      "id": "R-04",
       "category": "below-introducing-version",
       "token": "--moe-backend",
       "kind": "flag",
@@ -643,7 +519,7 @@
         },
         {
           "file": "models/openai/gpt-oss-120b.yaml",
-          "floor": "0.10.0",
+          "floor": "0.10.1",
           "blocks": [
             {
               "line": 147,
@@ -658,7 +534,7 @@
         },
         {
           "file": "models/openai/gpt-oss-20b.yaml",
-          "floor": "0.10.0",
+          "floor": "0.10.1",
           "blocks": [
             {
               "line": 174,
@@ -679,7 +555,7 @@
       "first_seen": "0.28.0"
     },
     {
-      "id": "R-05",
+      "id": "R-04",
       "category": "below-introducing-version",
       "token": "VLLM_ROCM_SHUFFLE_KV_CACHE_LAYOUT",
       "kind": "env",
@@ -698,7 +574,7 @@
       "recipes": [
         {
           "file": "models/MiniMaxAI/MiniMax-M2.1.yaml",
-          "floor": "0.11.0",
+          "floor": "0.11.1",
           "blocks": [
             {
               "line": 74,
@@ -713,7 +589,7 @@
         },
         {
           "file": "models/MiniMaxAI/MiniMax-M2.yaml",
-          "floor": "0.11.0",
+          "floor": "0.11.1",
           "blocks": [
             {
               "line": 90,
@@ -755,67 +631,52 @@
       "first_seen": "0.28.0"
     },
     {
-      "id": "R-06",
+      "id": "R-05",
       "category": "below-introducing-version",
-      "token": "VLLM_ROCM_USE_AITER",
-      "kind": "env",
+      "token": "--mm-encoder-tp-mode",
+      "kind": "flag",
       "invalid_value": null,
       "accepted_sample": [],
       "source": "source-only",
       "upstream": {
-        "introduced": "v0.8.2",
+        "introduced": "v0.10.2",
         "removed": null,
-        "recheck": "introduced v0.8.2, present at v0.29.0",
+        "recheck": "introduced v0.10.2, present at v0.29.0",
         "cite": null,
         "prs": []
       },
-      "recipe_count": 3,
-      "line_count": 3,
+      "recipe_count": 2,
+      "line_count": 2,
       "recipes": [
         {
-          "file": "models/jinaai/jina-reranker-m0.yaml",
-          "floor": "0.8.0",
-          "blocks": [
-            {
-              "line": 46,
-              "path": "hardware_overrides.amd.extra_env.VLLM_ROCM_USE_AITER",
-              "scope": "hardware override",
-              "tier": "structured"
-            }
-          ],
-          "needed": "v0.8.2",
-          "action": "per-block-floor-question",
-          "why": "used only in hardware override — opt-in or hardware-conditional, so the model floor may be right as it is"
-        },
-        {
-          "file": "models/meta-llama/Llama-3.1-8B-Instruct.yaml",
-          "floor": "0.6.0",
-          "blocks": [
-            {
-              "line": 95,
-              "path": "hardware_overrides.amd.extra_env.VLLM_ROCM_USE_AITER",
-              "scope": "hardware override",
-              "tier": "structured"
-            }
-          ],
-          "needed": "v0.8.2",
-          "action": "per-block-floor-question",
-          "why": "used only in hardware override — opt-in or hardware-conditional, so the model floor may be right as it is"
-        },
-        {
-          "file": "models/Qwen/Qwen2.5-VL-72B-Instruct.yaml",
+          "file": "models/microsoft/Phi-4-mini-instruct.yaml",
           "floor": "0.7.0",
           "blocks": [
             {
-              "line": 86,
-              "path": "hardware_overrides.amd.extra_env.VLLM_ROCM_USE_AITER",
-              "scope": "hardware override",
+              "line": 34,
+              "path": "features.encoder_parallel.args",
+              "scope": "feature encoder_parallel",
               "tier": "structured"
             }
           ],
-          "needed": "v0.8.2",
+          "needed": "v0.10.2",
           "action": "per-block-floor-question",
-          "why": "used only in hardware override — opt-in or hardware-conditional, so the model floor may be right as it is"
+          "why": "used only in feature encoder_parallel — opt-in or hardware-conditional, so the model floor may be right as it is"
+        },
+        {
+          "file": "models/OpenGVLab/InternVL3_5-8B.yaml",
+          "floor": "0.10.0",
+          "blocks": [
+            {
+              "line": 38,
+              "path": "features.encoder_parallel.args",
+              "scope": "feature encoder_parallel",
+              "tier": "structured"
+            }
+          ],
+          "needed": "v0.10.2",
+          "action": "per-block-floor-question",
+          "why": "used only in feature encoder_parallel — opt-in or hardware-conditional, so the model floor may be right as it is"
         }
       ],
       "auto_apply_candidates": 0,
@@ -825,7 +686,7 @@
       "first_seen": "0.28.0"
     },
     {
-      "id": "R-07",
+      "id": "R-06",
       "category": "below-introducing-version",
       "token": "VLLM_SSM_CONV_STATE_LAYOUT",
       "kind": "env",
@@ -892,7 +753,7 @@
       "first_seen": "0.28.0"
     },
     {
-      "id": "R-08",
+      "id": "R-07",
       "category": "below-introducing-version",
       "token": "VLLM_ENGINE_READY_TIMEOUT_S",
       "kind": "env",
@@ -947,7 +808,7 @@
       "first_seen": "0.28.0"
     },
     {
-      "id": "R-09",
+      "id": "R-08",
       "category": "removed",
       "token": "--task",
       "kind": "flag",
@@ -1011,47 +872,7 @@
       "first_seen": "0.28.0"
     },
     {
-      "id": "R-10",
-      "category": "below-introducing-version",
-      "token": "--disable-chunked-mm-input",
-      "kind": "flag",
-      "invalid_value": null,
-      "accepted_sample": [],
-      "source": "source-only",
-      "upstream": {
-        "introduced": "v0.8.4",
-        "removed": null,
-        "recheck": "introduced v0.8.4, present at v0.29.0",
-        "cite": null,
-        "prs": []
-      },
-      "recipe_count": 1,
-      "line_count": 1,
-      "recipes": [
-        {
-          "file": "models/Qwen/Qwen2.5-VL-7B-Instruct.yaml",
-          "floor": "0.7.0",
-          "blocks": [
-            {
-              "line": 190,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.8.4",
-          "action": "per-block-floor-question",
-          "why": "used only in guide text — opt-in or hardware-conditional, so the model floor may be right as it is"
-        }
-      ],
-      "auto_apply_candidates": 0,
-      "confidence": "high",
-      "status": "needs decision",
-      "carried_over": true,
-      "first_seen": "0.28.0"
-    },
-    {
-      "id": "R-11",
+      "id": "R-09",
       "category": "removed",
       "token": "--rope-scaling",
       "kind": "flag",
@@ -1091,7 +912,7 @@
       "first_seen": "0.28.0"
     },
     {
-      "id": "R-12",
+      "id": "R-10",
       "category": "invalid-value",
       "token": "--attention-backend",
       "kind": "flag",
@@ -1168,7 +989,7 @@
       "first_seen": "0.28.0"
     },
     {
-      "id": "R-13",
+      "id": "R-11",
       "category": "below-introducing-version",
       "token": "--linear-backend",
       "kind": "flag",
@@ -1179,13 +1000,7 @@
         "introduced": "v0.22.0",
         "removed": null,
         "recheck": "introduced v0.22.0, present at v0.29.0",
-        "cite": {
-          "tag": "v0.29.0",
-          "file": "vllm/config/kernel.py",
-          "line": 269,
-          "ok": true,
-          "text": "linear_backend: LinearBackend = \"auto\""
-        },
+        "cite": null,
         "prs": []
       },
       "recipe_count": 1,
@@ -1226,7 +1041,7 @@
       "first_seen": "0.28.0"
     },
     {
-      "id": "R-14",
+      "id": "R-12",
       "category": "below-introducing-version",
       "token": "VLLM_USE_BREAKABLE_CUDAGRAPH",
       "kind": "env",
@@ -1272,7 +1087,7 @@
       "first_seen": "0.28.0"
     },
     {
-      "id": "R-15",
+      "id": "R-13",
       "category": "below-introducing-version",
       "token": "--prefill-schedule-interval",
       "kind": "flag",
@@ -1312,59 +1127,7 @@
       "first_seen": "0.28.0"
     },
     {
-      "id": "R-16",
-      "category": "default-changed",
-      "token": "--long-prefill-token-threshold",
-      "kind": "flag",
-      "invalid_value": null,
-      "accepted_sample": [],
-      "source": "source-only",
-      "upstream": {
-        "introduced": "v0.7.3",
-        "removed": null,
-        "recheck": "the recipe relies on the default, which changed upstream",
-        "cite": {
-          "tag": "v0.29.0",
-          "file": "vllm/config/scheduler.py",
-          "line": 70,
-          "ok": true,
-          "text": "long_prefill_token_threshold: int = Field(default=0, ge=0)"
-        },
-        "prs": []
-      },
-      "recipe_count": 1,
-      "line_count": 2,
-      "recipes": [
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4-Pro.yaml",
-          "floor": "0.20.0",
-          "blocks": [
-            {
-              "line": 499,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            },
-            {
-              "line": 502,
-              "path": "guide",
-              "scope": "guide text",
-              "tier": "prose"
-            }
-          ],
-          "needed": "v0.7.3",
-          "action": "report",
-          "why": ""
-        }
-      ],
-      "auto_apply_candidates": 0,
-      "confidence": "medium",
-      "status": "needs decision",
-      "carried_over": false,
-      "first_seen": "0.29.0"
-    },
-    {
-      "id": "R-17",
+      "id": "R-14",
       "category": "below-introducing-version",
       "token": "--speculative-config",
       "kind": "flag",
@@ -1410,7 +1173,47 @@
       "first_seen": "0.28.0"
     },
     {
-      "id": "R-18",
+      "id": "R-15",
+      "category": "below-introducing-version",
+      "token": "VLLM_ROCM_USE_AITER",
+      "kind": "env",
+      "invalid_value": null,
+      "accepted_sample": [],
+      "source": "source-only",
+      "upstream": {
+        "introduced": "v0.8.2",
+        "removed": null,
+        "recheck": "introduced v0.8.2, present at v0.29.0",
+        "cite": null,
+        "prs": []
+      },
+      "recipe_count": 1,
+      "line_count": 1,
+      "recipes": [
+        {
+          "file": "models/meta-llama/Llama-3.1-8B-Instruct.yaml",
+          "floor": "0.6.0",
+          "blocks": [
+            {
+              "line": 95,
+              "path": "hardware_overrides.amd.extra_env.VLLM_ROCM_USE_AITER",
+              "scope": "hardware override",
+              "tier": "structured"
+            }
+          ],
+          "needed": "v0.8.2",
+          "action": "per-block-floor-question",
+          "why": "used only in hardware override — opt-in or hardware-conditional, so the model floor may be right as it is"
+        }
+      ],
+      "auto_apply_candidates": 0,
+      "confidence": "high",
+      "status": "needs decision",
+      "carried_over": true,
+      "first_seen": "0.28.0"
+    },
+    {
+      "id": "R-16",
       "category": "removed",
       "token": "--disable-log-requests",
       "kind": "flag",
@@ -1450,7 +1253,7 @@
       "first_seen": "0.28.0"
     },
     {
-      "id": "R-19",
+      "id": "R-17",
       "category": "default-changed",
       "token": "--dcp-comm-backend",
       "kind": "flag",
@@ -1502,7 +1305,7 @@
       "first_seen": "0.29.0"
     },
     {
-      "id": "R-20",
+      "id": "R-18",
       "category": "below-introducing-version",
       "token": "--quantization-config.moe.activation",
       "kind": "flag",
@@ -1521,7 +1324,7 @@
       "recipes": [
         {
           "file": "models/openai/gpt-oss-120b.yaml",
-          "floor": "0.10.0",
+          "floor": "0.10.1",
           "blocks": [
             {
               "line": 72,
@@ -1533,46 +1336,6 @@
           "needed": "v0.20.0",
           "action": "per-block-floor-question",
           "why": "used only in hardware override — opt-in or hardware-conditional, so the model floor may be right as it is"
-        }
-      ],
-      "auto_apply_candidates": 0,
-      "confidence": "high",
-      "status": "needs decision",
-      "carried_over": true,
-      "first_seen": "0.28.0"
-    },
-    {
-      "id": "R-21",
-      "category": "wrong-dash",
-      "token": "--cc.pass_config.fuse_allreduce_rms",
-      "kind": "flag",
-      "invalid_value": null,
-      "accepted_sample": [],
-      "source": "source-only",
-      "upstream": {
-        "introduced": null,
-        "removed": null,
-        "recheck": "--cc.pass_config.fuse_allreduce_rms is not a registered flag at v0.29.0",
-        "cite": null,
-        "prs": []
-      },
-      "recipe_count": 1,
-      "line_count": 1,
-      "recipes": [
-        {
-          "file": "models/zai-org/GLM-5.1.yaml",
-          "floor": "0.24.0",
-          "blocks": [
-            {
-              "line": 89,
-              "path": "variants.mxfp4.extra_args",
-              "scope": "variants.mxfp4",
-              "tier": "structured"
-            }
-          ],
-          "needed": null,
-          "action": "replace",
-          "why": "-cc is registered with a single dash as the alias of --compilation-config; `--cc` is not a prefix abbreviation of it, so this argument is rejected"
         }
       ],
       "auto_apply_candidates": 0,
@@ -1971,9 +1734,21 @@
   "compared_against": "vllm-0.28.0",
   "resolved_since_previous": [
     {
+      "id": "R-10",
+      "category": "below-introducing-version",
+      "token": "--disable-chunked-mm-input",
+      "recipe_count": 1
+    },
+    {
       "id": "R-12",
       "category": "invalid-value",
       "token": "--moe-backend",
+      "recipe_count": 1
+    },
+    {
+      "id": "R-20",
+      "category": "wrong-dash",
+      "token": "--cc.pass_config.fuse_allreduce_rms",
       "recipe_count": 1
     }
   ]

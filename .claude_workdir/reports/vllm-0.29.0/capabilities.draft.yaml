@@ -1,4 +1,4 @@
-prev: v0.24.0
+prev: v0.28.0
 target: v0.29.0
 capabilities:
 - id: flash-attn-mla-sparse-hopper-sparse-mla-backend-
@@ -2447,39 +2447,6 @@ capabilities:
       `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` removed (#53141); dead `--attention-config.use_prefill_decode_attention`
       removed (#52557); other long-deprecated parameters cleaned up (#53559).'
     also: []
-- id: endpoint-plugins-vllm-plugins
-  kind: out_of_scope
-  concept: other
-  title: 'Endpoint Plugins: VLLM_PLUGINS'
-  since: v0.29.0
-  how_enabled:
-    mode: explicit
-    flags: []
-    envs:
-    - VLLM_PLUGINS
-    enum_values: []
-  default_on: true
-  drop_reason: null
-  reverse_markers:
-    now_default: []
-    obsolete: []
-  applies_to:
-    hardware: []
-    model_traits: {}
-    quant: []
-  effect: usability
-  evidence:
-    source: docs-diff
-    section: docs/design/endpoint_plugins.md
-    prs: []
-    text: "# Endpoint Plugins\n\nEndpoint plugins let out-of-tree packages add HTTP routes to the OpenAI\
-      \ compatible API server. Their scope is\nthe **HTTP surface only** registering routes and optionally\
-      \ per app state used by those routes. A plugin reaches the engine the same way an in-tree serving\
-      \ handler does, through the `EngineClient` it is handed at startup (e.g. `engine_client.collective_rpc(...)`).\
-      \ No new engine access path is introduced.\n\n!!! warning \"Security\"\n    Endpoint plugins are\
-      \ **not loaded by default** and must be explicitly allowlisted. Read [Endpoint Plugins security\
-      \ posture](../usage/sec"
-    also: []
 - id: b12x-linear-and-moe-backends
   kind: capability
   concept: kernel
@@ -2501,8 +2468,7 @@ capabilities:
   drop_reason: null
   reverse_markers:
     now_default: []
-    obsolete:
-    - NVIDIA
+    obsolete: []
   applies_to:
     hardware:
     - dgx_spark_gb10
@@ -2575,56 +2541,13 @@ capabilities:
     source: docs-diff
     section: docs/features/quantization/b12x.md
     prs: []
-    text: "# b12x Linear and MoE Backends\n\n[b12x](https://pypi.org/project/b12x/) provides optional\
-      \ CUDA kernels for\nNVIDIA SM120 and SM121 GPUs. Install the dependency with:\n\n```bash\nuv pip\
-      \ install \"vllm[b12x]\"\n```\n\nb12x linear kernels participate in automatic selection after established\n\
-      optimized backends and before emulation. Select the linear and MoE backends\nexplicitly with:\n\n\
-      ```bash\nvllm serve <model> \\\n    --linear-backend b12x \\\n    --moe-backend b12x\n```\n\nOnly\
-      \ pass `--moe-backend b12x` for a compatible NVFP4 or MXFP4 MoE model. The\nlinear and MoE backends\
-      \ can be selected independently.\n\nb12x use"
-    also: []
-- id: adaptive-verification-enforce-eager-speculative-
-  kind: capability
-  concept: runtime
-  title: 'Adaptive Verification: --enforce-eager, --speculative-config, --tokenizer-mode'
-  since: v0.29.0
-  how_enabled:
-    mode: explicit
-    flags:
-    - --enforce-eager
-    - --speculative-config
-    - --tokenizer-mode
-    - --trust-remote-code
-    envs:
-    - VLLM_ADAPTIVE_VERIFICATION_PROFILE_CONTEXT_LEN
-    enum_values: []
-  default_on: false
-  drop_reason: null
-  reverse_markers:
-    now_default: []
-    obsolete: []
-  applies_to:
-    hardware: []
-    model_traits:
-      features:
-      - spec_decoding
-    quant: []
-  effect: memory
-  evidence:
-    source: docs-diff
-    section: docs/features/speculative_decoding/adaptive_verification.md
-    prs: []
-    text: '# Adaptive Verification
-
-
-      Speculative decoding buys fewer decode steps with more compute. At batch size 1 that is a good trade:
-      the GPU is memory-bound with spare compute, so the extra draft tokens are close to free. At batch
-      size 256 it is a much more delicate one. Draft tokens now compete with real tokens for the same
-      compute, and every rejected token is compute wasted; with enough of them, throughput drops.
-
-
-      That matters because per-position acceptance decays fast. While the GPU is memory-bound that slot
-      is effectively free and worth the gamble; once it saturates the gamble has a real throug'
+    text: "# b12x Linear and MoE Backends\n[b12x](https://pypi.org/project/b12x/) provides optional CUDA\
+      \ kernels for\nb12x linear kernels participate in automatic selection after established\noptimized\
+      \ backends and before emulation. Select the linear and MoE backends\nexplicitly with:\nvllm serve\
+      \ <model> \\\n    --linear-backend b12x \\\n    --moe-backend b12x\nOnly pass `--moe-backend b12x`\
+      \ for a compatible NVFP4 or MXFP4 MoE model. The\nlinear and MoE backends can be selected independently.\n\
+      \nb12x uses MXFP8 activations by default for MXFP4 MoE and the checkpoint's\nactivation format for\
+      \ NVFP4 MoE. MXFP4 falls back"
     also: []
 - id: trace-replay-enable-trace-replay
   kind: out_of_scope
@@ -2665,66 +2588,14 @@ capabilities:
       - **Train vs inference diff**: replay a training-time token sequence through the inference engine
       to detect logprob divergence caused by numerical differences between trainin'
     also: []
-- id: sampling-mask-distribution-replay
-  kind: capability
-  concept: runtime
-  title: Sampling Mask (Distribution Replay)
-  since: v0.29.0
-  how_enabled:
-    mode: explicit
-    flags:
-    - --logits-processors
-    - --logprobs-mode
-    - --return-sampling-mask
-    envs: []
-    enum_values: []
-  default_on: false
-  drop_reason: null
-  reverse_markers:
-    now_default: []
-    obsolete: []
-  applies_to:
-    hardware: []
-    model_traits: {}
-    quant: []
-  effect: usability
-  evidence:
-    source: docs-diff
-    section: docs/training/sampling_mask.md
-    prs: []
-    text: '# Sampling Mask (Distribution Replay)
-
-
-      When using top-k/top-p sampling for RL rollouts (e.g. GRPO), there is a
-
-      systematic mismatch between the truncated distribution the sampler actually
-
-      drew from and the full-vocabulary softmax used to compute log-probabilities
-
-      during training. The **sampling mask** feature closes this gap by returning
-
-      the exact set of token IDs that survived top-k/top-p/min-p filtering at each
-
-      generation step, so the training side can normalize over the same support.
-
-
-      ## Background
-
-
-      This feature implements the **Keep Sampling Mask** strategy described in the
-
-      [DeepSeek-V3.2 t'
-    also: []
-- id: security-api-key-mm-hasher-algorithm-vllm-max-me
+- id: security-vllm-max-media-download-size-mb
   kind: out_of_scope
   concept: other
-  title: 'Security: --api-key, --mm-hasher-algorithm, VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB'
+  title: 'Security: VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB'
   since: v0.29.0
   how_enabled:
     mode: explicit
-    flags:
-    - --api-key
-    - --mm-hasher-algorithm
+    flags: []
     envs:
     - VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB
     enum_values: []
@@ -2746,21 +2617,16 @@ capabilities:
     prs: []
     text: '### 5. **Restrict Media Download and Decode Sizes:**
 
-
       Remote media responses and compressed media files can expand into gigabytes of
 
       memory. vLLM enforces download and decode-size limits to prevent out-of-memory
 
       denial of service:
 
-
-      | Environment Variable | Default | Description |
-
-      | --- | --- | --- |
-
       | `VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB` | `256` | Maximum size in MB for a single remote media response.
       Oversized responses are rejected while streaming before the full body is materialized in memory.
       |
 
-      | `VLLM_MAX_IMAGE_PIXELS` | `178956970` (~179M pixels) | Maximum decoded image size in pixels. Imag'
+      | `VLLM_MAX_AUDIO_CLIP_FILESIZE_MB` | `25` | Maximum compressed filesize in MB for a single audio
+      file. Enforced on all audio inputs (multimodal chat URLs, speech-to-text'
     also: []

@@ -25,9 +25,7 @@
         "model_traits": {
           "attention": "mla"
         },
-        "quant": [
-          "fp8"
-        ],
+        "quant": [],
         "support_evidence": [
           {
             "value": "FLASH_ATTN_MLA_SPARSE",
@@ -69,14 +67,14 @@
       "install": null,
       "note": null,
       "supporting_sentence": {
-        "dimension": "fp8",
+        "dimension": "mla",
         "sentence": "`FLASH_ATTN_MLA_SPARSE` Hopper sparse-MLA backend (#46189), DCP + FP8 KV cache in MLA decode (#44044), XQA decode kernels (#43232)."
       },
       "reverse_hits": [],
       "cohort": [
         {
           "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
-          "why": "hardware h200; traits match; quant fp8",
+          "why": "hardware h200; traits match; capability names no quantization",
           "architecture": "moe",
           "precisions": [
             "fp8",
@@ -85,9 +83,7 @@
           "matched_hardware": [
             "h200"
           ],
-          "matched_quant": [
-            "fp8"
-          ],
+          "matched_quant": [],
           "conflicts": [
             {
               "flag": "--attention-backend",
@@ -142,7 +138,7 @@
         },
         {
           "file": "models/inclusionAI/Ling-3.0-flash.yaml",
-          "why": "hardware h200; traits match; quant fp8",
+          "why": "hardware h200; traits match; capability names no quantization",
           "architecture": "moe",
           "precisions": [
             "bf16",
@@ -153,9 +149,7 @@
           "matched_hardware": [
             "h200"
           ],
-          "matched_quant": [
-            "fp8"
-          ],
+          "matched_quant": [],
           "conflicts": [
             {
               "flag": "--attention-backend",
@@ -174,8 +168,55 @@
           "floor": "0.28.0"
         },
         {
+          "file": "models/moonshotai/Kimi-K3.yaml",
+          "why": "hardware h200; traits match; capability names no quantization",
+          "architecture": "moe",
+          "precisions": [
+            "mxfp4",
+            "nvfp4",
+            "int4"
+          ],
+          "matched_hardware": [
+            "h200"
+          ],
+          "matched_quant": [],
+          "conflicts": [
+            {
+              "flag": "--attention-backend",
+              "current": "TOKENSPEED_MLA",
+              "proposed": "FLASH_ATTN_MLA_SPARSE",
+              "path": "features.decode_context_parallelism.args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "FLASHMLA",
+              "proposed": "FLASH_ATTN_MLA_SPARSE",
+              "path": "hardware_overrides.hopper.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "TOKENSPEED_MLA",
+              "proposed": "FLASH_ATTN_MLA_SPARSE",
+              "path": "hardware_overrides.blackwell.extra_args"
+            }
+          ],
+          "hardware_keys": [
+            "h200",
+            "b200",
+            "b300",
+            "gb200",
+            "gb300",
+            "mi355x",
+            "ascend_910c",
+            "hopper",
+            "blackwell",
+            "amd"
+          ],
+          "floor": "0.29.0"
+        },
+        {
           "file": "models/zai-org/GLM-5.3-Flash.yaml",
-          "why": "hardware h100; traits match; quant fp8",
+          "why": "hardware h100; traits match; capability names no quantization",
           "architecture": "moe",
           "precisions": [
             "fp8",
@@ -185,9 +226,7 @@
           "matched_hardware": [
             "h100"
           ],
-          "matched_quant": [
-            "fp8"
-          ],
+          "matched_quant": [],
           "conflicts": [
             {
               "flag": "--attention-backend",
@@ -244,7 +283,9 @@
           "mi350x",
           "mi355x"
         ],
-        "model_traits": {},
+        "model_traits": {
+          "attention": "mla"
+        },
         "quant": [],
         "support_evidence": [
           {
@@ -285,7 +326,7 @@
       "install": null,
       "note": null,
       "supporting_sentence": {
-        "dimension": "ROCM_AITER_FA",
+        "dimension": "mla",
         "sentence": "AITER FlashAttention MLA prefill backend `ROCM_AITER_FA` (#45033)"
       },
       "reverse_hits": [
@@ -323,56 +364,228 @@
           "detail": "guide shows ROCM_AITER_FA at line 235"
         }
       ],
-      "cohort": [],
-      "excluded_already_using": [
+      "cohort": [
         {
-          "file": "models/MiniMaxAI/MiniMax-M2.1.yaml",
-          "reason": "already passes --attention-backend ROCM_AITER_FA"
+          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
+          "why": "hardware mi300x,mi325x,mi355x; traits match; capability names no quantization",
+          "architecture": "moe",
+          "precisions": [
+            "fp8",
+            "nvfp4"
+          ],
+          "matched_hardware": [
+            "mi300x",
+            "mi325x",
+            "mi355x"
+          ],
+          "matched_quant": [],
+          "conflicts": [
+            {
+              "flag": "--attention-backend",
+              "current": "B12X_MLA_SPARSE",
+              "proposed": "ROCM_AITER_FA",
+              "path": "variants.default.hardware_overrides.dgx_spark_gb10.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "B12X_MLA_SPARSE",
+              "proposed": "ROCM_AITER_FA",
+              "path": "variants.fp8.hardware_overrides.dgx_spark_gb10.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "B12X_MLA_SPARSE",
+              "proposed": "ROCM_AITER_FA",
+              "path": "variants.nvfp4.hardware_overrides.dgx_spark_gb10.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "B12X_MLA_SPARSE",
+              "proposed": "ROCM_AITER_FA",
+              "path": "variants.dspark.hardware_overrides.dgx_spark_gb10.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "B12X_MLA_SPARSE",
+              "proposed": "ROCM_AITER_FA",
+              "path": "strategy_overrides.multi_node_tp.hardware_overrides.blackwell.extra_args"
+            }
+          ],
+          "hardware_keys": [
+            "h200",
+            "b200",
+            "gb200",
+            "b300",
+            "gb300",
+            "dgx_station_gb300",
+            "dgx_spark_gb10",
+            "rtx_pro_6000_8x",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "ascend_950dt_8x",
+            "ascend_950pr_8x",
+            "blackwell",
+            "amd",
+            "npu"
+          ],
+          "floor": "0.20.0"
         },
         {
-          "file": "models/MiniMaxAI/MiniMax-M2.5.yaml",
-          "reason": "already passes --attention-backend ROCM_AITER_FA"
+          "file": "models/inclusionAI/Ling-3.0-flash.yaml",
+          "why": "hardware mi300x,mi355x; traits match; capability names no quantization",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "fp4",
+            "int4"
+          ],
+          "matched_hardware": [
+            "mi300x",
+            "mi355x"
+          ],
+          "matched_quant": [],
+          "conflicts": [
+            {
+              "flag": "--attention-backend",
+              "current": "TRITON_MLA",
+              "proposed": "ROCM_AITER_FA",
+              "path": "features.spec_decoding.modes.mtp.hardware_overrides.mi355x.args"
+            }
+          ],
+          "hardware_keys": [
+            "h200",
+            "dgx_spark_gb10",
+            "mi300x",
+            "mi355x",
+            "amd"
+          ],
+          "floor": "0.28.0"
         },
         {
-          "file": "models/MiniMaxAI/MiniMax-M2.7.yaml",
-          "reason": "already passes --attention-backend ROCM_AITER_FA"
+          "file": "models/moonshotai/Kimi-K3.yaml",
+          "why": "hardware mi355x; traits match; capability names no quantization",
+          "architecture": "moe",
+          "precisions": [
+            "mxfp4",
+            "nvfp4",
+            "int4"
+          ],
+          "matched_hardware": [
+            "mi355x"
+          ],
+          "matched_quant": [],
+          "conflicts": [
+            {
+              "flag": "--attention-backend",
+              "current": "TOKENSPEED_MLA",
+              "proposed": "ROCM_AITER_FA",
+              "path": "features.decode_context_parallelism.args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "FLASHMLA",
+              "proposed": "ROCM_AITER_FA",
+              "path": "hardware_overrides.hopper.extra_args"
+            },
+            {
+              "flag": "--attention-backend",
+              "current": "TOKENSPEED_MLA",
+              "proposed": "ROCM_AITER_FA",
+              "path": "hardware_overrides.blackwell.extra_args"
+            }
+          ],
+          "hardware_keys": [
+            "h200",
+            "b200",
+            "b300",
+            "gb200",
+            "gb300",
+            "mi355x",
+            "ascend_910c",
+            "hopper",
+            "blackwell",
+            "amd"
+          ],
+          "floor": "0.29.0"
         },
         {
-          "file": "models/MiniMaxAI/MiniMax-M2.yaml",
-          "reason": "already passes --attention-backend ROCM_AITER_FA"
+          "file": "models/tencent/Hy4-preview.yaml",
+          "why": "hardware mi300x,mi325x,mi355x; traits match; capability names no quantization",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "mxfp8"
+          ],
+          "matched_hardware": [
+            "mi300x",
+            "mi325x",
+            "mi355x"
+          ],
+          "matched_quant": [],
+          "conflicts": [
+            {
+              "flag": "--attention-backend",
+              "current": "FLASHMLA_SPARSE",
+              "proposed": "ROCM_AITER_FA",
+              "path": "hardware_overrides.blackwell.extra_args"
+            }
+          ],
+          "hardware_keys": [
+            "b200",
+            "b300",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "blackwell"
+          ],
+          "floor": "0.29.0"
         },
         {
-          "file": "models/meta-models/Muse-Glimmer-30B.yaml",
-          "reason": "already passes --attention-backend ROCM_AITER_FA"
-        },
-        {
-          "file": "models/tencent/Hy3.yaml",
-          "reason": "already passes --attention-backend ROCM_AITER_FA"
+          "file": "models/zai-org/GLM-5.3-Flash.yaml",
+          "why": "hardware mi355x; traits match; capability names no quantization",
+          "architecture": "moe",
+          "precisions": [
+            "fp8",
+            "nvfp4",
+            "bf16"
+          ],
+          "matched_hardware": [
+            "mi355x"
+          ],
+          "matched_quant": [],
+          "conflicts": [
+            {
+              "flag": "--attention-backend",
+              "current": "ROCM_AITER_MLA_SPARSE",
+              "proposed": "ROCM_AITER_FA",
+              "path": "hardware_overrides.amd.extra_args"
+            }
+          ],
+          "hardware_keys": [
+            "h100",
+            "b200",
+            "gb200",
+            "mi355x",
+            "ascend_950pr_8x",
+            "hopper",
+            "blackwell",
+            "amd",
+            "npu"
+          ],
+          "floor": "0.29.0"
         }
       ],
-      "skipped": "cohort of 66 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
-      "cohort_sample": [
-        "models/Google/gemma-4-26B-A4B-it.yaml",
-        "models/Google/gemma-4-31B-it.yaml",
-        "models/Google/gemma-4-E2B-it.yaml",
-        "models/Google/gemma-4-E4B-it.yaml",
-        "models/IFM/K2-Horizon-375B-A23B.yaml"
-      ]
+      "excluded_already_using": []
     },
     {
       "id": "model-runner-v2-is-now-the-default-for-all-dense",
       "title": "Model Runner V2 is now the default for all dense models: Building on quantized-model support from the previous release, MRv2 is now the standard execution path, with new support for EVS, realtime embeddings",
       "concept": "compilation",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "dense",
-        "sentence": "**Model Runner V2 is now the default for all dense models** (#44443)."
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "since": "v0.25.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "superseded by the v0.29.0 \"MRv2 default for all models\" entry"
     },
     {
       "id": "pagedattention-has-been-removed-the-legacy-atten",
@@ -386,16 +599,9 @@
       "id": "the-transformers-modeling-backend-is-now-as-fast",
       "title": "The Transformers modeling backend is now as fast as native vLLM: and gained FP8 MoE support, CUDA graph + embed scaling fixes, and migration of GPTBigCode/Starcoder2 and RoBERTa",
       "concept": "moe_backend",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "fp8",
-        "sentence": "**The Transformers modeling backend is now as fast as native vLLM** (#47187), and gained FP8 MoE support (#46820), CUDA graph + embed scaling fixes (#48010), and migration of GPTBigCode/Starcoder2 (#30966) and RoBERTa (#47452)."
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "since": "v0.25.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "Transformers modeling backend improvement — no recipe serves via it"
     },
     {
       "id": "llava-onevision-2-unlimited-ocr-moss-transcribe-",
@@ -448,31 +654,17 @@
       "id": "new-inkling-model-family-with-a-full-support-sta",
       "title": "New Inkling model family: with a full support stack: base modeling, piecewise CUDA graph support, Hopper FA4 relative attention, MTP=1 speculative decoding, LoRA",
       "concept": "spec_decoding",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "hopper",
-        "sentence": "**New Inkling model family** with a full support stack: base modeling (#48799), piecewise CUDA graph support (#48822), Hopper FA4 relative attention (#48858), MTP=1 speculative decoding (#48869), LoRA (#48884), and standard ModelOpt NVFP4 q"
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "since": "v0.26.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "model-specific support/perf work, automatic — nothing a recipe enables"
     },
     {
       "id": "deepseek-v4-performance-push-across-vendors-a-sp",
       "title": "DeepSeek-V4 performance push: across vendors: a specialized routing kernel (2.94% E2E TPOT, #48660), fused_topk_bias (1.5–2x kernel, #47463)",
       "concept": "spec_decoding",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "xpu",
-        "sentence": "**DeepSeek-V4 performance push** across vendors: a specialized routing kernel (2.94% E2E TPOT, #48660), `fused_topk_bias` (1.5–2x kernel, #47463), and redundant repeat/copy removal (1.8% E2E TPOT, #48137), plus ROCm two-stage compressor for"
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "since": "v0.26.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "model-specific support/perf work, automatic — nothing a recipe enables"
     },
     {
       "id": "fp32-lm-head-for-generation-models-via-head-dtyp",
@@ -494,16 +686,9 @@
       "id": "kv-offloading-tiered-secondary-storage-matured-s",
       "title": "KV offloading & tiered secondary storage: matured substantially: offloading metrics, tier-owned event handling, object-store secondary tier with workload identity, DP-replica-aware tiering",
       "concept": "parallelism",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "cpu",
-        "sentence": "**KV offloading & tiered secondary storage** matured substantially: offloading metrics (#45958, #47666, #47679), tier-owned event handling (#46544, #47923), object-store secondary tier with workload identity (#47063, #47274, #48150), DP-rep"
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "since": "v0.26.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "merged into the v0.28.0 tiered KV offloading entry"
     },
     {
       "id": "rust-frontend-gained-multimodal-video-and-audio-",
@@ -544,7 +729,9 @@
         "enum_values": []
       },
       "applies_to": {
-        "hardware": [],
+        "hardware": [
+          "nvidia"
+        ],
         "model_traits": {
           "architecture": "moe"
         },
@@ -577,7 +764,7 @@
       "reverse_hits": [],
       "cohort": [],
       "excluded_already_using": [],
-      "skipped": "cohort of 61 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
+      "skipped": "cohort of 50 recipes is too broad — narrow applies_to (hardware, quant or model traits) before judging adoption",
       "cohort_sample": [
         "models/Google/diffusiongemma-26B-A4B-it.yaml",
         "models/Google/gemma-4-26B-A4B-it.yaml",
@@ -598,16 +785,9 @@
       "id": "moe-refactor-fusedmoe-renamed-to-fusedmoefactory",
       "title": "MoE refactor: FusedMoE renamed to FusedMoEFactory, MoeWNA16 migrated to the MK oracle scheme",
       "concept": "moe_backend",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "mxfp4",
-        "sentence": "MoE refactor: FusedMoE renamed to FusedMoEFactory (#44941), MoeWNA16 migrated to the MK oracle scheme (#44120), Quark w8a8-int8 (#46765) and MXFP4 `aiter`/`emulation` backends (#49348, #48949) moved to kernel abstractions, CT WNA16 Marlin/M"
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "since": "v0.27.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "internal MoE refactor (class rename), no user-facing surface"
     },
     {
       "id": "limit-mm-per-prompt",
@@ -621,31 +801,17 @@
       "id": "kimi-k3-support-with-a-full-stack-landing-in-one",
       "title": "Kimi K3 support: with a full stack landing in one release: core model files and kernels, Python and Rust frontends, AttnRes kernels, DeepGEMM support",
       "concept": "moe_backend",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "moe",
-        "sentence": "**Kimi K3 support** with a full stack landing in one release: core model files and kernels (#50089, #50000), Python (#50093) and Rust (#50104) frontends, AttnRes kernels (#50090), DeepGEMM support (#50458), compressed-tensors quantized chec"
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "since": "v0.27.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "model-specific support/perf work, automatic — nothing a recipe enables"
     },
     {
       "id": "more-new-models-qwen3-5-text-only-dense-and-moe-",
       "title": "More new models: Qwen3.5 text-only dense and MoE models with EVS video token pruning, K-EXAONE-2.0-750B-A37B, VaultGemma via the Transformers modeling backend",
       "concept": "moe_backend",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "moe",
-        "sentence": "**More new models**: Qwen3.5 text-only dense and MoE models (#50210) with EVS video token pruning (#48912), K-EXAONE-2.0-750B-A37B (#50524), VaultGemma via the Transformers modeling backend (#49803), and jina-embeddings-v5-text-nano (#50688"
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "since": "v0.27.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "model-specific support/perf work, automatic — nothing a recipe enables"
     },
     {
       "id": "pytorch-2-13-0-upgrade-along-with-torchvision-0-",
@@ -674,31 +840,17 @@
       "id": "deepseek-v4-performance-push-sequence-parallelis",
       "title": "DeepSeek-V4 performance push: sequence parallelism, ~2x kernel improvement by skipping empty c128 launches, 3.4% E2E TTFT from skipping unneeded topk/router",
       "concept": "attention_backend",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "mxfp4",
-        "sentence": "**DeepSeek-V4 performance push**: sequence parallelism (#46789), ~2x kernel improvement by skipping empty c128 launches (#48957), 3.4% E2E TTFT from skipping unneeded topk/router (#49486), 3.9% E2E TTFT from workspace reuse (#49236), 1.88x "
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "since": "v0.27.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "model-specific support/perf work, automatic — nothing a recipe enables"
     },
     {
       "id": "model-runner-v2-expands-to-non-generative-worklo",
       "title": "Model Runner V2 expands to non-generative workloads: encoder-only attention, sequence pooling for embedding/classification, encoder token classification and token embedding, BGE-M3 pooling",
       "concept": "compilation",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "cpu",
-        "sentence": "**Model Runner V2 expands to non-generative workloads**: encoder-only attention (#49331), sequence pooling for embedding/classification (#48791), encoder token classification (#50293) and token embedding (#50574), BGE-M3 pooling (#50661), m"
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "since": "v0.27.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "superseded by the v0.29.0 \"MRv2 default for all models\" entry"
     },
     {
       "id": "resilient-large-scale-serving-a-simplified-fault",
@@ -760,31 +912,17 @@
       "id": "kimi-k3-performance-push-a-major-optimization-ef",
       "title": "Kimi-K3 performance push: a major optimization effort for Kimi-K3 across the stack — Decode Context Parallel (DCP) support, fused FlashKDA decode and prefill kernels",
       "concept": "parallelism",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "moe",
-        "sentence": "**Kimi-K3 performance push**: a major optimization effort for Kimi-K3 across the stack — Decode Context Parallel (DCP) support (#50484), fused FlashKDA decode and prefill kernels (#50654, #51311, #52458), SiTU activation support for MegaMoE"
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "since": "v0.28.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "model-specific support/perf work, automatic — nothing a recipe enables"
     },
     {
       "id": "deepseek-v4-sparse-mla-now-works-end-to-end-for-",
       "title": "DeepSeek V4: sparse MLA now works end-to-end for plain decode, MTP, and DSpark speculative decoding, joined by AMD Quark NVFP4 support",
       "concept": "spec_decoding",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "nvfp4",
-        "sentence": "**DeepSeek V4**: sparse MLA now works end-to-end for plain decode, MTP, and DSpark speculative decoding (#51538), joined by AMD Quark NVFP4 support (#47972), reasoning-effort prompts and mappings (#50580), sparse top-k metadata kernel optim"
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "since": "v0.28.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "model-specific support/perf work, automatic — nothing a recipe enables"
     },
     {
       "id": "speculative-decoding-advances-dflash2-with-local",
@@ -805,16 +943,9 @@
       "id": "model-runner-v2-maturation-e-p-d-disaggregation-",
       "title": "Model Runner V2 maturation: E/P/D disaggregation, weight offloading, multi-layer MTP KV cache support, encoder CUDA graphs",
       "concept": "compilation",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "spec_decoding",
-        "sentence": "**Model Runner V2 maturation**: E/P/D disaggregation (#38390), weight offloading (#51413), multi-layer MTP KV cache support (#50062), encoder CUDA graphs (#49852), decoder token-wise pooling (#50931) plus Transformers pooling models (#52425"
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "since": "v0.28.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "superseded by the v0.29.0 \"MRv2 default for all models\" entry"
     },
     {
       "id": "tiered-kv-cache-offloading-disk-offloading-suppo",
@@ -906,9 +1037,9 @@
       "id": "kv-offload-tiering-metrics-renamed-from-kv-offlo",
       "title": "KV offload tiering metrics renamed from kv_offload_tiering_block_{queries,hits} to ..._chunk_",
       "concept": "kv_cache",
-      "confidence": "medium",
+      "kind": "out_of_scope",
       "cohort": [],
-      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+      "skipped": "metrics rename — observability, not a serving capability"
     },
     {
       "id": "moe-legacy-code-removed",
@@ -932,121 +1063,23 @@
       "concept": "parallelism",
       "confidence": "high",
       "cohort": [],
-      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+      "skipped": "no non-wildcard hardware/model dimension backed by a sentence in the evidence — brand alone is not a dimension"
     },
     {
       "id": "moe-communication-deepep-v2-receiver-cpu-overhea",
       "title": "MoE communication: DeepEP v2 receiver CPU overhead and MXFP8 activation scale dispatch, FlashInfer one-sided All2All refinements",
       "concept": "runtime",
-      "effect": "correctness",
-      "confidence": "high",
-      "how_enabled": {
-        "mode": "explicit",
-        "flags": [
-          "--enforce-eager"
-        ],
-        "envs": [],
-        "enum_values": []
-      },
-      "applies_to": {
-        "hardware": [
-          "nvidia",
-          "cpu"
-        ],
-        "model_traits": {
-          "architecture": "moe"
-        },
-        "quant": [
-          "mxfp8"
-        ]
-      },
-      "evidence": {
-        "source": "release-notes-area",
-        "section": "Large Scale Serving",
-        "prs": [
-          "51114",
-          "51398",
-          "51824",
-          "51924",
-          "52632",
-          "53008"
-        ],
-        "text": "**MoE communication**: DeepEP v2 receiver CPU overhead (#51114) and MXFP8 activation scale dispatch (#51398), FlashInfer one-sided All2All refinements (#51924), DeepEP v2 fixes for `--enforce-eager` startup (#51824) and the decode/cudagraph path (#52632), NCCL>=2.31 heap overflow fix (#53008)",
-        "also": []
-      },
-      "since": "v0.29.0",
-      "caveat": null,
-      "required_floor": null,
-      "floor_note": null,
-      "evidence_sentence": null,
-      "install": null,
-      "note": null,
-      "supporting_sentence": {
-        "dimension": "cpu",
-        "sentence": "**MoE communication**: DeepEP v2 receiver CPU overhead (#51114) and MXFP8 activation scale dispatch (#51398), FlashInfer one-sided All2All refinements (#51924), DeepEP v2 fixes for `--enforce-eager` startup (#51824) and the decode/cudagraph"
-      },
-      "reverse_hits": [],
-      "cohort": [
-        {
-          "file": "models/MiniMaxAI/MiniMax-M3.yaml",
-          "why": "hardware nvidia; traits match; quant mxfp8",
-          "architecture": "moe",
-          "precisions": [
-            "bf16",
-            "mxfp8",
-            "nvfp4",
-            "mxfp4"
-          ],
-          "matched_hardware": [],
-          "matched_quant": [
-            "mxfp8"
-          ],
-          "conflicts": [],
-          "hardware_keys": [
-            "h200",
-            "b200",
-            "b300",
-            "mi300x",
-            "mi355x",
-            "amd",
-            "blackwell",
-            "h100"
-          ],
-          "floor": "0.24.0"
-        },
-        {
-          "file": "models/tencent/Hy4-preview.yaml",
-          "why": "hardware nvidia; traits match; quant mxfp8",
-          "architecture": "moe",
-          "precisions": [
-            "bf16",
-            "mxfp8"
-          ],
-          "matched_hardware": [],
-          "matched_quant": [
-            "mxfp8"
-          ],
-          "conflicts": [],
-          "hardware_keys": [
-            "b200",
-            "b300",
-            "mi300x",
-            "mi325x",
-            "mi355x",
-            "blackwell"
-          ],
-          "floor": "0.29.0"
-        }
-      ],
-      "excluded_already_using": []
+      "kind": "out_of_scope",
+      "cohort": [],
+      "skipped": "DeepEP/All2All bug fixes; --enforce-eager is mentioned as a fixed path, not the enabler"
     },
     {
       "id": "new-endpoints-options-max-num-queued-reqs-max-nu",
       "title": "New endpoints & options: --max-num-queued-reqs / --max-num-queued-tokens",
       "concept": "scheduling",
-      "confidence": "high",
+      "kind": "out_of_scope",
       "cohort": [],
-      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+      "skipped": "scheduler queue limits — operator tuning, not recipe content"
     },
     {
       "id": "rust-frontend-generation-config-vllm",
@@ -1069,15 +1102,8 @@
       "title": "Model Runner V2 is now the default for all models: completing the rollout that began with pooling models",
       "concept": "compilation",
       "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "spec_decoding",
-        "sentence": "MRV2 also gained CUDA graph memory profiling for KV cache auto-sizing (#53306), batch-sharded sampling that cuts per-step logits memory by 1/TP (#50465), prompt embeds (#42963), `extract_hidden_states` speculation (#49811), padded FULL cuda"
-      },
       "cohort": [],
-      "since": "v0.29.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
     },
     {
       "id": "hy4-preview-tencent-s-770b-49b-active-moe-with-g",
@@ -1091,16 +1117,9 @@
       "id": "kimi-k3-and-deepseek-v4-performance-fused-mxfp4-",
       "title": "Kimi-K3 and DeepSeek V4 performance: fused MXFP4 top-k finalization in the K3 latent tail (about 5% E2E latency, #53152)",
       "concept": "quantization",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "hopper",
-        "sentence": "**Kimi-K3 and DeepSeek V4 performance**: fused MXFP4 top-k finalization in the K3 latent tail (about 5% E2E latency, #53152), K3 Mamba metadata preparation in one Triton launch (6.6-7.6x kernel speedup, #52388), tuned Hopper low-latency GEM"
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "since": "v0.29.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "model-specific support/perf work, automatic — nothing a recipe enables"
     },
     {
       "id": "per-request-acceptance-stats-in-openai-api-respo",
@@ -1186,21 +1205,14 @@
       "id": "internal-prefill-checkpoints-deliver-a-9-25-ttft",
       "title": "internal prefill checkpoints deliver a 9%-25% TTFT improvement",
       "concept": "spec_decoding",
-      "confidence": "medium",
-      "supporting_sentence": {
-        "dimension": "dense",
-        "sentence": "`prefix_cache_retention_interval` is now a CLI argument defaulting to 0 (#52216), with dense retention automatically restored for hybrid models using EAGLE/MTP (#55760, #55861)."
-      },
+      "kind": "out_of_scope",
       "cohort": [],
-      "since": "v0.29.0",
-      "caveat": null,
-      "reverse_hits": [],
-      "skipped": "automatic, and no recipe pins the old default, keeps a retired workaround or documents it — nothing to edit"
+      "skipped": "automatic TTFT improvement, no enabler and no bounded cohort"
     },
     {
       "id": "flashinfer-all-reduce-enabled-by-default-for-tp-",
       "title": "FlashInfer all-reduce enabled by default for TP CUDA groups, opt out with VLLM_ALLREDUCE_USE_FLASHINFER=0",
-      "concept": "attention_backend",
+      "concept": "parallelism",
       "confidence": "medium",
       "cohort": [],
       "skipped": "no non-wildcard hardware/model dimension backed by a sentence in the evidence — brand alone is not a dimension"
@@ -1212,6 +1224,14 @@
       "confidence": "medium",
       "cohort": [],
       "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
+    },
+    {
+      "id": "ten-deprecated-model-architectures-removed",
+      "title": "ten deprecated model architectures removed",
+      "concept": "moe_backend",
+      "kind": "breaking",
+      "cohort": [],
+      "skipped": "breaking change — belongs in the stale section"
     },
     {
       "id": "flexolmo-olmo3-hunyuan-v1-and-hunyuan-vl-are-now",
@@ -1254,35 +1274,20 @@
       "skipped": "breaking change — belongs in the stale section"
     },
     {
-      "id": "endpoint-plugins-vllm-plugins",
-      "title": "Endpoint Plugins: VLLM_PLUGINS",
-      "concept": "other",
-      "kind": "out_of_scope",
-      "cohort": [],
-      "skipped": "out of scope"
-    },
-    {
-      "id": "b12x-linear-and-moe-backends",
-      "title": "b12x Linear and MoE Backends",
+      "id": "b12x-linear-and-moe-backends/linear",
+      "title": "b12x Linear and MoE Backends — --linear-backend b12x",
       "concept": "kernel",
       "effect": "perf",
       "confidence": "high",
       "how_enabled": {
         "mode": "explicit",
         "flags": [
-          "--linear-backend",
-          "--moe-backend"
+          "--linear-backend"
         ],
-        "envs": [
-          "VLLM_B12X_MOE_FP4_FORCE_A16"
-        ],
+        "envs": [],
         "enum_values": [
           {
             "flag": "--linear-backend",
-            "value": "b12x"
-          },
-          {
-            "flag": "--moe-backend",
             "value": "b12x"
           }
         ]
@@ -1299,14 +1304,12 @@
           "rtx_pro_6000_4x",
           "rtx_pro_6000_8x"
         ],
-        "model_traits": {
-          "architecture": "moe"
-        },
+        "model_traits": {},
         "quant": [
           "fp8",
-          "mxfp4",
           "mxfp8",
-          "nvfp4"
+          "nvfp4",
+          "mxfp4"
         ],
         "support_evidence": [
           {
@@ -1389,264 +1392,22 @@
         "source": "docs-diff",
         "section": "docs/features/quantization/b12x.md",
         "prs": [],
-        "text": "# b12x Linear and MoE Backends\n\n[b12x](https://pypi.org/project/b12x/) provides optional CUDA kernels for\nNVIDIA SM120 and SM121 GPUs. Install the dependency with:\n\n```bash\nuv pip install \"vllm[b12x]\"\n```\n\nb12x linear kernels participate in automatic selection after established\noptimized backends and before emulation. Select the linear and MoE backends\nexplicitly with:\n\n```bash\nvllm serve <model> \\\n    --linear-backend b12x \\\n    --moe-backend b12x\n```\n\nOnly pass `--moe-backend b12x` for a compatible NVFP4 or MXFP4 MoE model. The\nlinear and MoE backends can be selected independently.\n\nb12x use",
+        "text": "# b12x Linear and MoE Backends\n[b12x](https://pypi.org/project/b12x/) provides optional CUDA kernels for\nb12x linear kernels participate in automatic selection after established\noptimized backends and before emulation. Select the linear and MoE backends\nexplicitly with:\nvllm serve <model> \\\n    --linear-backend b12x \\\n    --moe-backend b12x\nOnly pass `--moe-backend b12x` for a compatible NVFP4 or MXFP4 MoE model. The\nlinear and MoE backends can be selected independently.\n\nb12x uses MXFP8 activations by default for MXFP4 MoE and the checkpoint's\nactivation format for NVFP4 MoE. MXFP4 falls back",
         "also": []
       },
+      "part": "primary",
       "since": "v0.29.0",
       "caveat": null,
       "required_floor": null,
       "floor_note": null,
       "evidence_sentence": null,
-      "install": null,
+      "install": "uv pip install \"vllm[b12x]\"",
       "note": null,
       "supporting_sentence": {
-        "dimension": "dgx_spark_gb10",
-        "sentence": "# b12x Linear and MoE Backends [b12x](https://pypi.org/project/b12x/) provides optional CUDA kernels for NVIDIA SM120 and SM121 GPUs."
+        "dimension": "mxfp8",
+        "sentence": "b12x uses MXFP8 activations by default for MXFP4 MoE and the checkpoint's activation format for NVFP4 MoE."
       },
-      "reverse_hits": [
-        {
-          "file": "models/Google/gemma-4-12B-it.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.23.0",
-          "line": 133,
-          "snippet": "docker pull vllm/vllm-openai:gemma4-unified            # NVIDIA (CUDA 13; append -cu129 for CUDA 12.9 hosts)",
-          "detail": "guide shows NVIDIA at line 133"
-        },
-        {
-          "file": "models/Google/gemma-4-26B-A4B-it.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.25.0",
-          "line": 319,
-          "snippet": "docker pull vllm/vllm-openai:gemma4-0505-cu129  # NVIDIA Hopper (H100/H200, CUDA 12.9)",
-          "detail": "guide shows NVIDIA at line 319"
-        },
-        {
-          "file": "models/Google/gemma-4-31B-it.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.19.1",
-          "line": 197,
-          "snippet": "docker pull vllm/vllm-openai:gemma4-0505-cu129  # NVIDIA Hopper (H100/H200, CUDA 12.9)",
-          "detail": "guide shows NVIDIA at line 197"
-        },
-        {
-          "file": "models/Google/gemma-4-E2B-it.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.19.1",
-          "line": 148,
-          "snippet": "docker pull vllm/vllm-openai:gemma4-0505-cu129  # NVIDIA Hopper (H100/H200, CUDA 12.9)",
-          "detail": "guide shows NVIDIA at line 148"
-        },
-        {
-          "file": "models/Google/gemma-4-E4B-it.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.19.1",
-          "line": 147,
-          "snippet": "docker pull vllm/vllm-openai:gemma4-0505-cu129  # NVIDIA Hopper (H100/H200, CUDA 12.9)",
-          "detail": "guide shows NVIDIA at line 147"
-        },
-        {
-          "file": "models/MiniMaxAI/MiniMax-M3.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.24.0",
-          "line": 915,
-          "snippet": "backend (FlashInfer on NVIDIA, `--mm-encoder-attn-backend FLASHINFER`;",
-          "detail": "guide shows NVIDIA at line 915"
-        },
-        {
-          "file": "models/Qwen/Qwen3-Coder-480B-A35B-Instruct.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.10.0",
-          "line": 93,
-          "snippet": "[Qwen3-Coder](https://github.com/QwenLM/Qwen3-Coder) is an advanced large language model created by the Qwen team. `Qwen",
-          "detail": "guide shows NVIDIA at line 93"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-R1.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.12.0",
-          "line": 101,
-          "snippet": "to both. DeepSeek publishes a refreshed checkpoint as `DeepSeek-R1-0528`, and NVIDIA",
-          "detail": "guide shows NVIDIA at line 101"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.20.0",
-          "line": 695,
-          "snippet": "An **NVFP4 variant** (`nvidia/DeepSeek-V4-Flash-NVFP4`) is also available — NVIDIA",
-          "detail": "guide shows NVIDIA at line 695"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4-Pro.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.20.0",
-          "line": 285,
-          "snippet": "An **NVFP4 variant** (`nvidia/DeepSeek-V4-Pro-NVFP4`) is also available — NVIDIA",
-          "detail": "guide shows NVIDIA at line 285"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4.1-Flash.yaml",
-          "kind": "stale-guide-text",
-          "actionable": true,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.30.0",
-          "line": 385,
-          "snippet": "only offers Docker. On NVIDIA that is `vllm/vllm-openai:nightly`: the architecture",
-          "detail": "guide shows NVIDIA at line 385"
-        },
-        {
-          "file": "models/inclusionAI/Ming-omni-tts-0.5B.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.22.0",
-          "line": 83,
-          "snippet": "NVIDIA CUDA path uses the same `vllm serve` command shown below.",
-          "detail": "guide shows NVIDIA at line 83"
-        },
-        {
-          "file": "models/nvidia/Cosmos3-Nano.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.21.0",
-          "line": 169,
-          "snippet": "\"vllm-cosmos3 @ git+https://github.com/NVIDIA/cosmos-framework.git#subdirectory=packages/vllm-cosmos3\" \\",
-          "detail": "guide shows NVIDIA at line 169"
-        },
-        {
-          "file": "models/nvidia/Cosmos3-Super.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.21.0",
-          "line": 181,
-          "snippet": "\"vllm-cosmos3 @ git+https://github.com/NVIDIA/cosmos-framework.git#subdirectory=packages/vllm-cosmos3\" \\",
-          "detail": "guide shows NVIDIA at line 181"
-        },
-        {
-          "file": "models/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.17.0",
-          "line": 141,
-          "snippet": "vllm serve nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8 \\",
-          "detail": "guide shows NVIDIA at line 141"
-        },
-        {
-          "file": "models/nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.11.2",
-          "line": 120,
-          "snippet": "wget https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16/resolve/main/nano_v3_reasoning_parser.py",
-          "detail": "guide shows NVIDIA at line 120"
-        },
-        {
-          "file": "models/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.17.1",
-          "line": 153,
-          "snippet": "vllm serve nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16 \\",
-          "detail": "guide shows NVIDIA at line 153"
-        },
-        {
-          "file": "models/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.22.0",
-          "line": 110,
-          "snippet": "vllm serve nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4 \\",
-          "detail": "guide shows NVIDIA at line 110"
-        },
-        {
-          "file": "models/nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.11.1",
-          "line": 104,
-          "snippet": "export CHECKPOINT_PATH=\"nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16\"",
-          "detail": "guide shows NVIDIA at line 104"
-        },
-        {
-          "file": "models/nvidia/NVIDIA-Nemotron-Nano-9B-v2.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.10.1",
-          "line": 100,
-          "snippet": "wget https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-9B-v2/resolve/main/nemotron_toolcall_parser_no_streaming.py",
-          "detail": "guide shows NVIDIA at line 100"
-        },
-        {
-          "file": "models/tencent/Hy3.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.28.0",
-          "line": 199,
-          "snippet": "> --group-add render` (the recipe's NVIDIA `docker run` above is CUDA-only).",
-          "detail": "guide shows NVIDIA at line 199"
-        },
-        {
-          "file": "models/zai-org/GLM-5.2.yaml",
-          "kind": "stale-guide-text",
-          "actionable": false,
-          "name": "NVIDIA",
-          "value": null,
-          "floor": "0.24.0",
-          "line": 320,
-          "snippet": "The `nvidia/GLM-5.2-NVFP4` variant is NVIDIA's modelopt re-quantization: only the MoE",
-          "detail": "guide shows NVIDIA at line 320"
-        }
-      ],
+      "reverse_hits": [],
       "cohort": [
         {
           "file": "models/Google/diffusiongemma-26B-A4B-it.yaml",
@@ -1738,6 +1499,41 @@
           "floor": "0.20.0"
         },
         {
+          "file": "models/Qwen/Qwen3.6-27B.yaml",
+          "why": "hardware dgx_spark_gb10,rtx_5090,rtx_pro_6000; traits match; quant fp8,mxfp8,nvfp4",
+          "architecture": "dense",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4",
+            "mxfp8",
+            "int8"
+          ],
+          "matched_hardware": [
+            "dgx_spark_gb10",
+            "rtx_pro_6000",
+            "rtx_5090"
+          ],
+          "matched_quant": [
+            "fp8",
+            "mxfp8",
+            "nvfp4"
+          ],
+          "conflicts": [],
+          "hardware_keys": [
+            "dgx_spark_gb10",
+            "rtx_pro_6000",
+            "dgx_station_gb300",
+            "rtx_5090",
+            "ascend_950dt",
+            "ascend_910c",
+            "arc_pro_b60",
+            "arc_pro_b70",
+            "xpu"
+          ],
+          "floor": "0.17.0"
+        },
+        {
           "file": "models/Qwen/Qwen3.6-35B-A3B.yaml",
           "why": "hardware dgx_spark_gb10,rtx_5090,rtx_pro_6000; traits match; quant fp8,nvfp4",
           "architecture": "moe",
@@ -1755,32 +1551,7 @@
             "fp8",
             "nvfp4"
           ],
-          "conflicts": [
-            {
-              "flag": "--moe-backend",
-              "current": "marlin",
-              "proposed": "b12x",
-              "path": "variants.nvfp4.hardware_overrides.dgx_spark_gb10.extra_args"
-            },
-            {
-              "flag": "--moe-backend",
-              "current": "marlin",
-              "proposed": "b12x",
-              "path": "variants.nvfp4.hardware_overrides.dgx_station_gb300.extra_args"
-            },
-            {
-              "flag": "--moe-backend",
-              "current": "marlin",
-              "proposed": "b12x",
-              "path": "variants.nvfp4.hardware_overrides.rtx_pro_6000.extra_args"
-            },
-            {
-              "flag": "--moe-backend",
-              "current": "marlin",
-              "proposed": "b12x",
-              "path": "variants.nvfp4.hardware_overrides.rtx_5090.extra_args"
-            }
-          ],
+          "conflicts": [],
           "hardware_keys": [
             "dgx_spark_gb10",
             "h100",
@@ -1795,6 +1566,38 @@
             "arc_pro_b70",
             "amd",
             "xpu"
+          ],
+          "floor": "0.17.0"
+        },
+        {
+          "file": "models/Qwen/Qwen3.8-27B.yaml",
+          "why": "hardware dgx_spark_gb10,rtx_5090,rtx_5090_2x,rtx_pro_6000; traits match; quant fp8,nvfp4",
+          "architecture": "dense",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4",
+            "int4",
+            "int8"
+          ],
+          "matched_hardware": [
+            "rtx_5090",
+            "rtx_5090_2x",
+            "rtx_pro_6000",
+            "dgx_spark_gb10"
+          ],
+          "matched_quant": [
+            "fp8",
+            "nvfp4"
+          ],
+          "conflicts": [],
+          "hardware_keys": [
+            "gb300",
+            "rtx_5090",
+            "rtx_5090_2x",
+            "rtx_pro_6000",
+            "dgx_spark_gb10",
+            "ascend_950pr"
           ],
           "floor": "0.17.0"
         },
@@ -1814,20 +1617,7 @@
             "fp8",
             "nvfp4"
           ],
-          "conflicts": [
-            {
-              "flag": "--moe-backend",
-              "current": "marlin",
-              "proposed": "b12x",
-              "path": "variants.default.hardware_overrides.rtx_pro_6000_4x.extra_args"
-            },
-            {
-              "flag": "--moe-backend",
-              "current": "triton",
-              "proposed": "b12x",
-              "path": "hardware_overrides.hopper.extra_args"
-            }
-          ],
+          "conflicts": [],
           "hardware_keys": [
             "h200",
             "h100",
@@ -1863,6 +1653,40 @@
             "mi300x",
             "mi355x",
             "amd"
+          ],
+          "floor": "0.28.0"
+        },
+        {
+          "file": "models/meta-models/Muse-Glimmer-30B.yaml",
+          "why": "hardware dgx_spark_gb10,rtx_5090,rtx_5090_2x; traits match; quant fp8,nvfp4",
+          "architecture": "dense",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "matched_hardware": [
+            "dgx_spark_gb10",
+            "rtx_5090",
+            "rtx_5090_2x"
+          ],
+          "matched_quant": [
+            "fp8",
+            "nvfp4"
+          ],
+          "conflicts": [],
+          "hardware_keys": [
+            "gb300",
+            "dgx_spark_gb10",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "arc_pro_b60",
+            "arc_pro_b70",
+            "rtx_5090",
+            "rtx_5090_2x",
+            "amd",
+            "xpu"
           ],
           "floor": "0.28.0"
         },
@@ -1921,7 +1745,391 @@
               "current": "marlin",
               "proposed": "b12x",
               "path": "variants.default.hardware_overrides.rtx_pro_6000.extra_args"
+            }
+          ],
+          "hardware_keys": [
+            "h100",
+            "dgx_spark_gb10",
+            "rtx_pro_6000",
+            "dgx_station_gb300",
+            "hopper"
+          ],
+          "floor": "0.27.1"
+        }
+      ],
+      "excluded_already_using": [
+        {
+          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
+          "reason": "already passes --linear-backend b12x"
+        }
+      ]
+    },
+    {
+      "id": "b12x-linear-and-moe-backends/moe",
+      "title": "b12x Linear and MoE Backends — --moe-backend b12x (NVFP4/MXFP4 MoE, TP only)",
+      "concept": "kernel",
+      "effect": "perf",
+      "confidence": "high",
+      "how_enabled": {
+        "mode": "explicit",
+        "flags": [
+          "--moe-backend"
+        ],
+        "envs": [],
+        "enum_values": [
+          {
+            "flag": "--moe-backend",
+            "value": "b12x"
+          }
+        ]
+      },
+      "applies_to": {
+        "hardware": [
+          "dgx_spark_gb10",
+          "rtx_5090",
+          "rtx_5090_2x",
+          "rtx_pro_5000",
+          "rtx_pro_5000_4x",
+          "rtx_pro_6000",
+          "rtx_pro_6000_2x",
+          "rtx_pro_6000_4x",
+          "rtx_pro_6000_8x"
+        ],
+        "model_traits": {
+          "architecture": "moe"
+        },
+        "quant": [
+          "nvfp4",
+          "mxfp4"
+        ],
+        "support_evidence": [
+          {
+            "value": "b12x",
+            "modules": [
+              "vllm/model_executor/kernels/linear/mxfp4/b12x.py",
+              "vllm/model_executor/kernels/linear/mxfp8/b12x.py",
+              "vllm/model_executor/kernels/linear/nvfp4/b12x.py",
+              "vllm/model_executor/kernels/linear/scaled_mm/b12x.py"
+            ],
+            "evidence": [
+              {
+                "file": "vllm/model_executor/kernels/linear/mxfp4/b12x.py",
+                "capability": 120,
+                "why": "compute capability 120"
+              },
+              {
+                "file": "vllm/model_executor/kernels/linear/mxfp4/b12x.py",
+                "line": 57,
+                "why": "current_platform.is_cuda()"
+              },
+              {
+                "file": "vllm/model_executor/kernels/linear/mxfp8/b12x.py",
+                "capability": 120,
+                "why": "compute capability 120"
+              },
+              {
+                "file": "vllm/model_executor/kernels/linear/mxfp8/b12x.py",
+                "line": 54,
+                "why": "current_platform.is_cuda()"
+              }
+            ],
+            "limits": [
+              "B12X MXFP4 kernels require a Blackwell 12x device",
+              "b12x native MXFP4 GEMM is not supported",
+              "B12X MXFP4 GEMM requires dynamic MXFP4 activations",
+              "b12x MXFP8 kernels require a Blackwell 12x device"
+            ]
+          },
+          {
+            "value": "b12x",
+            "modules": [
+              "vllm/model_executor/kernels/linear/mxfp4/b12x.py",
+              "vllm/model_executor/kernels/linear/mxfp8/b12x.py",
+              "vllm/model_executor/kernels/linear/nvfp4/b12x.py",
+              "vllm/model_executor/kernels/linear/scaled_mm/b12x.py"
+            ],
+            "evidence": [
+              {
+                "file": "vllm/model_executor/kernels/linear/mxfp4/b12x.py",
+                "capability": 120,
+                "why": "compute capability 120"
+              },
+              {
+                "file": "vllm/model_executor/kernels/linear/mxfp4/b12x.py",
+                "line": 57,
+                "why": "current_platform.is_cuda()"
+              },
+              {
+                "file": "vllm/model_executor/kernels/linear/mxfp8/b12x.py",
+                "capability": 120,
+                "why": "compute capability 120"
+              },
+              {
+                "file": "vllm/model_executor/kernels/linear/mxfp8/b12x.py",
+                "line": 54,
+                "why": "current_platform.is_cuda()"
+              }
+            ],
+            "limits": [
+              "B12X MXFP4 kernels require a Blackwell 12x device",
+              "b12x native MXFP4 GEMM is not supported",
+              "B12X MXFP4 GEMM requires dynamic MXFP4 activations",
+              "b12x MXFP8 kernels require a Blackwell 12x device"
+            ]
+          }
+        ]
+      },
+      "evidence": {
+        "source": "docs-diff",
+        "section": "docs/features/quantization/b12x.md",
+        "prs": [],
+        "text": "# b12x Linear and MoE Backends\n[b12x](https://pypi.org/project/b12x/) provides optional CUDA kernels for\nb12x linear kernels participate in automatic selection after established\noptimized backends and before emulation. Select the linear and MoE backends\nexplicitly with:\nvllm serve <model> \\\n    --linear-backend b12x \\\n    --moe-backend b12x\nOnly pass `--moe-backend b12x` for a compatible NVFP4 or MXFP4 MoE model. The\nlinear and MoE backends can be selected independently.\n\nb12x uses MXFP8 activations by default for MXFP4 MoE and the checkpoint's\nactivation format for NVFP4 MoE. MXFP4 falls back",
+        "also": []
+      },
+      "part": "primary",
+      "since": "v0.29.0",
+      "caveat": null,
+      "required_floor": null,
+      "floor_note": null,
+      "evidence_sentence": null,
+      "install": "uv pip install \"vllm[b12x]\"",
+      "note": null,
+      "supporting_sentence": {
+        "dimension": "nvfp4",
+        "sentence": "Select the linear and MoE backends explicitly with: vllm serve <model> \\ --linear-backend b12x \\ --moe-backend b12x Only pass `--moe-backend b12x` for a compatible NVFP4 or MXFP4 MoE model."
+      },
+      "reverse_hits": [],
+      "cohort": [
+        {
+          "file": "models/Google/diffusiongemma-26B-A4B-it.yaml",
+          "why": "hardware dgx_spark_gb10; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "matched_hardware": [
+            "dgx_spark_gb10"
+          ],
+          "matched_quant": [
+            "nvfp4"
+          ],
+          "conflicts": [],
+          "hardware_keys": [
+            "h100",
+            "h200",
+            "dgx_spark_gb10",
+            "xeon6",
+            "cpu"
+          ],
+          "floor": "0.24.0"
+        },
+        {
+          "file": "models/Google/gemma-4-26B-A4B-it.yaml",
+          "why": "hardware dgx_spark_gb10,rtx_5090,rtx_pro_6000; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "matched_hardware": [
+            "dgx_spark_gb10",
+            "rtx_pro_6000",
+            "rtx_5090"
+          ],
+          "matched_quant": [
+            "nvfp4"
+          ],
+          "conflicts": [],
+          "hardware_keys": [
+            "h100",
+            "h200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "trillium",
+            "ironwood",
+            "xeon6",
+            "dgx_spark_gb10",
+            "dgx_station_gb300",
+            "rtx_pro_6000",
+            "rtx_5090"
+          ],
+          "floor": "0.25.0"
+        },
+        {
+          "file": "models/MiniMaxAI/MiniMax-M2.7.yaml",
+          "why": "hardware rtx_pro_6000_2x; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "fp8",
+            "nvfp4"
+          ],
+          "matched_hardware": [
+            "rtx_pro_6000_2x"
+          ],
+          "matched_quant": [
+            "nvfp4"
+          ],
+          "conflicts": [],
+          "hardware_keys": [
+            "h100",
+            "h200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "dgx_station_gb300",
+            "rtx_pro_6000_2x",
+            "amd"
+          ],
+          "floor": "0.20.0"
+        },
+        {
+          "file": "models/Qwen/Qwen3.6-35B-A3B.yaml",
+          "why": "hardware dgx_spark_gb10,rtx_5090,rtx_pro_6000; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "matched_hardware": [
+            "dgx_spark_gb10",
+            "rtx_pro_6000",
+            "rtx_5090"
+          ],
+          "matched_quant": [
+            "nvfp4"
+          ],
+          "conflicts": [
+            {
+              "flag": "--moe-backend",
+              "current": "marlin",
+              "proposed": "b12x",
+              "path": "variants.nvfp4.hardware_overrides.dgx_spark_gb10.extra_args"
             },
+            {
+              "flag": "--moe-backend",
+              "current": "marlin",
+              "proposed": "b12x",
+              "path": "variants.nvfp4.hardware_overrides.dgx_station_gb300.extra_args"
+            },
+            {
+              "flag": "--moe-backend",
+              "current": "marlin",
+              "proposed": "b12x",
+              "path": "variants.nvfp4.hardware_overrides.rtx_pro_6000.extra_args"
+            },
+            {
+              "flag": "--moe-backend",
+              "current": "marlin",
+              "proposed": "b12x",
+              "path": "variants.nvfp4.hardware_overrides.rtx_5090.extra_args"
+            }
+          ],
+          "hardware_keys": [
+            "dgx_spark_gb10",
+            "h100",
+            "h200",
+            "mi300x",
+            "mi325x",
+            "mi355x",
+            "rtx_pro_6000",
+            "dgx_station_gb300",
+            "rtx_5090",
+            "arc_pro_b60",
+            "arc_pro_b70",
+            "amd",
+            "xpu"
+          ],
+          "floor": "0.17.0"
+        },
+        {
+          "file": "models/Qwen/Qwen3.8-Flash-Next.yaml",
+          "why": "hardware rtx_pro_6000_4x; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "nvfp4",
+            "fp8",
+            "bf16"
+          ],
+          "matched_hardware": [
+            "rtx_pro_6000_4x"
+          ],
+          "matched_quant": [
+            "nvfp4"
+          ],
+          "conflicts": [
+            {
+              "flag": "--moe-backend",
+              "current": "marlin",
+              "proposed": "b12x",
+              "path": "variants.default.hardware_overrides.rtx_pro_6000_4x.extra_args"
+            },
+            {
+              "flag": "--moe-backend",
+              "current": "triton",
+              "proposed": "b12x",
+              "path": "hardware_overrides.hopper.extra_args"
+            }
+          ],
+          "hardware_keys": [
+            "h200",
+            "h100",
+            "gb200",
+            "gb300",
+            "mi355x",
+            "rtx_pro_6000_4x",
+            "dgx_station_gb300",
+            "hopper"
+          ],
+          "floor": "0.29.0"
+        },
+        {
+          "file": "models/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16.yaml",
+          "why": "hardware dgx_spark_gb10,rtx_pro_6000; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "bf16",
+            "fp8",
+            "nvfp4"
+          ],
+          "matched_hardware": [
+            "dgx_spark_gb10",
+            "rtx_pro_6000"
+          ],
+          "matched_quant": [
+            "nvfp4"
+          ],
+          "conflicts": [],
+          "hardware_keys": [
+            "h100",
+            "h200",
+            "b200",
+            "dgx_station_gb300",
+            "dgx_spark_gb10",
+            "rtx_pro_6000"
+          ],
+          "floor": "0.17.1"
+        },
+        {
+          "file": "models/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16.yaml",
+          "why": "hardware dgx_spark_gb10,rtx_pro_6000; traits match; quant nvfp4",
+          "architecture": "moe",
+          "precisions": [
+            "nvfp4",
+            "bf16"
+          ],
+          "matched_hardware": [
+            "dgx_spark_gb10",
+            "rtx_pro_6000"
+          ],
+          "matched_quant": [
+            "nvfp4"
+          ],
+          "conflicts": [
             {
               "flag": "--moe-backend",
               "current": "marlin",
@@ -1954,324 +2162,7 @@
       "excluded_already_using": [
         {
           "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
-          "reason": "already passes --linear-backend b12x"
-        }
-      ]
-    },
-    {
-      "id": "adaptive-verification-enforce-eager-speculative-",
-      "title": "Adaptive Verification: --enforce-eager, --speculative-config, --tokenizer-mode",
-      "concept": "runtime",
-      "effect": "memory",
-      "confidence": "high",
-      "how_enabled": {
-        "mode": "explicit",
-        "flags": [
-          "--enforce-eager",
-          "--speculative-config",
-          "--tokenizer-mode",
-          "--trust-remote-code"
-        ],
-        "envs": [
-          "VLLM_ADAPTIVE_VERIFICATION_PROFILE_CONTEXT_LEN"
-        ],
-        "enum_values": []
-      },
-      "applies_to": {
-        "hardware": [],
-        "model_traits": {
-          "features": [
-            "spec_decoding"
-          ]
-        },
-        "quant": []
-      },
-      "evidence": {
-        "source": "docs-diff",
-        "section": "docs/features/speculative_decoding/adaptive_verification.md",
-        "prs": [],
-        "text": "# Adaptive Verification\n\nSpeculative decoding buys fewer decode steps with more compute. At batch size 1 that is a good trade: the GPU is memory-bound with spare compute, so the extra draft tokens are close to free. At batch size 256 it is a much more delicate one. Draft tokens now compete with real tokens for the same compute, and every rejected token is compute wasted; with enough of them, throughput drops.\n\nThat matters because per-position acceptance decays fast. While the GPU is memory-bound that slot is effectively free and worth the gamble; once it saturates the gamble has a real throug",
-        "also": []
-      },
-      "since": "v0.29.0",
-      "caveat": null,
-      "required_floor": null,
-      "floor_note": null,
-      "evidence_sentence": null,
-      "install": null,
-      "note": null,
-      "supporting_sentence": {
-        "dimension": "spec_decoding",
-        "sentence": "# Adaptive Verification Speculative decoding buys fewer decode steps with more compute."
-      },
-      "reverse_hits": [],
-      "cohort": [
-        {
-          "file": "models/zai-org/GLM-OCR.yaml",
-          "why": "capability names no hardware; traits match; capability names no quantization",
-          "architecture": "dense",
-          "precisions": [
-            "bf16"
-          ],
-          "matched_hardware": [],
-          "matched_quant": [],
-          "conflicts": [],
-          "hardware_keys": [],
-          "floor": "0.12.0"
-        }
-      ],
-      "excluded_already_using": [
-        {
-          "file": "models/Google/gemma-4-12B-it.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/Google/gemma-4-26B-A4B-it.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/Google/gemma-4-31B-it.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/Google/gemma-4-E2B-it.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/Google/gemma-4-E4B-it.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/JetBrains/Mellum2-12B-A2.5B-Thinking.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/MiniMaxAI/MiniMax-M3.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/Qwen/Qwen3-Next-80B-A3B-Instruct.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/Qwen/Qwen3.5-122B-A10B.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/Qwen/Qwen3.5-27B.yaml",
-          "reason": "already passes --enforce-eager"
-        },
-        {
-          "file": "models/Qwen/Qwen3.5-2B.yaml",
-          "reason": "already passes --enforce-eager"
-        },
-        {
-          "file": "models/Qwen/Qwen3.5-35B-A3B.yaml",
-          "reason": "already passes --enforce-eager"
-        },
-        {
-          "file": "models/Qwen/Qwen3.5-397B-A17B.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/Qwen/Qwen3.5-4B.yaml",
-          "reason": "already passes --enforce-eager"
-        },
-        {
-          "file": "models/Qwen/Qwen3.5-9B.yaml",
-          "reason": "already passes --enforce-eager"
-        },
-        {
-          "file": "models/Qwen/Qwen3.6-27B.yaml",
-          "reason": "already passes --enforce-eager"
-        },
-        {
-          "file": "models/Qwen/Qwen3.6-35B-A3B.yaml",
-          "reason": "already passes --enforce-eager"
-        },
-        {
-          "file": "models/Qwen/Qwen3.8-2.4T-A95B.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/Qwen/Qwen3.8-27B.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/Qwen/Qwen3.8-Flash-Next.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/XiaomiMiMo/MiMo-V2.5-Pro.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/XiaomiMiMo/MiMo-V2.5.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/baidu/ERNIE-4.5-21B-A3B-PT.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-V3.2.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4-Flash.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4-Pro.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/deepseek-ai/DeepSeek-V4.1-Flash.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/dots-studio/dots3-note-prev.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/inclusionAI/Ling-3.0-flash.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/internlm/Intern-S2-397B.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/internlm/Intern-S2-Preview.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/meta-llama/Llama-3.1-8B-Instruct.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/meta-models/Muse-Glimmer-30B.yaml",
-          "reason": "already passes --enforce-eager"
-        },
-        {
-          "file": "models/mindlab-research/Macaron-V1-Coding-Venti.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/mistralai/Mistral-Medium-3.5-128B.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/mistralai/Mistral-Small-4-119B-2603.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/moonshotai/Kimi-K2.5.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/moonshotai/Kimi-K2.6.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/moonshotai/Kimi-K2.7-Code.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/moonshotai/Kimi-K3.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/openai/gpt-oss-120b.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/poolside/Laguna-S-2.1.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/poolside/Laguna-XS-2.1.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/poolside/Laguna-XS.2.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/stepfun-ai/Step-3.5-Flash.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/stepfun-ai/Step-3.7-Flash.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/tencent/Hy3-preview.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/tencent/Hy3.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/tencent/Hy4-preview.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/thinkingmachines/Inkling-Small.yaml",
-          "reason": "already passes --enforce-eager"
-        },
-        {
-          "file": "models/thinkingmachines/Inkling.yaml",
-          "reason": "already passes --enforce-eager"
-        },
-        {
-          "file": "models/zai-org/GLM-4.5.yaml",
-          "reason": "already passes --trust-remote-code"
-        },
-        {
-          "file": "models/zai-org/GLM-4.6.yaml",
-          "reason": "already passes --trust-remote-code"
-        },
-        {
-          "file": "models/zai-org/GLM-4.7.yaml",
-          "reason": "already passes --trust-remote-code"
-        },
-        {
-          "file": "models/zai-org/GLM-5.1.yaml",
-          "reason": "already passes --trust-remote-code"
-        },
-        {
-          "file": "models/zai-org/GLM-5.2.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/zai-org/GLM-5.3-Flash.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/zai-org/GLM-5.3.yaml",
-          "reason": "already passes --speculative-config"
-        },
-        {
-          "file": "models/zai-org/GLM-5.yaml",
-          "reason": "already passes --trust-remote-code"
+          "reason": "already passes --moe-backend b12x"
         }
       ]
     },
@@ -2284,16 +2175,8 @@
       "skipped": "benchmark/profiling/serving-infra tooling, not a recipe capability"
     },
     {
-      "id": "sampling-mask-distribution-replay",
-      "title": "Sampling Mask (Distribution Replay)",
-      "concept": "runtime",
-      "confidence": "high",
-      "cohort": [],
-      "skipped": "no hardware, model-trait or quant evidence — cohort not computed"
-    },
-    {
-      "id": "security-api-key-mm-hasher-algorithm-vllm-max-me",
-      "title": "Security: --api-key, --mm-hasher-algorithm, VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB",
+      "id": "security-vllm-max-media-download-size-mb",
+      "title": "Security: VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB",
       "concept": "other",
       "kind": "out_of_scope",
       "cohort": [],

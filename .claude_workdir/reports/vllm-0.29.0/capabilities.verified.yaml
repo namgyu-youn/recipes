@@ -1,4 +1,4 @@
-prev: v0.24.0
+prev: v0.28.0
 target: v0.29.0
 capabilities:
 - id: flash-attn-mla-sparse-hopper-sparse-mla-backend-
@@ -26,8 +26,7 @@ capabilities:
     - h200
     model_traits:
       attention: mla
-    quant:
-    - fp8
+    quant: []
     support_evidence:
     - value: FLASH_ATTN_MLA_SPARSE
       modules:
@@ -111,7 +110,8 @@ capabilities:
     - mi325x
     - mi350x
     - mi355x
-    model_traits: {}
+    model_traits:
+      attention: mla
     quant: []
     support_evidence:
     - value: ROCM_AITER_FA
@@ -138,7 +138,7 @@ capabilities:
   - --attention-backend=ROCM_AITER_FA is an accepted value at v0.29.0
   confidence: high
 - id: model-runner-v2-is-now-the-default-for-all-dense
-  kind: capability
+  kind: out_of_scope
   concept: compilation
   title: 'Model Runner V2 is now the default for all dense models: Building on quantized-model support
     from the previous release, MRv2 is now the standard execution path, with new support for EVS, realtime
@@ -150,7 +150,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: true
-  drop_reason: null
+  drop_reason: superseded by the v0.29.0 "MRv2 default for all models" entry
   reverse_markers:
     now_default: []
     obsolete: []
@@ -220,7 +220,7 @@ capabilities:
   verified: []
   confidence: medium
 - id: the-transformers-modeling-backend-is-now-as-fast
-  kind: capability
+  kind: out_of_scope
   concept: moe_backend
   title: 'The Transformers modeling backend is now as fast as native vLLM: and gained FP8 MoE support,
     CUDA graph + embed scaling fixes, and migration of GPTBigCode/Starcoder2 and RoBERTa'
@@ -231,7 +231,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: Transformers modeling backend improvement — no recipe serves via it
   reverse_markers:
     now_default: []
     obsolete: []
@@ -445,7 +445,7 @@ capabilities:
   verified: []
   confidence: medium
 - id: new-inkling-model-family-with-a-full-support-sta
-  kind: capability
+  kind: out_of_scope
   concept: spec_decoding
   title: 'New Inkling model family: with a full support stack: base modeling, piecewise CUDA graph support,
     Hopper FA4 relative attention, MTP=1 speculative decoding, LoRA'
@@ -456,7 +456,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: model-specific support/perf work, automatic — nothing a recipe enables
   reverse_markers:
     now_default: []
     obsolete: []
@@ -487,7 +487,7 @@ capabilities:
   verified: []
   confidence: medium
 - id: deepseek-v4-performance-push-across-vendors-a-sp
-  kind: capability
+  kind: out_of_scope
   concept: spec_decoding
   title: 'DeepSeek-V4 performance push: across vendors: a specialized routing kernel (2.94% E2E TPOT,
     #48660), fused_topk_bias (1.5–2x kernel, #47463)'
@@ -498,7 +498,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: model-specific support/perf work, automatic — nothing a recipe enables
   reverse_markers:
     now_default: []
     obsolete: []
@@ -595,7 +595,7 @@ capabilities:
   verified: []
   confidence: medium
 - id: kv-offloading-tiered-secondary-storage-matured-s
-  kind: capability
+  kind: out_of_scope
   concept: parallelism
   title: 'KV offloading & tiered secondary storage: matured substantially: offloading metrics, tier-owned
     event handling, object-store secondary tier with workload identity, DP-replica-aware tiering'
@@ -606,7 +606,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: merged into the v0.28.0 tiered KV offloading entry
   reverse_markers:
     now_default: []
     obsolete: []
@@ -751,7 +751,8 @@ capabilities:
     now_default: []
     obsolete: []
   applies_to:
-    hardware: []
+    hardware:
+    - nvidia
     model_traits:
       architecture: moe
     quant:
@@ -780,9 +781,7 @@ capabilities:
     flags:
     - --linear-backend
     envs: []
-    enum_values:
-    - flag: --linear-backend
-      value: flashinfer_cutedsl
+    enum_values: []
   default_on: false
   drop_reason: null
   reverse_markers:
@@ -793,7 +792,7 @@ capabilities:
     - nvidia
     model_traits: {}
     quant:
-    - bf16
+    - int4
   effect: usability
   evidence:
     source: release-notes-area
@@ -808,10 +807,9 @@ capabilities:
       source: release-notes-area
   verified:
   - --linear-backend exists at v0.29.0
-  - --linear-backend=flashinfer_cutedsl is an accepted value at v0.29.0
   confidence: high
 - id: moe-refactor-fusedmoe-renamed-to-fusedmoefactory
-  kind: capability
+  kind: out_of_scope
   concept: moe_backend
   title: 'MoE refactor: FusedMoE renamed to FusedMoEFactory, MoeWNA16 migrated to the MK oracle scheme'
   since: v0.27.0
@@ -821,7 +819,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: internal MoE refactor (class rename), no user-facing surface
   reverse_markers:
     now_default: []
     obsolete: []
@@ -885,7 +883,7 @@ capabilities:
   - --limit-mm-per-prompt exists at v0.29.0
   confidence: high
 - id: kimi-k3-support-with-a-full-stack-landing-in-one
-  kind: capability
+  kind: out_of_scope
   concept: moe_backend
   title: 'Kimi K3 support: with a full stack landing in one release: core model files and kernels, Python
     and Rust frontends, AttnRes kernels, DeepGEMM support'
@@ -896,7 +894,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: model-specific support/perf work, automatic — nothing a recipe enables
   reverse_markers:
     now_default: []
     obsolete: []
@@ -926,7 +924,7 @@ capabilities:
   verified: []
   confidence: medium
 - id: more-new-models-qwen3-5-text-only-dense-and-moe-
-  kind: capability
+  kind: out_of_scope
   concept: moe_backend
   title: 'More new models: Qwen3.5 text-only dense and MoE models with EVS video token pruning, K-EXAONE-2.0-750B-A37B,
     VaultGemma via the Transformers modeling backend'
@@ -937,7 +935,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: model-specific support/perf work, automatic — nothing a recipe enables
   reverse_markers:
     now_default: []
     obsolete:
@@ -1039,7 +1037,7 @@ capabilities:
   verified: []
   confidence: medium
 - id: deepseek-v4-performance-push-sequence-parallelis
-  kind: capability
+  kind: out_of_scope
   concept: attention_backend
   title: 'DeepSeek-V4 performance push: sequence parallelism, ~2x kernel improvement by skipping empty
     c128 launches, 3.4% E2E TTFT from skipping unneeded topk/router'
@@ -1050,7 +1048,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: model-specific support/perf work, automatic — nothing a recipe enables
   reverse_markers:
     now_default: []
     obsolete: []
@@ -1081,7 +1079,7 @@ capabilities:
   verified: []
   confidence: medium
 - id: model-runner-v2-expands-to-non-generative-worklo
-  kind: capability
+  kind: out_of_scope
   concept: compilation
   title: 'Model Runner V2 expands to non-generative workloads: encoder-only attention, sequence pooling
     for embedding/classification, encoder token classification and token embedding, BGE-M3 pooling'
@@ -1092,7 +1090,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: superseded by the v0.29.0 "MRv2 default for all models" entry
   reverse_markers:
     now_default: []
     obsolete: []
@@ -1353,7 +1351,7 @@ capabilities:
   - --api-key exists at v0.29.0
   confidence: high
 - id: kimi-k3-performance-push-a-major-optimization-ef
-  kind: capability
+  kind: out_of_scope
   concept: parallelism
   title: 'Kimi-K3 performance push: a major optimization effort for Kimi-K3 across the stack — Decode
     Context Parallel (DCP) support, fused FlashKDA decode and prefill kernels'
@@ -1364,7 +1362,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: model-specific support/perf work, automatic — nothing a recipe enables
   reverse_markers:
     now_default: []
     obsolete: []
@@ -1397,7 +1395,7 @@ capabilities:
   verified: []
   confidence: medium
 - id: deepseek-v4-sparse-mla-now-works-end-to-end-for-
-  kind: capability
+  kind: out_of_scope
   concept: spec_decoding
   title: 'DeepSeek V4: sparse MLA now works end-to-end for plain decode, MTP, and DSpark speculative decoding,
     joined by AMD Quark NVFP4 support'
@@ -1408,7 +1406,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: model-specific support/perf work, automatic — nothing a recipe enables
   reverse_markers:
     now_default: []
     obsolete: []
@@ -1476,7 +1474,7 @@ capabilities:
   verified: []
   confidence: medium
 - id: model-runner-v2-maturation-e-p-d-disaggregation-
-  kind: capability
+  kind: out_of_scope
   concept: compilation
   title: 'Model Runner V2 maturation: E/P/D disaggregation, weight offloading, multi-layer MTP KV cache
     support, encoder CUDA graphs'
@@ -1487,7 +1485,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: superseded by the v0.29.0 "MRv2 default for all models" entry
   reverse_markers:
     now_default: []
     obsolete: []
@@ -1667,7 +1665,6 @@ capabilities:
   applies_to:
     hardware:
     - blackwell
-    - nvidia
     model_traits: {}
     quant: []
   effect: usability
@@ -1804,7 +1801,7 @@ capabilities:
   verified: []
   confidence: medium
 - id: kv-offload-tiering-metrics-renamed-from-kv-offlo
-  kind: capability
+  kind: out_of_scope
   concept: kv_cache
   title: KV offload tiering metrics renamed from kv_offload_tiering_block_{queries,hits} to ..._chunk_
   since: v0.28.0
@@ -1814,7 +1811,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: metrics rename — observability, not a serving capability
   reverse_markers:
     now_default: []
     obsolete: []
@@ -1915,8 +1912,10 @@ capabilities:
     now_default: []
     obsolete: []
   applies_to:
-    hardware: []
-    model_traits: {}
+    hardware:
+    - nvidia
+    model_traits:
+      attention: mla
     quant: []
   effect: correctness
   evidence:
@@ -1932,7 +1931,7 @@ capabilities:
   - --dcp-q-replicate exists at v0.29.0
   confidence: high
 - id: moe-communication-deepep-v2-receiver-cpu-overhea
-  kind: capability
+  kind: out_of_scope
   concept: runtime
   title: 'MoE communication: DeepEP v2 receiver CPU overhead and MXFP8 activation scale dispatch, FlashInfer
     one-sided All2All refinements'
@@ -1944,7 +1943,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: DeepEP/All2All bug fixes; --enforce-eager is mentioned as a fixed path, not the enabler
   reverse_markers:
     now_default: []
     obsolete: []
@@ -1975,7 +1974,7 @@ capabilities:
   - --enforce-eager exists at v0.29.0
   confidence: high
 - id: new-endpoints-options-max-num-queued-reqs-max-nu
-  kind: capability
+  kind: out_of_scope
   concept: scheduling
   title: 'New endpoints & options: --max-num-queued-reqs / --max-num-queued-tokens'
   since: v0.29.0
@@ -1987,7 +1986,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: scheduler queue limits — operator tuning, not recipe content
   reverse_markers:
     now_default: []
     obsolete: []
@@ -2090,12 +2089,8 @@ capabilities:
     now_default: []
     obsolete: []
   applies_to:
-    hardware:
-    - amd
-    - nvidia
-    model_traits:
-      features:
-      - spec_decoding
+    hardware: []
+    model_traits: {}
     quant: []
   effect: memory
   evidence:
@@ -2161,7 +2156,7 @@ capabilities:
   verified: []
   confidence: medium
 - id: kimi-k3-and-deepseek-v4-performance-fused-mxfp4-
-  kind: capability
+  kind: out_of_scope
   concept: quantization
   title: 'Kimi-K3 and DeepSeek V4 performance: fused MXFP4 top-k finalization in the K3 latent tail (about
     5% E2E latency, #53152)'
@@ -2172,7 +2167,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: false
-  drop_reason: null
+  drop_reason: model-specific support/perf work, automatic — nothing a recipe enables
   reverse_markers:
     now_default: []
     obsolete: []
@@ -2298,7 +2293,7 @@ capabilities:
   - --weight-transfer-config exists at v0.29.0
   confidence: high
 - id: internal-prefill-checkpoints-deliver-a-9-25-ttft
-  kind: capability
+  kind: out_of_scope
   concept: spec_decoding
   title: internal prefill checkpoints deliver a 9%-25% TTFT improvement
   since: v0.29.0
@@ -2308,7 +2303,7 @@ capabilities:
     envs: []
     enum_values: []
   default_on: true
-  drop_reason: null
+  drop_reason: automatic TTFT improvement, no enabler and no bounded cohort
   reverse_markers:
     now_default: []
     obsolete: []
@@ -2336,7 +2331,7 @@ capabilities:
   confidence: medium
 - id: flashinfer-all-reduce-enabled-by-default-for-tp-
   kind: capability
-  concept: attention_backend
+  concept: parallelism
   title: FlashInfer all-reduce enabled by default for TP CUDA groups, opt out with VLLM_ALLREDUCE_USE_FLASHINFER=0
   since: v0.29.0
   how_enabled:
@@ -2401,6 +2396,46 @@ capabilities:
     text: prefix-cache `NONE_HASH` is deterministic by default so distributed KV cache users no longer
       need to pin `PYTHONHASHSEED` (#51875)
     also: []
+  verified: []
+  confidence: medium
+- id: ten-deprecated-model-architectures-removed
+  kind: breaking
+  concept: moe_backend
+  title: ten deprecated model architectures removed
+  since: v0.29.0
+  how_enabled:
+    mode: auto
+    flags: []
+    envs: []
+    enum_values: []
+  default_on: false
+  drop_reason: null
+  reverse_markers:
+    now_default: []
+    obsolete: []
+  applies_to:
+    hardware: []
+    model_traits: {}
+    quant: []
+  effect: correctness
+  evidence:
+    source: release-notes
+    section: Highlights
+    prs:
+    - '52131'
+    - '52182'
+    - '53141'
+    - '53608'
+    - '53615'
+    - '54231'
+    text: '**Breaking changes**: ten deprecated model architectures removed (#53608); FlexOlmo, Olmo3
+      and Hunyuan V1/VL migrated to the Transformers modeling backend (#53615); PyAV video decoder backend
+      removed (#54231); `python -m vllm.entrypoints.openai.api_server` deprecated in favor of `vllm serve`
+      (#52131); `VLLM_TEST_FORCE_FP8_MARLIN` (#52182) and `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` (#53141)
+      removed.'
+    also:
+    - section: Breaking Changes & Deprecations
+      source: release-notes
   verified: []
   confidence: medium
 - id: flexolmo-olmo3-hunyuan-v1-and-hunyuan-vl-are-now
@@ -2568,42 +2603,6 @@ capabilities:
   - --linear-backend exists at v0.29.0
   - --moe-backend exists at v0.29.0
   confidence: high
-- id: endpoint-plugins-vllm-plugins
-  kind: out_of_scope
-  concept: other
-  title: 'Endpoint Plugins: VLLM_PLUGINS'
-  since: v0.29.0
-  how_enabled:
-    mode: explicit
-    flags: []
-    envs:
-    - VLLM_PLUGINS
-    enum_values: []
-  default_on: true
-  drop_reason: null
-  reverse_markers:
-    now_default: []
-    obsolete: []
-  applies_to:
-    hardware: []
-    model_traits: {}
-    quant: []
-  effect: usability
-  evidence:
-    source: docs-diff
-    section: docs/design/endpoint_plugins.md
-    prs: []
-    text: "# Endpoint Plugins\n\nEndpoint plugins let out-of-tree packages add HTTP routes to the OpenAI\
-      \ compatible API server. Their scope is\nthe **HTTP surface only** registering routes and optionally\
-      \ per app state used by those routes. A plugin reaches the engine the same way an in-tree serving\
-      \ handler does, through the `EngineClient` it is handed at startup (e.g. `engine_client.collective_rpc(...)`).\
-      \ No new engine access path is introduced.\n\n!!! warning \"Security\"\n    Endpoint plugins are\
-      \ **not loaded by default** and must be explicitly allowlisted. Read [Endpoint Plugins security\
-      \ posture](../usage/sec"
-    also: []
-  verified:
-  - VLLM_PLUGINS exists at v0.29.0
-  confidence: medium
 - id: b12x-linear-and-moe-backends
   kind: capability
   concept: kernel
@@ -2625,8 +2624,7 @@ capabilities:
   drop_reason: null
   reverse_markers:
     now_default: []
-    obsolete:
-    - NVIDIA
+    obsolete: []
   applies_to:
     hardware:
     - dgx_spark_gb10
@@ -2699,70 +2697,55 @@ capabilities:
     source: docs-diff
     section: docs/features/quantization/b12x.md
     prs: []
-    text: "# b12x Linear and MoE Backends\n\n[b12x](https://pypi.org/project/b12x/) provides optional\
-      \ CUDA kernels for\nNVIDIA SM120 and SM121 GPUs. Install the dependency with:\n\n```bash\nuv pip\
-      \ install \"vllm[b12x]\"\n```\n\nb12x linear kernels participate in automatic selection after established\n\
-      optimized backends and before emulation. Select the linear and MoE backends\nexplicitly with:\n\n\
-      ```bash\nvllm serve <model> \\\n    --linear-backend b12x \\\n    --moe-backend b12x\n```\n\nOnly\
-      \ pass `--moe-backend b12x` for a compatible NVFP4 or MXFP4 MoE model. The\nlinear and MoE backends\
-      \ can be selected independently.\n\nb12x use"
+    text: "# b12x Linear and MoE Backends\n[b12x](https://pypi.org/project/b12x/) provides optional CUDA\
+      \ kernels for\nb12x linear kernels participate in automatic selection after established\noptimized\
+      \ backends and before emulation. Select the linear and MoE backends\nexplicitly with:\nvllm serve\
+      \ <model> \\\n    --linear-backend b12x \\\n    --moe-backend b12x\nOnly pass `--moe-backend b12x`\
+      \ for a compatible NVFP4 or MXFP4 MoE model. The\nlinear and MoE backends can be selected independently.\n\
+      \nb12x uses MXFP8 activations by default for MXFP4 MoE and the checkpoint's\nactivation format for\
+      \ NVFP4 MoE. MXFP4 falls back"
     also: []
+  install: uv pip install "vllm[b12x]"
+  parts:
+  - id: linear
+    title: --linear-backend b12x
+    how_enabled:
+      mode: explicit
+      flags:
+      - --linear-backend
+      envs: []
+      enum_values:
+      - flag: --linear-backend
+        value: b12x
+    applies_to:
+      model_traits: {}
+      quant:
+      - fp8
+      - mxfp8
+      - nvfp4
+      - mxfp4
+  - id: moe
+    title: --moe-backend b12x (NVFP4/MXFP4 MoE, TP only)
+    how_enabled:
+      mode: explicit
+      flags:
+      - --moe-backend
+      envs: []
+      enum_values:
+      - flag: --moe-backend
+        value: b12x
+    applies_to:
+      model_traits:
+        architecture: moe
+      quant:
+      - nvfp4
+      - mxfp4
   verified:
   - --linear-backend exists at v0.29.0
   - --moe-backend exists at v0.29.0
   - VLLM_B12X_MOE_FP4_FORCE_A16 exists at v0.29.0
   - --linear-backend=b12x is an accepted value at v0.29.0
   - --moe-backend=b12x is an accepted value at v0.29.0
-  confidence: high
-- id: adaptive-verification-enforce-eager-speculative-
-  kind: capability
-  concept: runtime
-  title: 'Adaptive Verification: --enforce-eager, --speculative-config, --tokenizer-mode'
-  since: v0.29.0
-  how_enabled:
-    mode: explicit
-    flags:
-    - --enforce-eager
-    - --speculative-config
-    - --tokenizer-mode
-    - --trust-remote-code
-    envs:
-    - VLLM_ADAPTIVE_VERIFICATION_PROFILE_CONTEXT_LEN
-    enum_values: []
-  default_on: false
-  drop_reason: null
-  reverse_markers:
-    now_default: []
-    obsolete: []
-  applies_to:
-    hardware: []
-    model_traits:
-      features:
-      - spec_decoding
-    quant: []
-  effect: memory
-  evidence:
-    source: docs-diff
-    section: docs/features/speculative_decoding/adaptive_verification.md
-    prs: []
-    text: '# Adaptive Verification
-
-
-      Speculative decoding buys fewer decode steps with more compute. At batch size 1 that is a good trade:
-      the GPU is memory-bound with spare compute, so the extra draft tokens are close to free. At batch
-      size 256 it is a much more delicate one. Draft tokens now compete with real tokens for the same
-      compute, and every rejected token is compute wasted; with enough of them, throughput drops.
-
-
-      That matters because per-position acceptance decays fast. While the GPU is memory-bound that slot
-      is effectively free and worth the gamble; once it saturates the gamble has a real throug'
-    also: []
-  verified:
-  - --enforce-eager exists at v0.29.0
-  - --speculative-config exists at v0.29.0
-  - --tokenizer-mode exists at v0.29.0
-  - --trust-remote-code exists at v0.29.0
-  - VLLM_ADAPTIVE_VERIFICATION_PROFILE_CONTEXT_LEN exists at v0.29.0
   confidence: high
 - id: trace-replay-enable-trace-replay
   kind: out_of_scope
@@ -2806,71 +2789,14 @@ capabilities:
   verified:
   - --enable-trace-replay exists at v0.29.0
   confidence: high
-- id: sampling-mask-distribution-replay
-  kind: capability
-  concept: runtime
-  title: Sampling Mask (Distribution Replay)
-  since: v0.29.0
-  how_enabled:
-    mode: explicit
-    flags:
-    - --logits-processors
-    - --logprobs-mode
-    - --return-sampling-mask
-    envs: []
-    enum_values: []
-  default_on: false
-  drop_reason: null
-  reverse_markers:
-    now_default: []
-    obsolete: []
-  applies_to:
-    hardware: []
-    model_traits: {}
-    quant: []
-  effect: usability
-  evidence:
-    source: docs-diff
-    section: docs/training/sampling_mask.md
-    prs: []
-    text: '# Sampling Mask (Distribution Replay)
-
-
-      When using top-k/top-p sampling for RL rollouts (e.g. GRPO), there is a
-
-      systematic mismatch between the truncated distribution the sampler actually
-
-      drew from and the full-vocabulary softmax used to compute log-probabilities
-
-      during training. The **sampling mask** feature closes this gap by returning
-
-      the exact set of token IDs that survived top-k/top-p/min-p filtering at each
-
-      generation step, so the training side can normalize over the same support.
-
-
-      ## Background
-
-
-      This feature implements the **Keep Sampling Mask** strategy described in the
-
-      [DeepSeek-V3.2 t'
-    also: []
-  verified:
-  - --logits-processors exists at v0.29.0
-  - --logprobs-mode exists at v0.29.0
-  - --return-sampling-mask exists at v0.29.0
-  confidence: high
-- id: security-api-key-mm-hasher-algorithm-vllm-max-me
+- id: security-vllm-max-media-download-size-mb
   kind: out_of_scope
   concept: other
-  title: 'Security: --api-key, --mm-hasher-algorithm, VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB'
+  title: 'Security: VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB'
   since: v0.29.0
   how_enabled:
     mode: explicit
-    flags:
-    - --api-key
-    - --mm-hasher-algorithm
+    flags: []
     envs:
     - VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB
     enum_values: []
@@ -2892,70 +2818,20 @@ capabilities:
     prs: []
     text: '### 5. **Restrict Media Download and Decode Sizes:**
 
-
       Remote media responses and compressed media files can expand into gigabytes of
 
       memory. vLLM enforces download and decode-size limits to prevent out-of-memory
 
       denial of service:
 
-
-      | Environment Variable | Default | Description |
-
-      | --- | --- | --- |
-
       | `VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB` | `256` | Maximum size in MB for a single remote media response.
       Oversized responses are rejected while streaming before the full body is materialized in memory.
       |
 
-      | `VLLM_MAX_IMAGE_PIXELS` | `178956970` (~179M pixels) | Maximum decoded image size in pixels. Imag'
+      | `VLLM_MAX_AUDIO_CLIP_FILESIZE_MB` | `25` | Maximum compressed filesize in MB for a single audio
+      file. Enforced on all audio inputs (multimodal chat URLs, speech-to-text'
     also: []
   verified:
-  - --api-key exists at v0.29.0
-  - --mm-hasher-algorithm exists at v0.29.0
   - VLLM_MAX_MEDIA_DOWNLOAD_SIZE_MB exists at v0.29.0
   confidence: high
-dropped:
-- id: ten-deprecated-model-architectures-removed
-  kind: breaking
-  concept: moe_backend
-  title: ten deprecated model architectures removed
-  since: v0.29.0
-  how_enabled:
-    mode: explicit
-    flags: []
-    envs: []
-    enum_values: []
-  default_on: false
-  drop_reason: null
-  reverse_markers:
-    now_default: []
-    obsolete: []
-  applies_to:
-    hardware:
-    - amd
-    model_traits:
-      tasks:
-      - multimodal
-    quant: []
-  effect: correctness
-  evidence:
-    source: release-notes
-    section: Highlights
-    prs:
-    - '52131'
-    - '52182'
-    - '53141'
-    - '53608'
-    - '53615'
-    - '54231'
-    text: '**Breaking changes**: ten deprecated model architectures removed (#53608); FlexOlmo, Olmo3
-      and Hunyuan V1/VL migrated to the Transformers modeling backend (#53615); PyAV video decoder backend
-      removed (#54231); `python -m vllm.entrypoints.openai.api_server` deprecated in favor of `vllm serve`
-      (#52131); `VLLM_TEST_FORCE_FP8_MARLIN` (#52182) and `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` (#53141)
-      removed.'
-    also:
-    - section: Breaking Changes & Deprecations
-      source: release-notes
-  dropped_because:
-  - claims an explicit enabling flag/env but names none that exists
+dropped: []
