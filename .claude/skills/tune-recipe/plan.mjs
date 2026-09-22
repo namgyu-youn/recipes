@@ -56,6 +56,11 @@ const WORKLOADS = [
   { name: "decode_heavy", input_len: 250, output_len: 1000, concurrency: 32, num_prompts: 128 },
 ];
 
+// Random tokens defeat speculative decoding (drafts almost never match), so a
+// plan with spec-* configs adds a real-text workload. Concurrency stays low so
+// a recipe's small --max-num-seqs does not turn it into a queueing test.
+const SPEC_WORKLOAD = { name: "spec_text", dataset: "spec_bench", output_len: 256, concurrency: 8, num_prompts: 80 };
+
 function die(msg) {
   console.error(`error: ${msg}`);
   process.exit(1);
@@ -331,6 +336,12 @@ function main() {
     if (!explicit && configs.length > before) backendCount++;
   }
 
+  const maxConc = Math.max(...WORKLOADS.map((w) => w.concurrency));
+  const seqs = Number(flagValue(baseArgv, "--max-num-seqs"));
+  if (seqs && seqs < maxConc) {
+    warnings.push(`baseline caps --max-num-seqs at ${seqs}, below workload concurrency ${maxConc}: requests queue, so TTFT includes wait time — compare TPOT`);
+  }
+
   if (args.knobs) {
     const fp8Kv = ["hopper", "blackwell", "ada"].includes(profile.generation);
     if (fp8Kv && !flagValue(baseArgv, "--kv-cache-dtype")) {
@@ -345,8 +356,6 @@ function main() {
       const c = configs[configs.length - 1];
       if (configs.length > before && Number(flagValue(c.argv, "--tensor-parallel-size")) !== args.count) configs.pop();
     }
-    const maxConc = Math.max(...WORKLOADS.map((w) => w.concurrency));
-    const seqs = Number(flagValue(baseArgv, "--max-num-seqs"));
     if (seqs && seqs < maxConc) {
       add(`mnseqs-${maxConc}`, `--max-num-seqs ${maxConc} (recipe caps at ${seqs}, below workload concurrency)`, baseStrategy, features, modes, ["--max-num-seqs", String(maxConc)]);
     }
@@ -360,6 +369,7 @@ function main() {
     const input = Math.min(w.input_len, maxLen - w.output_len - 64);
     return { ...w, input_len: input };
   }).filter((w) => w.input_len > 0);
+  if (configs.some((c) => c.name.startsWith("spec-"))) workloads.push(SPEC_WORKLOAD);
 
   const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 13);
   const outDir = args.out || path.join(".claude_workdir/tune", recipe.hf_id.replace("/", "__"), `${hwId}x${args.count}-${args.variant}-${stamp}`);
@@ -394,7 +404,7 @@ function main() {
   console.log(`  ${recipe.hf_id} [${args.variant}] on ${hwId} x${args.count}${synthetic ? " (profile cloned to rented count)" : ""}`);
   for (const c of configs) console.log(`  - ${c.name.padEnd(34)} ${c.why}`);
   for (const w of warnings) console.log(`  ! ${w}`);
-  console.log(`  workloads: ${workloads.map((w) => `${w.name}(${w.input_len}/${w.output_len} c${w.concurrency})`).join(", ")}`);
+  console.log(`  workloads: ${workloads.map((w) => `${w.name}(${w.dataset || w.input_len}/${w.output_len} c${w.concurrency})`).join(", ")}`);
 }
 
 main();
