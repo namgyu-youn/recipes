@@ -12,6 +12,10 @@ analyze.py without a GPU. Behaviour is keyed off the serve argv:
   --speculative-config    /metrics exposes spec counters; each scrape adds
                           100 drafts / 400 draft tokens / 220 accepted (55%)
   --profiler-config       /stop_profile writes a gzipped trace with two kernels
+  an *FP8* model          -10% throughput at concurrency > 1, +50% at 1 (mixed win)
+  FAKE_SLOW_INIT (env)    logs a 700 s engine init (slow-start warning)
+Startup logs "Using ... backend" lines the way vLLM does (MARLIN for NVFP4
+models, FLASHINFER_TRTLLM for FP8 ones).
 """
 
 import gzip
@@ -43,6 +47,10 @@ def serve(argv):
     if arg(argv, "--max-num-seqs") == "64":
         speed, tpot, e2el = 1.3, 1.5, 1.15
     reasoning = "--reasoning-parser" in argv
+    fp8 = "FP8" in model
+    c1 = 1.0
+    if fp8:
+        speed, c1 = 0.9, 1.5 / 0.9
     if arg(argv, "--linear-backend") == "b12x":
         speed *= 1.01
     spec = "--speculative-config" in argv
@@ -85,7 +93,7 @@ def serve(argv):
                 self.end_headers()
                 self.wfile.write(body)
             elif self.path == "/fake_speed":
-                self.reply({"speed": speed, "tpot": tpot, "e2el": e2el or 1 / speed})
+                self.reply({"speed": speed, "tpot": tpot, "e2el": e2el or 1 / speed, "c1": c1})
             else:
                 self.send_error(404)
 
@@ -111,6 +119,11 @@ def serve(argv):
             self.reply({"choices": [{"message": msg, "finish_reason": "stop"}]})
 
     signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
+    moe = "FLASHINFER_TRTLLM Fp8" if fp8 else "'MARLIN' NvFp4"
+    print(f"(EngineCore pid=1) INFO [nvfp4.py:304] Using {moe} MoE backend out of potential backends: ['A', 'B']", flush=True)
+    print("(EngineCore pid=1) INFO [monitor.py:81] Initial profiling/warmup run took 3.20 s", flush=True)
+    init = 700.0 if os.environ.get("FAKE_SLOW_INIT") else 12.0
+    print(f"(EngineCore pid=1) INFO [core.py:361] init engine (profile, create kv cache, warmup model) took {init:.2f} s", flush=True)
     time.sleep(1)
     print(f"serving {model} on {port}", flush=True)
     ThreadingHTTPServer(("127.0.0.1", port), H).serve_forever()
@@ -120,6 +133,8 @@ def bench(argv):
     port = arg(argv, "--port")
     fake = json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}/fake_speed"))
     speed, tpot, e2el = fake["speed"], fake["tpot"], fake["e2el"]
+    if arg(argv, "--max-concurrency") == "1":
+        speed, e2el = speed * fake["c1"], e2el / fake["c1"]
     if arg(argv, "--dataset-name") == "spec_bench":
         with open(arg(argv, "--dataset-path")) as f:
             assert "turns" in f.readline()

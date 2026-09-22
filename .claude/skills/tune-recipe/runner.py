@@ -3,7 +3,8 @@
 
     python3 runner.py plan.json --out results/ [--only baseline,kv-fp8]
                       [--port 8000] [--ready-timeout 1800]
-    python3 runner.py plan.json --out results/ --only baseline,<cfg> --profile chat
+    python3 runner.py plan.json --out results/ --only baseline,<cfg> --profile chat [--profile-delay 0]
+    python3 runner.py plan.json --out results/ --workloads chat,single_user
 
 For each config: start `vllm serve`, wait for /health, score the arithmetic
 probes, run `vllm bench serve` once per workload, stop the server. Every config
@@ -228,6 +229,37 @@ def wait_for_traces(trace_dir, timeout=600):
         time.sleep(10)
 
 
+ANSI = re.compile(r"\x1b\[[0-9;]*m")
+STARTUP_PATTERNS = {
+    "engine_init_s": r"init engine .*? took ([\d.]+) s",
+    "warmup_run_s": r"Initial profiling/warmup run took ([\d.]+) s",
+    "torch_compile_s": r"torch\.compile took ([\d.]+) s",
+    "graph_capture_s": r"Graph capturing finished in ([\d.]+) secs",
+}
+
+
+def read_server_log(log_path):
+    """What vLLM chose and where startup time went, from its own log lines.
+
+    backends: the "Using ... backend/kernel" lines (e.g. which NVFP4 MoE
+    backend auto-selection picked), with the candidate list trimmed.
+    startup: per-phase seconds; phases that run once per model (main, draft)
+    are listed in order.
+    """
+    backends, startup = [], {}
+    for raw in log_path.read_text(errors="replace").splitlines():
+        line = ANSI.sub("", raw)
+        m = re.search(r"\bUsing (.+?(?:backend|Backend|kernel|Kernel)\b[^,]*?)(?: out of potential.*)?$", line)
+        if m:
+            text = re.sub(r"\s+", " ", m.group(1)).strip(" .")
+            if text not in backends:
+                backends.append(text)
+        for key, pat in STARTUP_PATTERNS.items():
+            if (t := re.search(pat, line)):
+                startup.setdefault(key, []).append(float(t.group(1)))
+    return backends, {k: v if len(v) > 1 else v[0] for k, v in startup.items()}
+
+
 def served_model(port):
     return http_json(f"http://127.0.0.1:{port}/v1/models")["data"][0]["id"]
 
@@ -310,10 +342,13 @@ def run_config(cfg, plan, args, out_root):
             log(f"{cfg['name']}: {info}")
             return result
         result["startup_s"] = info
+        result["backends"], result["startup"] = read_server_log(out_dir / "server.log")
         model = served_model(args.port)
         log(f"{cfg['name']}: ready in {info}s, scoring {len(plan['probes'])} probes")
         result["accuracy"] = score_probes(args.port, model, plan["probes"])
         for w in plan["workloads"]:
+            if args.workloads and w["name"] not in args.workloads:
+                continue
             log(f"{cfg['name']}: bench {w['name']}")
             before = spec_counters(args.port)
             result["workloads"][w["name"]] = run_bench(cfg, w, args.port, model, out_dir, out_root / "spec_bench.jsonl")
@@ -337,7 +372,7 @@ def profile_config(cfg, w, args, out_root):
     # Skip warm-up iterations, then trace a short steady-state window.
     prof = {
         "profiler": "torch", "torch_profiler_dir": str(trace_dir), "ignore_frontend": True,
-        "torch_profiler_with_stack": False, "delay_iterations": 20, "max_iterations": 30,
+        "torch_profiler_with_stack": False, "delay_iterations": args.profile_delay, "max_iterations": 30,
     }
     run_cfg = dict(cfg, argv=[*cfg["argv"], "--profiler-config", json.dumps(prof)])
     log(f"{cfg['name']}: starting server with profiler")
@@ -353,7 +388,7 @@ def profile_config(cfg, w, args, out_root):
         post(f"http://127.0.0.1:{args.port}/stop_profile", 600)
         wait_for_traces(trace_dir)
         kernels = top_kernels(trace_dir) or {"error": "no kernel events in the trace"}
-        return {"name": cfg["name"], "status": "ok", "workload": w["name"], "bench": bench, **kernels}
+        return {"name": cfg["name"], "status": "ok", "workload": w["name"], "delay_iterations": args.profile_delay, "bench": bench, **kernels}
     finally:
         stop_server(proc, fh)
 
@@ -366,7 +401,11 @@ def main():
     ap.add_argument("--port", type=int, default=8000)
     ap.add_argument("--ready-timeout", type=int, default=1800)
     ap.add_argument("--profile", metavar="WORKLOAD", help="trace this workload for each --only config")
+    ap.add_argument("--profile-delay", type=int, default=20,
+                    help="engine steps to skip before tracing; 0 captures the prefill phase")
+    ap.add_argument("--workloads", default="", help="run only these workloads (comma list)")
     args = ap.parse_args()
+    args.workloads = set(filter(None, args.workloads.split(",")))
 
     plan = json.loads(Path(args.plan).read_text())
     out_root = Path(args.out)
