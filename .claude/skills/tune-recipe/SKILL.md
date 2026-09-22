@@ -21,8 +21,10 @@ Arguments: `<org>/<repo> <gpu> <count> [variant]`, e.g. `Qwen/Qwen3.6-35B-A3B rt
   thing. Don't hand-edit `plan.json` argv to "fix" a config; re-plan instead.
 - **A win must clear the gate.** It started, every request completed, it lost at most
   2 of 32 arithmetic probes vs baseline, it beat baseline by >3% (one run per
-  workload, so smaller gaps are noise), and its TPOT p50 is at most 10% worse than
-  baseline (a throughput gain bought with slower decoding is a trade-off, not a win). Before recommending anything, re-run the
+  workload, so smaller gaps are noise), and its E2E latency p50 is at most 10% worse
+  than baseline (a throughput gain bought with slower requests is a trade-off, not a
+  win). E2E rather than TPOT: when the baseline queues, TPOT only times requests that
+  got a slot, so the config that removes the queue would look slower. Before recommending anything, re-run the
   winner and the baseline with `runner.py --only baseline,<winner>` and confirm.
 
 ## Steps
@@ -49,9 +51,11 @@ Writes `.claude_workdir/tune/<org>__<repo>/<hw>x<n>-<variant>-<stamp>/plan.json`
 
 Show the user the config list, any `!` warnings, and a time estimate
 (≈ 10–15 min per config: model load + probes + three workloads) before touching a box.
-Workloads use random tokens, which defeat draft models, so a plan with `spec-*`
-configs adds a fourth `spec_text` workload on Spec-Bench chat prompts (the runner
-downloads `question.jsonl` on the box). Judge spec decoding on that one.
+The three fixed workloads use random-token prompts. Drafts are still accepted there
+(the output is the model's own text), but acceptance on random context is not what
+users see, so a plan with `spec-*` configs adds a fourth `spec_text` workload on
+Spec-Bench chat prompts (the runner downloads `question.jsonl` on the box). The
+report lists draft acceptance per workload, taken from the server's `/metrics`.
 Read `commands.sh` yourself; drop configs the evidence doesn't support by re-planning
 with `--no-knobs` / fewer `--candidates`, not by editing JSON.
 
@@ -69,7 +73,10 @@ ssh $H "cd $R && nohup python3 runner.py plan.json --out results > sweep.log 2>&
 
 - **Environment first.** `vllm --version` must be ≥ `plan.min_vllm_version`
   (`nightly` means a nightly wheel). Install `plan.dependencies` and any extra a
-  candidate needs (b12x → `uv pip install "vllm[b12x]"`). If the plan warns the
+  candidate needs (b12x → `uv pip install "vllm[b12x]"`). A plan with a
+  `spec_text` workload also needs `vllm[bench]` (pandas), so combine the extras:
+  `uv pip install "vllm[bench,b12x]==<version>"`. A baseline that uses
+  `--load-format fastsafetensors` needs `fastsafetensors` too. If the plan warns the
   recipe is Docker-only, run `runner.py` inside `plan.docker_image` with the box's
   HF cache mounted. Gated checkpoints need `HF_TOKEN` exported on the box — ask the
   user, never echo it.
@@ -90,11 +97,29 @@ Present `report.md`'s verdict: the winner per workload, its placement in the YAM
 GPU-count caveats (a `tp-*`/`strategy-*` config using more GPUs must win per GPU too).
 If nothing clears the gate, the answer is "the recipe is already right here" — say so.
 
+### 4. Profile (optional, on request)
+
+Only when the user asks, or a result needs explaining (a backend that loses, a
+surprising win). It is a separate pass and never feeds the throughput tables:
+
+```bash
+ssh $H "cd $R && nohup python3 runner.py plan.json --out results \
+  --only baseline,<config> --profile <workload> > profile.log 2>&1 &"
+```
+
+Each config restarts with the torch profiler (`--profiler-config`), traces 30
+steady-state iterations of a short run of that workload, and writes its top GPU
+kernels to `results/<config>/profile-<workload>.json`; `analyze.py` adds them as a
+"Profiles" section. Compare kernel shares between the two configs to say *where*
+the time went. A crash (illegal address, bad kernel) is a debugging job for
+`compute-sanitizer`, not the profiler.
+
 ## Maintenance
 
 `selftest/selftest.sh` runs plan → runner → analyze against a fake `vllm` (no GPU) and
-checks startup-failure isolation, the accuracy gate, the noise floor, the verdict and
-resume. Run it after changing any script:
+checks startup-failure isolation, the accuracy and E2E-latency gates, the noise floor,
+the verdict, resume, draft-acceptance parsing and the profiling pass. Run it after
+changing any script:
 
 ```bash
 bash .claude/skills/tune-recipe/selftest/selftest.sh

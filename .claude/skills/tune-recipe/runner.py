@@ -3,15 +3,23 @@
 
     python3 runner.py plan.json --out results/ [--only baseline,kv-fp8]
                       [--port 8000] [--ready-timeout 1800]
+    python3 runner.py plan.json --out results/ --only baseline,<cfg> --profile chat
 
 For each config: start `vllm serve`, wait for /health, score the arithmetic
 probes, run `vllm bench serve` once per workload, stop the server. Every config
 writes results/<name>/result.json; a config that already has one is skipped, so
 re-running after an interruption resumes. A config that fails to start is
 recorded as such and the sweep moves on.
+
+--profile <workload> is a separate pass: each --only config is restarted with
+the torch profiler, a short run of that workload is traced, and the top GPU
+kernels land in results/<name>/profile-<workload>.json. Profiler overhead skews
+timing, so these runs never feed the throughput tables.
 """
 
 import argparse
+import gzip
+import importlib.util
 import json
 import os
 import re
@@ -31,6 +39,7 @@ BENCH_KEYS = (
     "p99_tpot_ms", "median_itl_ms", "p99_itl_ms", "median_e2el_ms",
 )
 
+SPEC_COUNTERS = ("num_drafts", "num_draft_tokens", "num_accepted_tokens")
 SPEC_BENCH_URL = "https://raw.githubusercontent.com/hemingkx/Spec-Bench/refs/heads/main/data/spec_bench/question.jsonl"
 
 
@@ -98,9 +107,12 @@ def environment(plan):
     return env
 
 
-def start_server(cfg, port, log_path):
+def start_server(cfg, port, log_path, ready_timeout):
     argv = [*cfg["argv"], "--port", str(port)]
-    env = {**os.environ, **{k: str(v) for k, v in cfg["env"].items()}}
+    # A cold compile on a fresh box can outlast the frontend's own 600 s wait
+    # for the engine; let wait_ready's timeout be the only one.
+    env = {**os.environ, "VLLM_ENGINE_READY_TIMEOUT_S": str(ready_timeout),
+           **{k: str(v) for k, v in cfg["env"].items()}}
     fh = open(log_path, "w")
     fh.write(f"# {' '.join(argv)}\n# env: {cfg['env']}\n")
     fh.flush()
@@ -138,6 +150,82 @@ def stop_server(proc, fh):
         if used is None or used < 2048:
             break
         time.sleep(2)
+
+
+def post(url, timeout):
+    urllib.request.urlopen(urllib.request.Request(url, data=b"", method="POST"), timeout=timeout).read()
+
+
+def spec_counters(port):
+    """Cumulative spec-decode counters from /metrics (both frontends export
+    the same names), or None when the server has no spec decoding."""
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/metrics", timeout=10) as r:
+            text = r.read().decode()
+    except OSError:
+        return None
+    out, per_pos = {}, {}
+    for line in text.splitlines():
+        m = re.match(r"vllm:spec_decode_(num_\w+?)(?:_total)?(\{[^}]*\})?\s+(\S+)$", line)
+        if not m:
+            continue
+        name, labels, val = m.group(1), m.group(2) or "", float(m.group(3))
+        if name == "num_accepted_tokens_per_pos":
+            pos = re.search(r'position="(\d+)"', labels)
+            if pos:
+                per_pos[int(pos.group(1))] = per_pos.get(int(pos.group(1)), 0) + val
+        elif name in SPEC_COUNTERS:
+            out[name] = out.get(name, 0) + val
+    if not out:
+        return None
+    out["per_pos"] = per_pos
+    return out
+
+
+def spec_delta(before, after):
+    """Draft acceptance over one workload, from counters scraped around it."""
+    if not before or not after:
+        return None
+    d = {k: after.get(k, 0) - before.get(k, 0) for k in SPEC_COUNTERS}
+    if not d["num_drafts"] or not d["num_draft_tokens"]:
+        return None
+    return {
+        "acceptance_rate": d["num_accepted_tokens"] / d["num_draft_tokens"],
+        "mean_acceptance_length": 1 + d["num_accepted_tokens"] / d["num_drafts"],
+        "per_position": [
+            (after["per_pos"][i] - before["per_pos"].get(i, 0)) / d["num_drafts"]
+            for i in sorted(after["per_pos"])
+        ],
+    }
+
+
+def top_kernels(trace_dir, n=15):
+    """GPU time per kernel name, summed over the torch-profiler traces."""
+    totals = {}
+    for path in Path(trace_dir).rglob("*.json.gz"):
+        with gzip.open(path, "rt") as fh:
+            for e in json.load(fh).get("traceEvents", []):
+                if e.get("cat") == "kernel":
+                    totals[e["name"]] = totals.get(e["name"], 0) + e.get("dur", 0)
+    gpu_us = sum(totals.values())
+    if not gpu_us:
+        return None
+    top = sorted(totals.items(), key=lambda kv: -kv[1])[:n]
+    return {
+        "gpu_ms": round(gpu_us / 1000, 1),
+        "kernels": [{"name": k, "ms": round(v / 1000, 2), "share": v / gpu_us} for k, v in top],
+    }
+
+
+def wait_for_traces(trace_dir, timeout=600):
+    """Traces are written after /stop_profile returns; wait until their size settles."""
+    last, t0 = None, time.time()
+    while time.time() - t0 < timeout:
+        sizes = sorted((p.name, p.stat().st_size) for p in Path(trace_dir).rglob("*.json.gz"))
+        if sizes and sizes == last:
+            return
+        last = sizes
+        time.sleep(10)
 
 
 def served_model(port):
@@ -213,7 +301,7 @@ def run_config(cfg, plan, args, out_root):
     log(f"{cfg['name']}: starting server")
     sampler = MemSampler()
     sampler.start()
-    proc, fh = start_server(cfg, args.port, out_dir / "server.log")
+    proc, fh = start_server(cfg, args.port, out_dir / "server.log", args.ready_timeout)
     try:
         ok, info = wait_ready(proc, args.port, args.ready_timeout)
         if not ok:
@@ -227,7 +315,11 @@ def run_config(cfg, plan, args, out_root):
         result["accuracy"] = score_probes(args.port, model, plan["probes"])
         for w in plan["workloads"]:
             log(f"{cfg['name']}: bench {w['name']}")
+            before = spec_counters(args.port)
             result["workloads"][w["name"]] = run_bench(cfg, w, args.port, model, out_dir, out_root / "spec_bench.jsonl")
+            spec = spec_delta(before, spec_counters(args.port))
+            if spec:
+                result["workloads"][w["name"]]["spec"] = spec
             if proc.poll() is not None:
                 result.update(status="crashed", error=f"server exited {proc.returncode} during {w['name']}")
                 break
@@ -238,6 +330,34 @@ def run_config(cfg, plan, args, out_root):
     return result
 
 
+def profile_config(cfg, w, args, out_root):
+    out_dir = out_root / cfg["name"] / "profile"
+    trace_dir = (out_dir / "traces").resolve()
+    trace_dir.mkdir(parents=True, exist_ok=True)
+    # Skip warm-up iterations, then trace a short steady-state window.
+    prof = {
+        "profiler": "torch", "torch_profiler_dir": str(trace_dir), "ignore_frontend": True,
+        "torch_profiler_with_stack": False, "delay_iterations": 20, "max_iterations": 30,
+    }
+    run_cfg = dict(cfg, argv=[*cfg["argv"], "--profiler-config", json.dumps(prof)])
+    log(f"{cfg['name']}: starting server with profiler")
+    proc, fh = start_server(run_cfg, args.port, out_dir / "server.log", args.ready_timeout)
+    try:
+        ok, info = wait_ready(proc, args.port, args.ready_timeout)
+        if not ok:
+            return {"name": cfg["name"], "status": "start_failed", "error": info}
+        model = served_model(args.port)
+        post(f"http://127.0.0.1:{args.port}/start_profile", 60)
+        log(f"{cfg['name']}: tracing {w['name']}")
+        bench = run_bench(cfg, dict(w, num_prompts=w["concurrency"] * 2), args.port, model, out_dir, out_root / "spec_bench.jsonl")
+        post(f"http://127.0.0.1:{args.port}/stop_profile", 600)
+        wait_for_traces(trace_dir)
+        kernels = top_kernels(trace_dir) or {"error": "no kernel events in the trace"}
+        return {"name": cfg["name"], "status": "ok", "workload": w["name"], "bench": bench, **kernels}
+    finally:
+        stop_server(proc, fh)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("plan")
@@ -245,6 +365,7 @@ def main():
     ap.add_argument("--only", default="")
     ap.add_argument("--port", type=int, default=8000)
     ap.add_argument("--ready-timeout", type=int, default=1800)
+    ap.add_argument("--profile", metavar="WORKLOAD", help="trace this workload for each --only config")
     args = ap.parse_args()
 
     plan = json.loads(Path(args.plan).read_text())
@@ -257,6 +378,10 @@ def main():
         log(f"WARNING: {w}")
 
     spec_bench = out_root / "spec_bench.jsonl"
+    if any(w.get("dataset") == "spec_bench" for w in plan["workloads"]):
+        # `vllm bench` reads Spec-Bench with pandas, which only vllm[bench] installs.
+        if importlib.util.find_spec("pandas") is None:
+            sys.exit('the spec_text workload needs pandas: uv pip install "vllm[bench]"')
     if any(w.get("dataset") == "spec_bench" for w in plan["workloads"]) and not spec_bench.exists():
         try:
             urllib.request.urlretrieve(SPEC_BENCH_URL, spec_bench)
@@ -264,6 +389,20 @@ def main():
             sys.exit(f"could not fetch Spec-Bench prompts ({e}); place question.jsonl at {spec_bench}")
 
     only = set(filter(None, args.only.split(",")))
+    if args.profile:
+        w = next((w for w in plan["workloads"] if w["name"] == args.profile), None)
+        if not w or not only:
+            sys.exit("--profile needs a workload from the plan and --only <configs>")
+        for cfg in plan["configs"]:
+            done = out_root / cfg["name"] / f"profile-{w['name']}.json"
+            if cfg["name"] not in only or done.exists():
+                continue
+            result = profile_config(cfg, w, args, out_root)
+            done.write_text(json.dumps(result, indent=2))
+            log(f"{cfg['name']}: profile {result['status']}")
+        log("profiling finished")
+        return
+
     for cfg in plan["configs"]:
         if only and cfg["name"] not in only:
             continue

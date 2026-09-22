@@ -28,6 +28,9 @@ m32 = next(c for c in p["configs"] if c["name"] == "mnseqs-32")
 m64 = dict(m32, name="mnseqs-64", why="max-num-seqs 64", extra_args=["--max-num-seqs", "64"])
 m64["argv"] = [a if a != "32" else "64" for a in m32["argv"]]
 p["configs"].append(m64)
+m48 = dict(m32, name="mnseqs-48", why="max-num-seqs 48", extra_args=["--max-num-seqs", "48"])
+m48["argv"] = [a if a != "32" else "48" for a in m32["argv"]]
+p["configs"].append(m48)
 p["probes"] = p["probes"][:8]
 json.dump(p, open(sys.argv[1], "w"))
 EOF
@@ -37,6 +40,9 @@ mkdir -p "$TMP/results" && echo '{"category": "writing", "turns": ["Write a haik
 PATH="$HERE:$PATH" python3 "$SKILL/runner.py" "$TMP/plan.json" --out "$TMP/results" --port 18123 --ready-timeout 30 >"$TMP/run.log"
 # Second run must resume, not re-run.
 PATH="$HERE:$PATH" python3 "$SKILL/runner.py" "$TMP/plan.json" --out "$TMP/results" --port 18123 >>"$TMP/run.log"
+# Profiling pass: separate traced runs, must not touch result.json.
+PATH="$HERE:$PATH" python3 "$SKILL/runner.py" "$TMP/plan.json" --out "$TMP/results" --port 18123 \
+  --only baseline,spec-mtp --profile chat >>"$TMP/run.log"
 python3 "$SKILL/analyze.py" "$TMP" >/dev/null
 
 fail=0
@@ -45,12 +51,16 @@ R="$TMP/report.md"
 check "$R" '`moe-backend-BROKEN`.*start_failed' "startup failure is recorded, sweep continues"
 check "$R" '`kv-fp8`.*accuracy 4/8' "accuracy gate rejects a config that loses probes"
 check "$R" '`linear-backend-b12x`.*| pass |' "a sub-noise config passes the gate"
-check "$R" '\*\*`mnseqs-32`\*\* wins 4/4' "the real +20% win is the verdict"
-check "$R" '`mnseqs-64`.*slower decode' "a throughput gain with +50% TPOT is flagged"
-if grep -q 'mnseqs-64`\*\* wins' "$R"; then echo "FAIL TPOT regression counted as a win"; fail=1; else echo "ok   TPOT regression is not a win"; fi
+check "$R" '\*\*`mnseqs-48`\*\* wins 4/4' "a +25% win with worse TPOT but better E2E is the verdict"
+check "$R" '`mnseqs-64`.*slower requests' "a throughput gain with +15% E2E latency is flagged"
+if grep -q 'mnseqs-64`\*\* wins' "$R"; then echo "FAIL E2E regression counted as a win"; fail=1; else echo "ok   E2E regression is not a win"; fi
 check "$R" '^## spec_text — Spec-Bench' "spec configs add a real-text workload"
 check "$R" 'baseline caps --max-num-seqs at 8' "queueing baseline is warned about"
 check "$R" '`baseline`.*| 8/8' "probe answers are read from reasoning when content is empty"
 if grep -q 'linear-backend-b12x`\*\* wins' "$R"; then echo "FAIL +1% counted as a win"; fail=1; else echo "ok   +1% stays inside the noise floor"; fi
 check "$TMP/run.log" 'already done, skipping' "re-run resumes from result.json"
+check "$R" '`spec-mtp` 55.0% (mean length 3.20; per position 0.80 / 0.60 / 0.50 / 0.30)' "draft acceptance comes from /metrics deltas"
+if grep -q 'Draft acceptance: `baseline`' "$R"; then echo "FAIL baseline reported acceptance"; fail=1; else echo "ok   no acceptance line for a config without spec decoding"; fi
+check "$R" '^### `spec-mtp` — chat' "profiled configs get a profile section"
+check "$R" '`fused_moe_kernel` | 3.0 | 75.0%' "profile ranks GPU kernels and ignores CPU ops"
 [ "$fail" = 0 ] && echo "selftest PASS" || { echo "selftest FAIL — report at $R"; cat "$R"; exit 1; }
