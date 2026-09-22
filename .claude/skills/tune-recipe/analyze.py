@@ -6,8 +6,10 @@
 A config is only eligible to win if it started, completed every request and
 scored within --tolerance probes of the baseline. A win needs to beat the
 baseline by --noise percent: each workload runs once, so smaller gaps are noise.
-It must also keep TPOT p50 within --latency percent of the baseline, so a
-throughput gain bought with slower per-request decoding is not a win.
+It must also keep E2E latency p50 within --latency percent of the baseline,
+so a throughput gain bought with slower requests is not a win. E2E, not TPOT:
+when the baseline queues (--max-num-seqs below concurrency), TPOT only times
+the requests that got a slot, and a config that removes the queue looks slower.
 """
 
 import argparse
@@ -64,7 +66,7 @@ def main():
     ap.add_argument("plan_dir")
     ap.add_argument("--tolerance", type=int, default=2, help="probes a config may lose vs baseline")
     ap.add_argument("--noise", type=float, default=3.0, help="minimum %% gain that counts as a win")
-    ap.add_argument("--latency", type=float, default=10.0, help="maximum %% TPOT p50 regression a win may carry")
+    ap.add_argument("--latency", type=float, default=10.0, help="maximum %% E2E latency p50 regression a win may carry")
     args = ap.parse_args()
 
     root = Path(args.plan_dir)
@@ -102,7 +104,7 @@ def main():
         f" · recipe floor {plan['min_vllm_version']} · plan {plan['created'][:16]}",
         "",
         f"One run per workload; wins below {args.noise}% are treated as noise. "
-        f"A win must keep TPOT p50 within +{args.latency}% of baseline. "
+        f"A win must keep E2E latency p50 within +{args.latency}% of baseline. "
         f"Accuracy is {len(plan['probes'])} arithmetic probes; a config may lose at most {args.tolerance} vs baseline.",
         "",
     ]
@@ -128,7 +130,7 @@ def main():
         source = "Spec-Bench prompts" if w.get("dataset") == "spec_bench" else f"{w['input_len']} in"
         lines += [
             "", f"## {name} — {source} / {w['output_len']} out, concurrency {w['concurrency']}", "",
-            "| Config | Output tok/s | per GPU | TTFT p50 ms | TPOT p50 ms | TTFT p99 ms |", "|---|---|---|---|---|---|",
+            "| Config | Output tok/s | per GPU | TTFT p50 ms | TPOT p50 ms | E2E p50 ms | TTFT p99 ms |", "|---|---|---|---|---|---|---|",
         ]
         best, best_gain = None, args.noise
         for cfg in plan["configs"]:
@@ -142,20 +144,47 @@ def main():
             per_gpu_d = pct(tput / g if tput else None, (b.get("output_throughput") or 0) / gpus_used(by_name["baseline"]["argv"]))
             is_base = cfg["name"] == "baseline"
             tpot_d = pct(m.get("median_tpot_ms"), b.get("median_tpot_ms"))
-            slow = tpot_d is not None and tpot_d > args.latency
+            e2el_d = pct(m.get("median_e2el_ms"), b.get("median_e2el_ms"))
+            slow = e2el_d is not None and e2el_d > args.latency
             lines.append(
                 f"| `{cfg['name']}` | {fmt(tput)}{fmt_delta(d if not is_base else None)}"
                 f" | {fmt(tput / g if tput else None)}{fmt_delta(per_gpu_d if not is_base else None)}"
                 f" | {fmt(m.get('median_ttft_ms'))} | {fmt(m.get('median_tpot_ms'), 2)}{fmt_delta(tpot_d if not is_base else None)}"
-                f"{' ⚠ slower decode' if slow and not is_base else ''} | {fmt(m.get('p99_ttft_ms'))} |"
+                f" | {fmt(m.get('median_e2el_ms'), 0)}{fmt_delta(e2el_d if not is_base else None)}"
+                f"{' ⚠ slower requests' if slow and not is_base else ''} | {fmt(m.get('p99_ttft_ms'))} |"
             )
             if not is_base and gate(cfg["name"]) == "pass" and not slow and d is not None and d > best_gain:
                 best, best_gain = cfg["name"], d
+        accept = [
+            f"`{c['name']}` {m['spec']['acceptance_rate']:.1%} (mean length {m['spec']['mean_acceptance_length']:.2f};"
+            f" per position {' / '.join(f'{x:.2f}' for x in m['spec']['per_position'])})"
+            for c in plan["configs"]
+            if (m := (results.get(c["name"]) or {}).get("workloads", {}).get(name, {})).get("spec")
+        ]
+        if accept:
+            lines += ["", "Draft acceptance: " + "; ".join(accept) + "."]
         if best:
             wins.setdefault(best, []).append((name, best_gain))
             lines += ["", f"Best: `{best}`, {best_gain:+.1f}% output tok/s over baseline."]
         else:
             lines += ["", "No eligible config beats the baseline beyond noise."]
+
+    profiles = sorted(res_dir.glob("*/profile-*.json"))
+    if profiles:
+        lines += [
+            "", "## Profiles", "",
+            "Separate traced runs (torch profiler, 30 steady-state iterations); not part of the numbers above.",
+        ]
+        for path in profiles:
+            prof = json.loads(path.read_text())
+            lines += ["", f"### `{prof['name']}` — {prof.get('workload', '?')}", ""]
+            if prof.get("status") != "ok" or "kernels" not in prof:
+                lines.append(f"No profile: {prof.get('error') or prof.get('status')}.")
+                continue
+            lines += [f"{prof['gpu_ms']:,} ms of GPU kernel time traced.", "", "| Kernel | ms | Share |", "|---|---|---|"]
+            for k in prof["kernels"][:10]:
+                name = k["name"] if len(k["name"]) <= 90 else k["name"][:87] + "..."
+                lines.append(f"| `{name}` | {k['ms']:,.1f} | {k['share']:.1%} |")
 
     lines += ["", "## Verdict", ""]
     if not wins:

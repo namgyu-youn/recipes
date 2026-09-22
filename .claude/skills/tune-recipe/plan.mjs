@@ -56,9 +56,9 @@ const WORKLOADS = [
   { name: "decode_heavy", input_len: 250, output_len: 1000, concurrency: 32, num_prompts: 128 },
 ];
 
-// Random tokens defeat speculative decoding (drafts almost never match), so a
-// plan with spec-* configs adds a real-text workload. Concurrency stays low so
-// a recipe's small --max-num-seqs does not turn it into a queueing test.
+// Draft acceptance on random-token prompts is not what users see, so a plan
+// with spec-* configs adds a real-text workload. Concurrency stays low so a
+// recipe's small --max-num-seqs does not turn it into a queueing test.
 const SPEC_WORKLOAD = { name: "spec_text", dataset: "spec_bench", output_len: 256, concurrency: 8, num_prompts: 80 };
 
 function die(msg) {
