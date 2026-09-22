@@ -5,6 +5,7 @@
                       [--port 8000] [--ready-timeout 1800]
     python3 runner.py plan.json --out results/ --only baseline,<cfg> --profile chat [--profile-delay 0]
     python3 runner.py plan.json --out results/ --workloads chat,single_user
+    python3 runner.py plan.json --out results/ --workloads none --gsm8k 500   # start + accuracy only
 
 For each config: start `vllm serve`, wait for /health, score the arithmetic
 probes, run `vllm bench serve` once per workload, stop the server. Every config
@@ -42,6 +43,7 @@ BENCH_KEYS = (
 
 SPEC_COUNTERS = ("num_drafts", "num_draft_tokens", "num_accepted_tokens")
 SPEC_BENCH_URL = "https://raw.githubusercontent.com/hemingkx/Spec-Bench/refs/heads/main/data/spec_bench/question.jsonl"
+GSM8K_URL = "https://raw.githubusercontent.com/openai/grade-school-math/master/grade_school_math/data/test.jsonl"
 
 
 def log(msg):
@@ -294,6 +296,92 @@ def score_probes(port, model, probes):
     }
 
 
+def score_gsm8k(port, model, rows):
+    """GSM8K over the chat endpoint, zero-shot, greedy, thinking off.
+
+    The arithmetic probes only catch a broken config; this catches a few
+    points of quality loss (e.g. a quantization change). Thinking is turned
+    off through the chat template because a thinking model spends any
+    reasonable token budget before answering; templates that don't know the
+    kwarg ignore it, and the reasoning field is read as a fallback.
+    """
+    def ask(row):
+        try:
+            r = http_json(
+                f"http://127.0.0.1:{port}/v1/chat/completions",
+                {"model": model, "temperature": 0, "max_tokens": 1024,
+                 "chat_template_kwargs": {"enable_thinking": False},
+                 "messages": [{"role": "user", "content": row["question"]
+                               + "\nSolve step by step, then give the final answer after '####'."}]},
+                timeout=600,
+            )
+            msg = r["choices"][0]["message"]
+            text = msg.get("content") or msg.get("reasoning") or msg.get("reasoning_content") or ""
+        except (OSError, KeyError, ValueError):
+            text = ""
+        gold = row["answer"].split("####")[-1].strip().replace(",", "")
+        nums = re.findall(r"-?\d[\d,]*\.?\d*", text.split("####")[-1])
+        got = nums[-1].replace(",", "").rstrip(".") if nums else None
+        try:
+            ok = got is not None and float(got) == float(gold)
+        except ValueError:
+            ok = False
+        return {"gold": gold, "got": got, "ok": ok}
+
+    with ThreadPoolExecutor(64) as ex:
+        res = list(ex.map(ask, rows))
+    correct = sum(r["ok"] for r in res)
+    return {"correct": correct, "total": len(res), "accuracy": correct / len(res), "rows": res}
+
+
+def checkpoint_dir(model):
+    """Local directory of a served checkpoint: a path, or its HF cache snapshot."""
+    if Path(model).is_dir():
+        return Path(model)
+    hub = os.environ.get("HF_HUB_CACHE") or os.path.join(
+        os.environ.get("HF_HOME", os.path.expanduser("~/.cache/huggingface")), "hub")
+    snaps = sorted(Path(hub, "models--" + model.replace("/", "--"), "snapshots").glob("*"),
+                   key=lambda p: p.stat().st_mtime)
+    return snaps[-1] if snaps else None
+
+
+def inspect_checkpoint(model):
+    """Quantization labels vs. what the tensors carry.
+
+    Counts layers per quant_algo, and flags layers labeled weight-only
+    (W4A16*) that still ship an activation `input_scale`: vLLM follows the
+    label and runs them on weight-only kernels, even on GPUs whose native
+    low-precision path could use those scales.
+    """
+    d = checkpoint_dir(model)
+    if not d:
+        return None
+    quant = None
+    if (d / "hf_quant_config.json").exists():
+        quant = json.loads((d / "hf_quant_config.json").read_text()).get("quantization")
+    elif (d / "config.json").exists():
+        cfg = json.loads((d / "config.json").read_text())
+        quant = cfg.get("quantization_config") or cfg.get("text_config", {}).get("quantization_config")
+    if not quant:
+        return {"dir": str(d), "quant_algo": None}
+    layers = quant.get("quantized_layers") or {}
+    algos = {}
+    for v in layers.values():
+        a = v.get("quant_algo") if isinstance(v, dict) else v
+        algos[a] = algos.get(a, 0) + 1
+    keys = []
+    for f in d.glob("*.safetensors"):
+        with open(f, "rb") as fh:
+            n = int.from_bytes(fh.read(8), "little")
+            keys += [k for k in json.loads(fh.read(n)) if k != "__metadata__"]
+    scaled = {k.rsplit(".input_scale", 1)[0] for k in keys if k.endswith(".input_scale")}
+    a16 = [name for name, v in layers.items()
+           if str(v.get("quant_algo") if isinstance(v, dict) else v).startswith("W4A16")]
+    a16_scaled = sum(any(s == name or s.startswith(name + ".") for s in scaled) for name in a16)
+    return {"dir": str(d), "quant_algo": quant.get("quant_algo"), "layers_by_algo": algos,
+            "a16_layers": len(a16), "a16_layers_with_input_scale": a16_scaled}
+
+
 def run_bench(cfg, w, port, model, out_dir, spec_bench_path):
     fname = f"bench-{w['name']}.json"
     cmd = ["vllm", "bench", "serve", "--model", model, "--port", str(port)]
@@ -346,6 +434,10 @@ def run_config(cfg, plan, args, out_root):
         model = served_model(args.port)
         log(f"{cfg['name']}: ready in {info}s, scoring {len(plan['probes'])} probes")
         result["accuracy"] = score_probes(args.port, model, plan["probes"])
+        result["checkpoint"] = inspect_checkpoint(cfg["argv"][2])
+        if args.gsm8k_rows:
+            log(f"{cfg['name']}: gsm8k on {len(args.gsm8k_rows)} questions")
+            result["gsm8k"] = score_gsm8k(args.port, model, args.gsm8k_rows)
         for w in plan["workloads"]:
             if args.workloads and w["name"] not in args.workloads:
                 continue
@@ -403,7 +495,9 @@ def main():
     ap.add_argument("--profile", metavar="WORKLOAD", help="trace this workload for each --only config")
     ap.add_argument("--profile-delay", type=int, default=20,
                     help="engine steps to skip before tracing; 0 captures the prefill phase")
-    ap.add_argument("--workloads", default="", help="run only these workloads (comma list)")
+    ap.add_argument("--workloads", default="", help="run only these workloads (comma list; 'none' = start and score only)")
+    ap.add_argument("--gsm8k", type=int, default=0, metavar="N",
+                    help="also score the first N GSM8K test questions per config")
     args = ap.parse_args()
     args.workloads = set(filter(None, args.workloads.split(",")))
 
@@ -426,6 +520,16 @@ def main():
             urllib.request.urlretrieve(SPEC_BENCH_URL, spec_bench)
         except OSError as e:
             sys.exit(f"could not fetch Spec-Bench prompts ({e}); place question.jsonl at {spec_bench}")
+
+    args.gsm8k_rows = []
+    if args.gsm8k:
+        path = out_root / "gsm8k_test.jsonl"
+        if not path.exists():
+            try:
+                urllib.request.urlretrieve(GSM8K_URL, path)
+            except OSError as e:
+                sys.exit(f"could not fetch GSM8K ({e}); place test.jsonl at {path}")
+        args.gsm8k_rows = [json.loads(l) for l in path.read_text().splitlines() if l.strip()][: args.gsm8k]
 
     only = set(filter(None, args.only.split(",")))
     if args.profile:

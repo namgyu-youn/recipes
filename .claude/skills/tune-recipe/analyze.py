@@ -63,6 +63,8 @@ def placement(cfg, plan, mixed):
     if cfg.get("extra_env"):
         env = " ".join(f"{k}={v}" for k, v in cfg["extra_env"].items())
         return f"`{env}` — `variants.{plan['variant']}.hardware_overrides.{hw['id']}.extra_env`"
+    if not cfg.get("extra_args"):
+        return f"not a flag change ({cfg['why']}) — no recipe placement; report it where that change lives"
     args = " ".join(cfg["extra_args"])
     if plan["variant"] == "default":
         return f"`{args}` — recipe `hardware_overrides.{hw['generation']}.extra_args` covers the whole generation; only with evidence from more than {hw['id']}"
@@ -75,6 +77,8 @@ def main():
     ap.add_argument("--tolerance", type=int, default=2, help="probes a config may lose vs baseline")
     ap.add_argument("--noise", type=float, default=3.0, help="minimum %% gain that counts as a win")
     ap.add_argument("--latency", type=float, default=10.0, help="maximum %% E2E latency p50 regression a win may carry")
+    ap.add_argument("--gsm8k-tolerance", type=float, default=2.0,
+                    help="GSM8K points a config may lose vs baseline (when runner.py ran --gsm8k)")
     args = ap.parse_args()
 
     root = Path(args.plan_dir)
@@ -102,6 +106,9 @@ def main():
             return "requests failed"
         if r["accuracy"]["correct"] < base_acc - args.tolerance:
             return f"accuracy {r['accuracy']['correct']}/{r['accuracy']['total']} vs baseline {base_acc}"
+        g, bg = r.get("gsm8k"), base.get("gsm8k")
+        if g and bg and (bg["accuracy"] - g["accuracy"]) * 100 > args.gsm8k_tolerance:
+            return f"gsm8k {g['accuracy']:.1%} vs baseline {bg['accuracy']:.1%}"
         return "pass"
 
     hw = plan["hardware"]
@@ -116,10 +123,20 @@ def main():
         f"Accuracy is {len(plan['probes'])} arithmetic probes; a config may lose at most {args.tolerance} vs baseline.",
         "",
     ]
-    for w in plan.get("warnings", []) + env.get("warnings", []):
+    # Weight-only labels on layers that ship activation scales: vLLM follows
+    # the label, so a checkpoint can run slower than its tensors allow.
+    ckpt_warnings = {}
+    for r in results.values():
+        c = r.get("checkpoint") or {}
+        if c.get("a16_layers_with_input_scale"):
+            ckpt_warnings[c["dir"]] = (
+                f"`{c['dir']}`: {c['a16_layers_with_input_scale']} of {c['a16_layers']} layers labeled W4A16 "
+                "(weight-only) ship activation `input_scale`s — vLLM runs them on weight-only kernels. "
+                "If the model card says activations are quantized, a relabeled copy may run on native kernels; test it with --gsm8k.")
+    for w in plan.get("warnings", []) + env.get("warnings", []) + list(ckpt_warnings.values()):
         lines += [f"> ⚠ {w}", ""]
 
-    lines += ["## Configs", "", "| Config | Change | GPUs | Startup | Peak mem | Probes | Gate |", "|---|---|---|---|---|---|---|"]
+    lines += ["## Configs", "", "| Config | Change | GPUs | Startup | Peak mem | Probes | GSM8K | Gate |", "|---|---|---|---|---|---|---|---|"]
     by_name = {c["name"]: c for c in plan["configs"]}
     for cfg in plan["configs"]:
         r = results.get(cfg["name"], {})
@@ -128,7 +145,9 @@ def main():
             f"| `{cfg['name']}` | {cfg['why']} | {gpus_used(cfg['argv'])} | {fmt(r.get('startup_s'), 0) + 's' if r.get('startup_s') else '—'}"
             f" | {fmt(r['peak_mem_mib'] / 1024) + ' GiB' if r.get('peak_mem_mib') else '—'}"
             f" | {'%d/%d' % (acc['correct'], acc['total']) if acc else '—'}"
-            f"{' (%d cut)' % acc['truncated'] if acc and acc.get('truncated') else ''} | {gate(cfg['name'])} |"
+            f"{' (%d cut)' % acc['truncated'] if acc and acc.get('truncated') else ''}"
+            f" | {'%.1f%% (%d/%d)' % (r['gsm8k']['accuracy'] * 100, r['gsm8k']['correct'], r['gsm8k']['total']) if r.get('gsm8k') else '—'}"
+            f" | {gate(cfg['name'])} |"
         )
 
     base_cfg = by_name["baseline"]
