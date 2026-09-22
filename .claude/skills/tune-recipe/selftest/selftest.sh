@@ -38,12 +38,29 @@ p["probes"] = p["probes"][:8]
 json.dump(p, open(sys.argv[1], "w"))
 EOF
 
-# Offline stand-in for the Spec-Bench download.
+# Offline stand-ins for the Spec-Bench and GSM8K downloads, and an HF cache
+# holding a checkpoint whose W4A16-labeled experts ship input_scale tensors.
 mkdir -p "$TMP/results" && echo '{"category": "writing", "turns": ["Write a haiku."]}' >"$TMP/results/spec_bench.jsonl"
+python3 - "$TMP" <<'PY'
+import json, struct, sys
+from pathlib import Path
+tmp = Path(sys.argv[1])
+with open(tmp / "results/gsm8k_test.jsonl", "w") as f:
+    for a, b, c in [(12, 34, 100), (21, 43, 250), (15, 15, 999), (40, 12, 101), (33, 71, 404), (18, 27, 606), (55, 19, 300), (61, 23, 777)]:
+        f.write(json.dumps({"question": f"What is {a} * {b} + {c}?", "answer": f"steps #### {a * b + c}"}) + "\n")
+snap = tmp / "hub/models--nvidia--Qwen3.6-35B-A3B-NVFP4/snapshots/abc"
+snap.mkdir(parents=True)
+layers = {"model.layers.0.mlp.experts": {"quant_algo": "W4A16_NVFP4", "group_size": 16},
+          "model.layers.0.self_attn.q_proj": {"quant_algo": "FP8"}}
+(snap / "hf_quant_config.json").write_text(json.dumps({"quantization": {"quant_algo": "MIXED_PRECISION", "quantized_layers": layers}}))
+hdr = json.dumps({"model.layers.0.mlp.experts.0.gate_proj.input_scale": {"dtype": "F32", "shape": [], "data_offsets": [0, 4]},
+                  "model.layers.0.mlp.experts.0.gate_proj.weight": {"dtype": "U8", "shape": [1], "data_offsets": [4, 5]}}).encode()
+(snap / "model.safetensors").write_bytes(struct.pack("<Q", len(hdr)) + hdr + b"\0" * 5)
+PY
 # enforce-eager runs alone first, on one workload (--workloads).
 PATH="$HERE:$PATH" python3 "$SKILL/runner.py" "$TMP/plan.json" --out "$TMP/results" --port 18123 \
   --only enforce-eager --workloads single_user >"$TMP/run.log"
-PATH="$HERE:$PATH" python3 "$SKILL/runner.py" "$TMP/plan.json" --out "$TMP/results" --port 18123 --ready-timeout 30 >>"$TMP/run.log"
+HF_HUB_CACHE="$TMP/hub" PATH="$HERE:$PATH" python3 "$SKILL/runner.py" "$TMP/plan.json" --out "$TMP/results" --port 18123 --ready-timeout 30 --gsm8k 8 >>"$TMP/run.log"
 # Second run must resume, not re-run.
 PATH="$HERE:$PATH" python3 "$SKILL/runner.py" "$TMP/plan.json" --out "$TMP/results" --port 18123 >>"$TMP/run.log"
 # Profiling pass: separate traced runs, must not touch result.json.
@@ -75,6 +92,8 @@ check "$R" '`env-FAKE_SLOW_INIT-1`: engine init took 700 s' "engine init past 60
 check "$R" '\*\*`variant-fp8`\*\* wins 1/5 workloads (single_user +50.0%)' "the single-user workload runs and can be won"
 check "$R" 'Loses: chat -10.0%' "a win that also loses elsewhere lists the losses"
 check "$R" 'workload-dependent' "mixed wins are not recommended as defaults"
+check "$R" '^| `baseline` .*| 100.0% (8/8) |' "GSM8K runs per config and shows in the table"
+check "$R" '1 of 1 layers labeled W4A16 (weight-only) ship activation' "W4A16 labels on layers with input scales are flagged"
 python3 - "$TMP/results/enforce-eager/result.json" <<'PY' && echo "ok   --workloads limits the benchmarks" || { echo "FAIL --workloads"; fail=1; }
 import json, sys
 assert list(json.load(open(sys.argv[1]))["workloads"]) == ["single_user"]

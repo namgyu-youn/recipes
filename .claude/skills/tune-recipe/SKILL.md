@@ -19,8 +19,14 @@ Arguments: `<org>/<repo> <gpu> <count> [variant]`, e.g. `Qwen/Qwen3.6-35B-A3B rt
 - **Baseline is the site's command.** Config `baseline` is rendered by
   `src/lib/command-synthesis.js` for this hardware. Every other config changes one
   thing. Don't hand-edit `plan.json`; re-plan with the flags below instead.
+- **Check upstream before reproducing.** A recipe bug seen on one vLLM release may
+  already be fixed in a newer one: look at the latest release notes and at closed
+  PRs in both repos (the user's own included) for the issue number before spending
+  box time on it.
 - **A win must clear the gate.** It started, every request completed, it lost at most
-  2 of 32 arithmetic probes vs baseline, it beat baseline by >3% (one run per
+  2 of 32 arithmetic probes vs baseline (and, with `--gsm8k N`, at most 2 GSM8K
+  points — the probes only catch a broken config, GSM8K catches a small quality
+  loss such as a quantization change), it beat baseline by >3% (one run per
   workload, so smaller gaps are noise), and its E2E latency p50 is at most 10% worse
   than baseline (a throughput gain bought with slower requests is a trade-off, not a
   win). E2E rather than TPOT: when the baseline queues, TPOT only times requests that
@@ -75,7 +81,8 @@ hand over the plan directory. `remote.sh` wraps the SSH side:
 
 ```bash
 S=.claude/skills/tune-recipe/remote.sh; H=<user@host>; P=<port>; D=<plan-dir>
-$S $H $P start  $D [--only a,b] [--workloads chat,single_user]   # queues behind a running sweep
+$S $H $P start  $D [--only a,b] [--workloads chat,single_user] [--gsm8k 500]   # queues behind a running sweep
+$S $H $P start  $D --only baseline --workloads none   # smoke: does it start, is it correct
 $S $H $P watch  $D     # prints new log lines, exits when the runner is idle — run it as a Monitor
 $S $H $P status $D
 $S $H $P pull   $D     # copies results/ into the plan dir
@@ -91,6 +98,11 @@ $S $H $P stop   $D
   with the box's HF cache mounted. Gated checkpoints need `HF_TOKEN` exported on the
   box — ask the user, never echo it. Pre-download checkpoints with `hf download` so
   startup times don't include the download.
+- **Don't change the box while a run is live.** Installing into the venv during a
+  server start can break it mid-import, so install everything first. Don't edit
+  `remote.sh` while a `watch` from it is running (bash reads scripts as it goes).
+  Any ad hoc `pkill -f`/`pgrep -f` must not match its own command line — anchor the
+  pattern (e.g. `^python3 runner.py`) or use the `[r]unner` trick.
 - **Monitor** with `remote.sh watch` as a Monitor (it expires after 30 min — re-arm).
   The runner is resumable: re-run `start` and finished configs are skipped.
 - **Startup.** The runner sets `VLLM_ENGINE_READY_TIMEOUT_S` to its own
@@ -107,7 +119,11 @@ $S $H $P stop   $D
 $S $H $P pull $D && python3 .claude/skills/tune-recipe/analyze.py $D
 ```
 
-`report.md` has, per config: gate, probes, startup, and a "Startup and kernels" table
+`report.md` opens with warnings — including a checkpoint whose layers are labeled
+weight-only (W4A16) yet ship activation scales, which vLLM will run on weight-only
+kernels (found on `nvidia/Qwen3.6-35B-A3B-NVFP4`: relabeled, the same tensors ran
+~35% faster on B200 at the same GSM8K). Then, per config: gate, probes, GSM8K,
+startup, and a "Startup and kernels" table
 — engine init, warmup runs per model, and the backends vLLM chose (read this first:
 e.g. an NVFP4 checkpoint landing on Marlin explains a lot); per workload: throughput,
 per-GPU, TTFT/TPOT/E2E, and draft acceptance from `/metrics` for `spec-*` configs.
@@ -137,7 +153,8 @@ the time went. A crash (illegal address, bad kernel) is a debugging job for
 ## Maintenance
 
 `selftest/selftest.sh` runs plan → runner → analyze against a fake `vllm` (no GPU):
-startup-failure isolation, the accuracy and E2E gates, the noise floor, the verdict
+startup-failure isolation, the accuracy (probes, GSM8K) and E2E gates, checkpoint
+label inspection, the noise floor, the verdict
 and its losses, resume, `--env`/`--variants`/env and bare-flag candidates,
 `--workloads`, the single-user workload, backend and startup parsing, the slow-start
 warning, draft acceptance and the profiling pass. Run it after changing any script:
