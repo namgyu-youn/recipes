@@ -4,6 +4,13 @@
 //   node .claude/skills/tune-recipe/plan.mjs --recipe Qwen/Qwen3.6-35B-A3B \
 //     --gpu rtx_pro_6000 --count 1 [--variant nvfp4] [--candidates --moe-backend=b12x,...]
 //     [--cohorts <sync-vllm cohorts.json>] [--max-backends 6] [--no-knobs] [--out <dir>]
+//     [--variants fp8,default] [--env NAME=value ...]
+//
+// --candidates takes `--flag=value` (one backend/knob), a bare `--flag`
+// (e.g. --enforce-eager) or `ENV:NAME=value` (one environment variable).
+// --variants adds one config per other checkpoint of the recipe. --env sets a
+// variable on EVERY config (e.g. a workaround the whole plan needs), so the
+// comparison between configs stays one change apart.
 //
 // Every serve command comes from src/lib/command-synthesis.js, so config
 // "baseline" is exactly what the recipe page renders for this hardware. The
@@ -54,6 +61,8 @@ const WORKLOADS = [
   { name: "chat", input_len: 1000, output_len: 250, concurrency: 16, num_prompts: 160 },
   { name: "long_prefill", input_len: 8000, output_len: 100, concurrency: 4, num_prompts: 40 },
   { name: "decode_heavy", input_len: 250, output_len: 1000, concurrency: 32, num_prompts: 128 },
+  // One user at a time: the latency workstation recipes are tuned for.
+  { name: "single_user", input_len: 1000, output_len: 250, concurrency: 1, num_prompts: 10 },
 ];
 
 // Draft acceptance on random-token prompts is not what users see, so a plan
@@ -67,7 +76,7 @@ function die(msg) {
 }
 
 function parseArgs(argv) {
-  const out = { variant: "default", count: 1, maxBackends: 6, knobs: true, candidates: [] };
+  const out = { variant: "default", count: 1, maxBackends: 6, knobs: true, candidates: [], variants: [], env: {} };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     const next = () => argv[++i];
@@ -80,13 +89,28 @@ function parseArgs(argv) {
     else if (a === "--max-backends") out.maxBackends = Number(next());
     else if (a === "--no-knobs") out.knobs = false;
     else if (a === "--out") out.out = next();
+    else if (a === "--variants") out.variants = next().split(",").filter(Boolean);
+    else if (a === "--env") {
+      const [k, ...v] = next().split("=");
+      out.env[k] = v.join("=");
+    }
     else die(`unknown argument ${a}`);
   }
   if (!out.recipe || !out.gpu) die("--recipe and --gpu are required");
   return out;
 }
 
+// True when version a is newer than b ("0.28.0" vs "0.17.0"); "nightly" wins.
+const newerVersion = (a, b) => {
+  if (!a || a === b) return false;
+  if (a === "nightly" || !b) return true;
+  const [x, y] = [a, b].map((v) => String(v).split(".").map(Number));
+  for (let i = 0; i < Math.max(x.length, y.length); i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0);
+  return false;
+};
 const readYaml = (p) => yaml.load(fs.readFileSync(p, "utf8"));
+// Quote for commands.sh so its lines paste into a shell as-is.
+const shq = (a) => (/^[\w@%+=:,./-]+$/.test(String(a)) ? String(a) : `'${String(a).replace(/'/g, `'\\''`)}'`);
 const family = (id) => id.replace(/_\d+x$/, "");
 
 function rentableCounts() {
@@ -262,22 +286,25 @@ function main() {
   const rec = recommendStrategy(recipe, profile, 1);
   const baseStrategy = offered.includes(rec) ? rec : offered[0];
 
-  const render = (strategy, feats, featModes, extra) => {
-    const r = resolveCommand(recipe, args.variant, strategy, hwId, feats, strategies, tax, extra, 1, null, featModes);
+  const render = (strategy, feats, featModes, extra, variantKey, extraEnv) => {
+    const r = resolveCommand(recipe, variantKey, strategy, hwId, feats, strategies, tax, extra, 1, null, featModes);
     if (!r || r.deployType !== "single_node") return null;
-    return { argv: r.argv, env: r.env || {} };
+    return { argv: r.argv, env: { ...(r.env || {}), ...args.env, ...extraEnv } };
   };
 
   const configs = [];
   const seen = new Set();
-  const add = (name, why, strategy, feats, featModes, extra = []) => {
-    const r = render(strategy, feats, featModes, extra);
+  const add = (name, why, strategy, feats, featModes, extra = [], { variant: v = args.variant, env = {} } = {}) => {
+    const r = render(strategy, feats, featModes, extra, v, env);
     if (!r) return;
     const key = JSON.stringify([r.argv, r.env]);
     if (seen.has(key)) return; // a change that renders identically is not a config
     seen.add(key);
-    configs.push({ name, why, strategy, features: feats, modes: featModes, extra_args: extra, ...r });
+    configs.push({ name, why, strategy, variant: v, features: feats, modes: featModes, extra_args: extra, extra_env: env, ...r });
   };
+  if (Object.keys(args.env).length) {
+    warnings.push(`every config runs with ${Object.entries(args.env).map(([k, v]) => `${k}=${v}`).join(" ")} (--env), which the site's command does not set`);
+  }
 
   add("baseline", "the command the recipe page renders for this hardware", baseStrategy, features, modes);
   if (!configs.length) die("baseline command failed to render");
@@ -285,6 +312,26 @@ function main() {
 
   for (const s of offered) {
     if (s !== baseStrategy) add(`strategy-${s}`, `serving strategy ${s}`, s, features, modes);
+  }
+
+  // Other checkpoints of the same recipe, each with its own page defaults.
+  for (const vk of args.variants) {
+    const v = recipe.variants?.[vk];
+    if (!v) die(`variant ${vk} not in recipe`);
+    if (vk === args.variant) continue;
+    if (!isPrecisionCompatible(profile, v) || !isVariantHardwareSupported(v, hwId)) {
+      warnings.push(`variant ${vk} skipped: not runnable on ${hwId}`);
+      continue;
+    }
+    if ((v.vram_minimum_gb || 0) > profile.vram_gb) {
+      warnings.push(`variant ${vk} skipped: needs ${v.vram_minimum_gb} GB, box has ${profile.vram_gb} GB`);
+      continue;
+    }
+    const vMin = v.min_vllm_version || recipe.model?.min_vllm_version;
+    const baseMin = variant.min_vllm_version || recipe.model?.min_vllm_version;
+    if (newerVersion(vMin, baseMin)) warnings.push(`variant ${vk} needs vLLM >= ${vMin}, above the plan floor ${baseMin}`);
+    add(`variant-${vk}`, `variant ${vk} (${v.model_id || recipe.model?.model_id})`, baseStrategy,
+      defaultFeatures(recipe, hwId, vk), { ...(v.default_modes || {}) }, [], { variant: vk });
   }
 
   // Spec decoding is the only feature toggled: it is a perf knob, whereas
@@ -309,8 +356,17 @@ function main() {
   const isMoe = recipe.model?.architecture === "moe";
   const baseAttn = flagValue(baseArgv, "--attention-backend") || "";
   const usesMla = /MLA/i.test(baseAttn);
+  // Explicit env and bare-flag candidates; `--flag=value` ones join the backend list.
+  for (const c of args.candidates) {
+    if (c.startsWith("ENV:")) {
+      const [k, ...v] = c.slice(4).split("=");
+      add(`env-${k}-${v.join("=")}`, `${k}=${v.join("=")} (--candidates)`, baseStrategy, features, modes, [], { env: { [k]: v.join("=") } });
+    } else if (!c.includes("=")) {
+      add(c.replace(/^--/, ""), `${c} (--candidates)`, baseStrategy, features, modes, [c]);
+    }
+  }
   const cands = [
-    ...args.candidates.map((c) => {
+    ...args.candidates.filter((c) => c.includes("=") && !c.startsWith("ENV:")).map((c) => {
       const [flag, value] = c.split("=");
       return { flag, value, source: "--candidates" };
     }),
@@ -324,8 +380,10 @@ function main() {
   let backendCount = 0;
   const tried = new Set();
   for (const c of cands) {
-    if (!c.flag || !c.value || tried.has(`${c.flag}=${c.value}`)) continue;
-    tried.add(`${c.flag}=${c.value}`);
+    // Backend names are case-insensitive (flashinfer == FLASHINFER).
+    const key = `${c.flag}=${String(c.value).toLowerCase()}`;
+    if (!c.flag || !c.value || tried.has(key)) continue;
+    tried.add(key);
     if (c.flag === "--moe-backend" && !isMoe) continue;
     if (c.flag === "--attention-backend" && /MLA/i.test(c.value) !== usesMla) continue;
     if (String(flagValue(baseArgv, c.flag) || "").toLowerCase() === c.value.toLowerCase()) continue;
@@ -339,7 +397,7 @@ function main() {
   const maxConc = Math.max(...WORKLOADS.map((w) => w.concurrency));
   const seqs = Number(flagValue(baseArgv, "--max-num-seqs"));
   if (seqs && seqs < maxConc) {
-    warnings.push(`baseline caps --max-num-seqs at ${seqs}, below workload concurrency ${maxConc}: requests queue, so TTFT includes wait time — compare TPOT`);
+    warnings.push(`baseline caps --max-num-seqs at ${seqs}, below workload concurrency ${maxConc}: requests queue, so TTFT includes wait time`);
   }
 
   if (args.knobs) {
@@ -395,8 +453,8 @@ function main() {
 
   const sh = ["# Commands in this plan (for reading; runner.py executes them)", ""];
   for (const c of configs) {
-    const env = Object.entries(c.env).map(([k, v]) => `${k}=${v}`).join(" ");
-    sh.push(`# ${c.name}: ${c.why}`, `${env ? env + " " : ""}${c.argv.join(" ")}`, "");
+    const env = Object.entries(c.env).map(([k, v]) => `${k}=${shq(v)}`).join(" ");
+    sh.push(`# ${c.name}: ${c.why}`, `${env ? env + " " : ""}${c.argv.map(shq).join(" ")}`, "");
   }
   fs.writeFileSync(path.join(outDir, "commands.sh"), sh.join("\n"));
 

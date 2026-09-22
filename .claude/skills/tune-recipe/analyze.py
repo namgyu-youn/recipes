@@ -49,12 +49,20 @@ def fmt_delta(d):
 
 # Where the winning change would go in the recipe YAML. Advice only: the
 # tuner never edits a recipe.
-def placement(cfg, plan):
+def placement(cfg, plan, mixed):
     hw = plan["hardware"]
+    if mixed:
+        return ("workload-dependent — it also loses on some workloads, so keep the recipe default and "
+                f"say in the guide when to turn it on for {hw['id']}")
+    if cfg["name"].startswith("variant-"):
+        return f"variant choice — note in the guide that `{cfg['variant']}` is the faster checkpoint on {hw['id']}"
     if cfg["name"].startswith("strategy-"):
         return f"strategy choice — the Strategy row already offers `{cfg['strategy']}`; document it in the guide for {hw['id']} x{hw['count']}"
     if cfg["name"].startswith("spec-"):
         return "feature default — consider dropping `spec_decoding` from `opt_in_features` (or `default_mode`) only if every hardware shows the same gain"
+    if cfg.get("extra_env"):
+        env = " ".join(f"{k}={v}" for k, v in cfg["extra_env"].items())
+        return f"`{env}` — `variants.{plan['variant']}.hardware_overrides.{hw['id']}.extra_env`"
     args = " ".join(cfg["extra_args"])
     if plan["variant"] == "default":
         return f"`{args}` — recipe `hardware_overrides.{hw['generation']}.extra_args` covers the whole generation; only with evidence from more than {hw['id']}"
@@ -123,9 +131,37 @@ def main():
             f"{' (%d cut)' % acc['truncated'] if acc and acc.get('truncated') else ''} | {gate(cfg['name'])} |"
         )
 
-    wins = {}
+    base_cfg = by_name["baseline"]
+    base_backends = set(base.get("backends") or [])
+    lines += ["", "## Startup and kernels", "",
+              "What vLLM logged while starting each config: engine init, per-model warmup runs, and the backends it chose.",
+              "", "| Config | Startup | Engine init | Warmup runs | Backends |", "|---|---|---|---|---|"]
+    slow_starts = []
+    for cfg in plan["configs"]:
+        r = results.get(cfg["name"]) or {}
+        if "startup_s" not in r:
+            continue
+        st = r.get("startup") or {}
+        runs = st.get("warmup_run_s")
+        runs = " + ".join(f"{x:,.0f}s" for x in (runs if isinstance(runs, list) else [runs])) if runs else "—"
+        bk = r.get("backends") or []
+        if cfg["name"] != "baseline":
+            bk = [f"+{b}" for b in bk if b not in base_backends] or ["same as baseline"]
+        init = st.get("engine_init_s")
+        lines.append(f"| `{cfg['name']}` | {r['startup_s']:,.0f}s | {f'{init:,.0f}s' if init else '—'} | {runs} | {'; '.join(bk) or '—'} |")
+        # vLLM's frontend waits VLLM_ENGINE_READY_TIMEOUT_S (600 s) for the engine;
+        # the runner raises it, the site's command does not.
+        if (init or 0) > 600 and "VLLM_ENGINE_READY_TIMEOUT_S" not in cfg["env"]:
+            slow_starts.append((cfg["name"], init))
+    for name, init in slow_starts:
+        lines += ["", f"> ⚠ `{name}`: engine init took {init:,.0f} s, past vLLM's default 600 s engine-ready wait — "
+                  "the site's command fails on a launch like this one (usually the first on a machine, before caches fill)."]
+
+    wins, losses = {}, {}
     for w in plan["workloads"]:
         name = w["name"]
+        if not any(name in (r.get("workloads") or {}) for r in results.values()):
+            continue  # skipped with runner.py --workloads
         b = base["workloads"].get(name, {})
         source = "Spec-Bench prompts" if w.get("dataset") == "spec_bench" else f"{w['input_len']} in"
         lines += [
@@ -155,6 +191,8 @@ def main():
             )
             if not is_base and gate(cfg["name"]) == "pass" and not slow and d is not None and d > best_gain:
                 best, best_gain = cfg["name"], d
+            if not is_base and gate(cfg["name"]) == "pass" and d is not None and (d < -args.noise or slow):
+                losses.setdefault(cfg["name"], []).append((name, d, e2el_d))
         accept = [
             f"`{c['name']}` {m['spec']['acceptance_rate']:.1%} (mean length {m['spec']['mean_acceptance_length']:.2f};"
             f" per position {' / '.join(f'{x:.2f}' for x in m['spec']['per_position'])})"
@@ -192,10 +230,12 @@ def main():
     for name, ws in sorted(wins.items(), key=lambda kv: -len(kv[1])):
         cfg = by_name[name]
         where = ", ".join(f"{w} {g:+.1f}%" for w, g in ws)
-        lines += [
-            f"- **`{name}`** wins {len(ws)}/{len(plan['workloads'])} workloads ({where}).",
-            f"  - Placement: {placement(cfg, plan)}.",
-        ]
+        lines.append(f"- **`{name}`** wins {len(ws)}/{len(plan['workloads'])} workloads ({where}).")
+        if name in losses:
+            lost = ", ".join(f"{w} {d:+.1f}%" + (f" (E2E {e:+.1f}%)" if e is not None and e > args.latency else "")
+                             for w, d, e in losses[name])
+            lines.append(f"  - Loses: {lost}.")
+        lines.append(f"  - Placement: {placement(cfg, plan, name in losses)}.")
         if gpus_used(cfg["argv"]) != gpus_used(by_name["baseline"]["argv"]):
             lines.append("  - Uses a different GPU count than the baseline — compare the per-GPU column before adopting.")
     lines += [
