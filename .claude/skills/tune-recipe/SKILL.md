@@ -20,8 +20,9 @@ Arguments: `<org>/<repo> <gpu> <count> [variant]`, e.g. `Qwen/Qwen3.6-35B-A3B rt
   `src/lib/command-synthesis.js` for this hardware. Every other config changes one
   thing. Don't hand-edit `plan.json` argv to "fix" a config; re-plan instead.
 - **A win must clear the gate.** It started, every request completed, it lost at most
-  2 of 32 arithmetic probes vs baseline, and it beat baseline by >3% (one run per
-  workload, so smaller gaps are noise). Before recommending anything, re-run the
+  2 of 32 arithmetic probes vs baseline, it beat baseline by >3% (one run per
+  workload, so smaller gaps are noise), and its TPOT p50 is at most 10% worse than
+  baseline (a throughput gain bought with slower decoding is a trade-off, not a win). Before recommending anything, re-run the
   winner and the baseline with `runner.py --only baseline,<winner>` and confirm.
 
 ## Steps
@@ -48,6 +49,9 @@ Writes `.claude_workdir/tune/<org>__<repo>/<hw>x<n>-<variant>-<stamp>/plan.json`
 
 Show the user the config list, any `!` warnings, and a time estimate
 (≈ 10–15 min per config: model load + probes + three workloads) before touching a box.
+Workloads use random tokens, which defeat draft models, so a plan with `spec-*`
+configs adds a fourth `spec_text` workload on Spec-Bench chat prompts (the runner
+downloads `question.jsonl` on the box). Judge spec decoding on that one.
 Read `commands.sh` yourself; drop configs the evidence doesn't support by re-planning
 with `--no-knobs` / fewer `--candidates`, not by editing JSON.
 

@@ -31,6 +31,8 @@ BENCH_KEYS = (
     "p99_tpot_ms", "median_itl_ms", "p99_itl_ms", "median_e2el_ms",
 )
 
+SPEC_BENCH_URL = "https://raw.githubusercontent.com/hemingkx/Spec-Bench/refs/heads/main/data/spec_bench/question.jsonl"
+
 
 def log(msg):
     print(f"[{time.strftime('%H:%M:%S')}] {msg}", flush=True)
@@ -151,26 +153,46 @@ def score_probes(port, model, probes):
                  "temperature": 0, "max_tokens": 4096},
                 timeout=600,
             )
-            text = r["choices"][0]["message"].get("content") or ""
+            choice = r["choices"][0]
+            msg = choice["message"]
+            # A reasoning parser moves thinking out of `content`; if the answer
+            # never left it (or the budget ran out), read the reasoning instead.
+            text = msg.get("content") or msg.get("reasoning") or msg.get("reasoning_content") or ""
         except (OSError, KeyError, ValueError) as e:
             return {"answer": p["answer"], "got": None, "error": str(e)}
         nums = re.findall(r"-?\d[\d,]*", text)
         got = int(nums[-1].replace(",", "")) if nums else None
-        return {"answer": p["answer"], "got": got}
+        return {"answer": p["answer"], "got": got, "truncated": choice.get("finish_reason") == "length"}
 
     with ThreadPoolExecutor(16) as ex:
         rows = list(ex.map(ask, probes))
-    return {"correct": sum(r["got"] == r["answer"] for r in rows), "total": len(rows), "rows": rows}
+    return {
+        "correct": sum(r["got"] == r["answer"] for r in rows),
+        "total": len(rows),
+        "truncated": sum(bool(r.get("truncated")) for r in rows),
+        "rows": rows,
+    }
 
 
-def run_bench(cfg, w, port, model, out_dir):
+def run_bench(cfg, w, port, model, out_dir, spec_bench_path):
     fname = f"bench-{w['name']}.json"
-    cmd = [
-        "vllm", "bench", "serve", "--backend", "vllm", "--model", model,
-        "--port", str(port), "--dataset-name", "random",
-        "--random-input-len", str(w["input_len"]), "--random-output-len", str(w["output_len"]),
+    cmd = ["vllm", "bench", "serve", "--model", model, "--port", str(port)]
+    if w.get("dataset") == "spec_bench":
+        # Real chat prompts, no --ignore-eos: text after EOS is degenerate and
+        # would inflate draft acceptance.
+        cmd += [
+            "--backend", "openai-chat", "--endpoint", "/v1/chat/completions",
+            "--dataset-name", "spec_bench", "--dataset-path", str(spec_bench_path),
+            "--spec-bench-output-len", str(w["output_len"]),
+        ]
+    else:
+        cmd += [
+            "--backend", "vllm", "--dataset-name", "random", "--ignore-eos",
+            "--random-input-len", str(w["input_len"]), "--random-output-len", str(w["output_len"]),
+        ]
+    cmd += [
         "--num-prompts", str(w["num_prompts"]), "--max-concurrency", str(w["concurrency"]),
-        "--ignore-eos", "--seed", "0", "--percentile-metrics", "ttft,tpot,itl,e2el",
+        "--seed", "0", "--percentile-metrics", "ttft,tpot,itl,e2el",
         "--save-result", "--result-dir", str(out_dir), "--result-filename", fname,
     ]
     if "--trust-remote-code" in cfg["argv"]:
@@ -205,7 +227,7 @@ def run_config(cfg, plan, args, out_root):
         result["accuracy"] = score_probes(args.port, model, plan["probes"])
         for w in plan["workloads"]:
             log(f"{cfg['name']}: bench {w['name']}")
-            result["workloads"][w["name"]] = run_bench(cfg, w, args.port, model, out_dir)
+            result["workloads"][w["name"]] = run_bench(cfg, w, args.port, model, out_dir, out_root / "spec_bench.jsonl")
             if proc.poll() is not None:
                 result.update(status="crashed", error=f"server exited {proc.returncode} during {w['name']}")
                 break
@@ -233,6 +255,13 @@ def main():
     log(f"vllm {env['vllm']}, {len(env['gpus'])} GPU(s)")
     for w in env["warnings"]:
         log(f"WARNING: {w}")
+
+    spec_bench = out_root / "spec_bench.jsonl"
+    if any(w.get("dataset") == "spec_bench" for w in plan["workloads"]) and not spec_bench.exists():
+        try:
+            urllib.request.urlretrieve(SPEC_BENCH_URL, spec_bench)
+        except OSError as e:
+            sys.exit(f"could not fetch Spec-Bench prompts ({e}); place question.jsonl at {spec_bench}")
 
     only = set(filter(None, args.only.split(",")))
     for cfg in plan["configs"]:
