@@ -3,7 +3,7 @@ description: Sync the recipes against a vLLM release — detect stale usage and 
 argument-hint: <target-tag> [prev-tag] [--report-only] [--release-notes <file>] [--check-images]
 ---
 
-# /sync-vllm
+# /vllm-sync
 
 Run manually after an upstream vLLM release. Detects recipe content upstream has
 removed, renamed, deprecated, changed the default of, or that is used below the
@@ -22,7 +22,7 @@ skipped everywhere).
 - **Never read upstream through a Bash `git log`/`git tag` call.** rtk truncates
   that output — `git log --oneline v0.28.0..v0.29.0 | wc -l` reports 50 when the
   real answer is 58. Upstream facts come from the scripts in
-  `.claude/sync-vllm/` (which shell out directly and are not hooked), or from
+  `.claude/vllm-sync/` (which shell out directly and are not hooked), or from
   `rtk proxy "<cmd>"` for a one-off.
 - **Release tags are shallow and sit on release branches.** `v0.28.0` is not an
   ancestor of `v0.29.0`, so `prev..target` ranges are meaningless here. The tree
@@ -39,7 +39,7 @@ skipped everywhere).
 ## Pipeline
 
 All artifacts go to `.claude_workdir/reports/vllm-<target>/` (gitignored, never
-committed). Scripts live in `.claude/sync-vllm/`; `REPORT=.claude_workdir/reports/vllm-<target>`.
+committed). Scripts live in `.claude/vllm-sync/`; `REPORT=.claude_workdir/reports/vllm-<target>`.
 
 The unit of discovery is a **capability**, not a PR and not a flag diff: a
 concept users care about — a new or reworked kernel/backend (attention, MoE,
@@ -52,7 +52,7 @@ you have selected (`capabilities.py --resolve-pr N`).
 ### 1. Preflight
 
 ```bash
-python3 .claude/sync-vllm/flagset.py --tag <target>     # resolves the tag locally
+python3 .claude/vllm-sync/flagset.py --tag <target>     # resolves the tag locally
 git status --porcelain                                  # must be empty
 ```
 
@@ -65,8 +65,8 @@ git status --porcelain                                  # must be empty
 ### 2. Capability discovery
 
 ```bash
-python3 .claude/sync-vllm/parse_notes.py  --target <target> --report-dir $REPORT   # caches the notes
-python3 .claude/sync-vllm/capabilities.py --target <target> --report-dir $REPORT --draft
+python3 .claude/vllm-sync/parse_notes.py  --target <target> --report-dir $REPORT   # caches the notes
+python3 .claude/vllm-sync/capabilities.py --target <target> --report-dir $REPORT --draft
 ```
 
 Reads only the Highlights section, any Breaking Changes / Deprecations section,
@@ -94,8 +94,8 @@ evidence — leave it unbounded and the cohort step will refuse it.
 ### 4. Verify capabilities
 
 ```bash
-python3 .claude/sync-vllm/capabilities.py --target <target> --report-dir $REPORT --verify
-python3 .claude/sync-vllm/capabilities.py --target <target> --self-test     # negative test
+python3 .claude/vllm-sync/capabilities.py --target <target> --report-dir $REPORT --verify
+python3 .claude/vllm-sync/capabilities.py --target <target> --self-test     # negative test
 ```
 
 The enabling flag, env or enum value must exist at the target tag, and a cited
@@ -108,7 +108,7 @@ whenever you touch the verifier.
 ### 5. Profiles and cohorts
 
 ```bash
-node .claude/sync-vllm/profiles.mjs --report-dir $REPORT
+node .claude/vllm-sync/profiles.mjs --report-dir $REPORT
 ```
 
 Builds a deterministic profile per recipe (family, dense/MoE, quant variants,
@@ -127,9 +127,9 @@ evidence does not cover the cohort.
 ### 7. Stale-usage scan (deterministic, unchanged in spirit)
 
 ```bash
-python3 .claude/sync-vllm/inventory.py --target <target> --out $REPORT/inventory.json
-node .claude/sync-vllm/scan.mjs   --target <target> --report-dir $REPORT
-node .claude/sync-vllm/verify.mjs --target <target> --report-dir $REPORT
+python3 .claude/vllm-sync/inventory.py --target <target> --out $REPORT/inventory.json
+node .claude/vllm-sync/scan.mjs   --target <target> --report-dir $REPORT
+node .claude/vllm-sync/verify.mjs --target <target> --report-dir $REPORT
 ```
 
 `verify.mjs` groups by **root cause**: one finding per flag/env with the recipe
@@ -142,8 +142,8 @@ Step 7 asks whether a recipe's *flags* exist at its floor. This asks the prior
 question: was the *model* servable at that version at all?
 
 ```bash
-python3 .claude/sync-vllm/index_models.py --target <target>                      # arch -> introducing tag
-python3 .claude/sync-vllm/model_floors.py --target <target> --report-dir $REPORT # [--no-fetch]
+python3 .claude/vllm-sync/index_models.py --target <target>                      # arch -> introducing tag
+python3 .claude/vllm-sync/model_floors.py --target <target> --report-dir $REPORT # [--no-fetch]
 ```
 
 `index_models.py` reads `vllm/model_executor/models/registry.py` at each tag;
@@ -172,7 +172,7 @@ same commit.
 ### 8. Apply (skip entirely under `--report-only`)
 
 ```bash
-node .claude/sync-vllm/commit.mjs snapshot --report-dir $REPORT     # once, before the first edit
+node .claude/vllm-sync/commit.mjs snapshot --report-dir $REPORT     # once, before the first edit
 ```
 
 Then per logical change, in its own commit:
@@ -180,7 +180,7 @@ Then per logical change, in its own commit:
 1. make the edit with the normal editing tools — never re-serialize the YAML, or
    comments, key order and the `guide: |` block scalar are lost;
 2. ```bash
-   node .claude/sync-vllm/commit.mjs commit --report-dir $REPORT \
+   node .claude/vllm-sync/commit.mjs commit --report-dir $REPORT \
      --finding R-07 --files models/<org>/<repo>.yaml \
      --expect-paths '/model/min_vllm_version' \
      --subject '[<Org>] <subject>'
@@ -195,7 +195,7 @@ Then per logical change, in its own commit:
 ### 9. Report, then stop
 
 ```bash
-node .claude/sync-vllm/report.mjs --report-dir $REPORT [--branch sync/vllm-<target>] [--report-only]
+node .claude/vllm-sync/report.mjs --report-dir $REPORT [--branch sync/vllm-<target>] [--report-only]
 ```
 
 `report.md` is five sections and about two screens: **What shipped** /
@@ -209,7 +209,7 @@ in the report. Then **stop** — no push, no PR.
 `--check-images` (opt-in, network, strictly report-only):
 
 ```bash
-node .claude/sync-vllm/check_images.mjs --target <target> --report-dir $REPORT
+node .claude/vllm-sync/check_images.mjs --target <target> --report-dir $REPORT
 ```
 
 ## Apply rules

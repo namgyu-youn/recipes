@@ -1,6 +1,6 @@
-# sync-vllm
+# vllm-sync
 
-Tooling behind `/sync-vllm` (`.claude/commands/sync-vllm.md`). Local-only: this
+Tooling behind `/vllm-sync` (`.claude/commands/vllm-sync.md`). Local-only: this
 directory is covered by the global `**/.claude/` ignore, so nothing here can leak
 into an upstream PR. That is also why it is not under `scripts/`, which is
 tracked and ships to `vllm-project/recipes`.
@@ -86,13 +86,13 @@ images register their own; they go to one bucket and are never edited.
 
 ```bash
 REPORT=.claude_workdir/reports/vllm-0.29.0
-python3 .claude/sync-vllm/parse_notes.py  --target v0.29.0 --report-dir $REPORT
-python3 .claude/sync-vllm/capabilities.py --target v0.29.0 --report-dir $REPORT --draft
+python3 .claude/vllm-sync/parse_notes.py  --target v0.29.0 --report-dir $REPORT
+python3 .claude/vllm-sync/capabilities.py --target v0.29.0 --report-dir $REPORT --draft
 # curate capabilities.draft.yaml -> capabilities.yaml, then:
-python3 .claude/sync-vllm/capabilities.py --target v0.29.0 --report-dir $REPORT --verify
-node     .claude/sync-vllm/profiles.mjs   --report-dir $REPORT
-python3 .claude/sync-vllm/inventory.py    --target v0.29.0 --out $REPORT/inventory.json
-node     .claude/sync-vllm/scan.mjs       --target v0.29.0 --report-dir $REPORT
-node     .claude/sync-vllm/verify.mjs     --target v0.29.0 --report-dir $REPORT
-node     .claude/sync-vllm/report.mjs     --report-dir $REPORT --report-only
+python3 .claude/vllm-sync/capabilities.py --target v0.29.0 --report-dir $REPORT --verify
+node     .claude/vllm-sync/profiles.mjs   --report-dir $REPORT
+python3 .claude/vllm-sync/inventory.py    --target v0.29.0 --out $REPORT/inventory.json
+node     .claude/vllm-sync/scan.mjs       --target v0.29.0 --report-dir $REPORT
+node     .claude/vllm-sync/verify.mjs     --target v0.29.0 --report-dir $REPORT
+node     .claude/vllm-sync/report.mjs     --report-dir $REPORT --report-only
 ```

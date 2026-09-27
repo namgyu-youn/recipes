@@ -7,7 +7,7 @@
  * `guide: |` block scalars — so the raw text is the scan surface and the parsed
  * copy only answers "which block does this line belong to".
  *
- * Scope (see .claude/commands/sync-vllm.md):
+ * Scope (see .claude/commands/vllm-sync.md):
  *   editable     models/**\/*.yaml
  *   report-only  taxonomy.yaml, strategies/*.yaml, kv_store/*.yaml, scripts/,
  *                src/lib/command-synthesis.js
