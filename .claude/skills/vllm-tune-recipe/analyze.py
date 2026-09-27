@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Turn a /tune-recipe results directory into report.md.
+"""Turn a /vllm-tune-recipe results directory into report.md.
 
     python3 analyze.py <plan-dir>        # expects <plan-dir>/plan.json and <plan-dir>/results/
 

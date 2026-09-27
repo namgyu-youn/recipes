@@ -1,9 +1,9 @@
 ---
-name: tune-recipe
-description: Benchmark one recipe's serve command against one-change-at-a-time alternatives (strategy, spec decoding, attention/MoE/linear backend, tuning knobs, other checkpoints, env workarounds) on a GPU box the user can rent, gate each on accuracy and latency, and report whether anything beats the recipe. Local evidence only — never edits recipes, never opens PRs by itself. Use when the user asks to tune, benchmark, or find a faster config for a recipe, or to test a sync-vllm adoption candidate on real hardware.
+name: vllm-tune-recipe
+description: Benchmark one recipe's serve command against one-change-at-a-time alternatives (strategy, spec decoding, attention/MoE/linear backend, tuning knobs, other checkpoints, env workarounds) on a GPU box the user can rent, gate each on accuracy and latency, and report whether anything beats the recipe. Local evidence only — never edits recipes, never opens PRs by itself. Use when the user asks to tune, benchmark, or find a faster config for a recipe, or to test a vllm-sync adoption candidate on real hardware.
 ---
 
-# /tune-recipe
+# /vllm-tune-recipe
 
 Arguments: `<org>/<repo> <gpu> <count> [variant]`, e.g. `Qwen/Qwen3.6-35B-A3B rtx_pro_6000 1 nvfp4`.
 `<gpu>` is a taxonomy GPU family (`h100`, `h200`, `b200`, `b300`, `rtx_pro_6000`,
@@ -40,7 +40,7 @@ Arguments: `<org>/<repo> <gpu> <count> [variant]`, e.g. `Qwen/Qwen3.6-35B-A3B rt
 ### 1. Plan (local, no GPU)
 
 ```bash
-node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON .claude/skills/tune-recipe/plan.mjs \
+node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON .claude/skills/vllm-tune-recipe/plan.mjs \
   --recipe <org>/<repo> --gpu <gpu> --count <n> [--variant <v>] \
   [--candidates --moe-backend=b12x,--enforce-eager,ENV:VLLM_USE_V2_MODEL_RUNNER=0] \
   [--variants fp8,default] [--env NAME=value] \
@@ -55,7 +55,7 @@ Writes `.claude_workdir/tune/<org>__<repo>/<hw>x<n>-<variant>-<stamp>/plan.json`
 | recipe | `strategy-*` (other single-node strategies that reach this box), `spec-*` (spec decoding on/off, each available mode) |
 | `--variants` | `variant-<v>`: another checkpoint of the recipe with its own page defaults (skipped if it can't run or fit here) |
 | `--candidates` | always included: `--flag=value` (a backend or knob), a bare `--flag` (e.g. `--enforce-eager`), or `ENV:NAME=value` (one env var) |
-| `--cohorts` | backend values a sync-vllm cohort proposes for this recipe |
+| `--cohorts` | backend values a vllm-sync cohort proposes for this recipe |
 | repo | backend values other recipes ship for this exact GPU/family (capped by `--max-backends`, default 6) |
 | knobs | `tp-<n>` when TP auto-fit leaves GPUs idle, `mnseqs-32` when `--max-num-seqs` is below workload concurrency, `kv-fp8`, `mnbt-16384` — each only when the baseline doesn't already set it |
 
@@ -80,7 +80,7 @@ The user provides an SSH target once a box is up. Until then, stop after step 1 
 hand over the plan directory. `remote.sh` wraps the SSH side:
 
 ```bash
-S=.claude/skills/tune-recipe/remote.sh; H=<user@host>; P=<port>; D=<plan-dir>
+S=.claude/skills/vllm-tune-recipe/remote.sh; H=<user@host>; P=<port>; D=<plan-dir>
 $S $H $P start  $D [--only a,b] [--workloads chat,single_user] [--gsm8k 500]   # queues behind a running sweep
 $S $H $P start  $D --only baseline --workloads none   # smoke: does it start, is it correct
 $S $H $P watch  $D     # prints new log lines, exits when the runner is idle — run it as a Monitor
@@ -116,7 +116,7 @@ $S $H $P stop   $D
 ### 3. Analyze (local)
 
 ```bash
-$S $H $P pull $D && python3 .claude/skills/tune-recipe/analyze.py $D
+$S $H $P pull $D && python3 .claude/skills/vllm-tune-recipe/analyze.py $D
 ```
 
 `report.md` opens with warnings — including a checkpoint whose layers are labeled
@@ -160,7 +160,7 @@ and its losses, resume, `--env`/`--variants`/env and bare-flag candidates,
 warning, draft acceptance and the profiling pass. Run it after changing any script:
 
 ```bash
-bash .claude/skills/tune-recipe/selftest/selftest.sh
+bash .claude/skills/vllm-tune-recipe/selftest/selftest.sh
 ```
 
 `remote.sh` is not covered by the selftest; exercise `start`/`watch`/`pull` against a

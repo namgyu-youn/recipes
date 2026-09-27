@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // Build a tuning plan for one recipe on one rentable GPU box.
 //
-//   node .claude/skills/tune-recipe/plan.mjs --recipe Qwen/Qwen3.6-35B-A3B \
+//   node .claude/skills/vllm-tune-recipe/plan.mjs --recipe Qwen/Qwen3.6-35B-A3B \
 //     --gpu rtx_pro_6000 --count 1 [--variant nvfp4] [--candidates --moe-backend=b12x,...]
-//     [--cohorts <sync-vllm cohorts.json>] [--max-backends 6] [--no-knobs] [--out <dir>]
+//     [--cohorts <vllm-sync cohorts.json>] [--max-backends 6] [--no-knobs] [--out <dir>]
 //     [--variants fp8,default] [--env NAME=value ...]
 //
 // --candidates takes `--flag=value` (one backend/knob), a bare `--flag`
@@ -352,7 +352,7 @@ function main() {
     }
   }
 
-  // Backend candidates: explicit > sync-vllm cohort > what other recipes ship here.
+  // Backend candidates: explicit > vllm-sync cohort > what other recipes ship here.
   const isMoe = recipe.model?.architecture === "moe";
   const baseAttn = flagValue(baseArgv, "--attention-backend") || "";
   const usesMla = /MLA/i.test(baseAttn);

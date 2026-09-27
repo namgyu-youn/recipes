@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Execute a /tune-recipe plan on the GPU box. Standard library only.
+"""Execute a /vllm-tune-recipe plan on the GPU box. Standard library only.
 
     python3 runner.py plan.json --out results/ [--only baseline,kv-fp8]
                       [--port 8000] [--ready-timeout 1800]
