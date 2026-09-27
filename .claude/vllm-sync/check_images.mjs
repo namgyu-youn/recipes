@@ -13,11 +13,9 @@
  */
 
 import { readFileSync, writeFileSync, readdirSync, statSync } from "node:fs";
-import { join, relative, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join, relative } from "node:path";
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const REPO = join(HERE, "..", "..");
+const REPO = process.cwd(); // the checkout being scanned, not this script's own
 
 const MANIFEST_ACCEPT = [
   "application/vnd.oci.image.index.v1+json",

@@ -40,6 +40,8 @@ skipped everywhere).
 
 All artifacts go to `.claude_workdir/reports/vllm-<target>/` (gitignored, never
 committed). Scripts live in `.claude/vllm-sync/`; `REPORT=.claude_workdir/reports/vllm-<target>`.
+Run them from the repo root: they scan the checkout in the current directory,
+so they work through a symlink from a worktree of this branch.
 
 The unit of discovery is a **capability**, not a PR and not a flag diff: a
 concept users care about — a new or reworked kernel/backend (attention, MoE,

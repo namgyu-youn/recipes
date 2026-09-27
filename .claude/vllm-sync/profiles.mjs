@@ -20,12 +20,10 @@
  */
 
 import { readFileSync, writeFileSync, readdirSync, statSync } from "node:fs";
-import { join, relative, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join, relative } from "node:path";
 import yaml from "js-yaml";
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const REPO = join(HERE, "..", "..");
+const REPO = process.cwd(); // the checkout being scanned, not this script's own
 
 const BACKEND_FLAGS = ["--attention-backend", "--moe-backend", "--linear-backend"];
 

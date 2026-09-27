@@ -9,12 +9,10 @@
  */
 
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import yaml from "js-yaml";
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const REPORTS = join(HERE, "..", "..", ".claude_workdir", "reports");
+const REPORTS = join(process.cwd(), ".claude_workdir", "reports");
 
 const CATEGORY_WORD = {
   removed: "removed upstream",

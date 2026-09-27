@@ -24,11 +24,9 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync, existsSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 import yaml from "js-yaml";
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const REPO = join(HERE, "..", "..");
+const REPO = process.cwd(); // the checkout being scanned, not this script's own
 const PUBLIC = join(REPO, "public");
 // Refuse the base branches rather than demand one naming scheme: PR branches
 // are named for the change, not for the tool that found it.

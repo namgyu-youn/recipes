@@ -23,7 +23,7 @@ import { fileURLToPath } from "node:url";
 import yaml from "js-yaml";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const REPO = join(HERE, "..", "..");
+const REPO = process.cwd(); // the checkout being scanned, not this script's own
 
 const REPORT_ONLY_FILES = [
   "taxonomy.yaml",

@@ -32,7 +32,7 @@ import sys
 from functools import lru_cache
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path.cwd()  # the checkout being scanned, not this script's own
 VLLM_CLONE = REPO_ROOT / ".claude_workdir" / "vllm"
 
 # Path candidates per role, newest layout first. Upstream moves these between

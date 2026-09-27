@@ -33,7 +33,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const REPO = join(HERE, "..", "..");
+const REPO = process.cwd(); // the checkout being scanned, not this script's own
 const CLONE = join(REPO, ".claude_workdir", "vllm");
 
 /**
